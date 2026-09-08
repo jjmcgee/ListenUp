@@ -1,0 +1,305 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		1862F56C5A37417DB09BE135 /* CircularProgressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6F70C93E9284ECA977D1441 /* CircularProgressView.swift */; };
+		2EC8E08C682140A7947317ED /* WatchSyncManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D28E065589C944358621E4D0 /* WatchSyncManager.swift */; };
+		4C15A38FFFAA4A7AA21CCD05 /* ArtworkImageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88D9E47BD7214E079FEFFD9C /* ArtworkImageView.swift */; };
+		7301B936A8644908AE641147 /* MiniPlayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B27B95033304496F9B146AD3 /* MiniPlayerView.swift */; };
+		77B344F472044FE38E2658B6 /* LibraryRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 881078C2EC8141D3A883D0E9 /* LibraryRow.swift */; };
+		78EC711B28434DFC9F43D4B4 /* PlaybackSpeedMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECB0517D89B745B197CE3D03 /* PlaybackSpeedMenu.swift */; };
+		7B62E788EF7A430583EE6C4F /* FileImporterService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6450DCAC40AF41AA8DA0A850 /* FileImporterService.swift */; };
+		8BE5C2555E644D329AEE6849 /* LibraryItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38A8B900358F422EAE75297F /* LibraryItem.swift */; };
+		9CF5D1EEADD8458CBD2835A4 /* ListenUpApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6F519C3DD3BC405BABA01D01 /* ListenUpApp.swift */; };
+		C1E97DE5556A418AB82C9AEC /* SleepTimerSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E3857B0F7F6446DA97DBDA0 /* SleepTimerSheet.swift */; };
+		C26B4FFBCE1C4C6DACEF7713 /* LibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D85A4510F15047778D1131ED /* LibraryView.swift */; };
+		D038539DF3B4461DAD88B71E /* ItemKind.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1410648F0811493B8BE5CD2B /* ItemKind.swift */; };
+		D779B81BA0134A7987C823CC /* FullPlayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D14C52A963544626A0115DE6 /* FullPlayerView.swift */; };
+		F794CFBB2A4545BB8D03192A /* AudioPlayerManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1065A44E1A1141238F2D7C55 /* AudioPlayerManager.swift */; };
+		FC1EBEEC74AF4D199A29DD18 /* TimeFormatting.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01D000F5E9994231B019411A /* TimeFormatting.swift */; };
+		E01E00012DC24155864ECE01 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = E01E00022DC24155864ECE02 /* Assets.xcassets */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		01D000F5E9994231B019411A /* TimeFormatting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TimeFormatting.swift; path = ListenUp/Utilities/TimeFormatting.swift; sourceTree = "<group>"; };
+		1065A44E1A1141238F2D7C55 /* AudioPlayerManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AudioPlayerManager.swift; path = ListenUp/Services/AudioPlayerManager.swift; sourceTree = "<group>"; };
+		1410648F0811493B8BE5CD2B /* ItemKind.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ItemKind.swift; path = ListenUp/Models/ItemKind.swift; sourceTree = "<group>"; };
+		38A8B900358F422EAE75297F /* LibraryItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = LibraryItem.swift; path = ListenUp/Models/LibraryItem.swift; sourceTree = "<group>"; };
+		6139F0DE69004A37BE70910F /* ListenUp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ListenUp.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		6450DCAC40AF41AA8DA0A850 /* FileImporterService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FileImporterService.swift; path = ListenUp/Services/FileImporterService.swift; sourceTree = "<group>"; };
+		6F519C3DD3BC405BABA01D01 /* ListenUpApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ListenUpApp.swift; path = ListenUp/ListenUpApp.swift; sourceTree = "<group>"; };
+		881078C2EC8141D3A883D0E9 /* LibraryRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = LibraryRow.swift; path = ListenUp/Views/Library/LibraryRow.swift; sourceTree = "<group>"; };
+		88D9E47BD7214E079FEFFD9C /* ArtworkImageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ArtworkImageView.swift; path = ListenUp/Views/Components/ArtworkImageView.swift; sourceTree = "<group>"; };
+		8E3857B0F7F6446DA97DBDA0 /* SleepTimerSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SleepTimerSheet.swift; path = ListenUp/Views/Player/SleepTimerSheet.swift; sourceTree = "<group>"; };
+		B27B95033304496F9B146AD3 /* MiniPlayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MiniPlayerView.swift; path = ListenUp/Views/Player/MiniPlayerView.swift; sourceTree = "<group>"; };
+		D14C52A963544626A0115DE6 /* FullPlayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FullPlayerView.swift; path = ListenUp/Views/Player/FullPlayerView.swift; sourceTree = "<group>"; };
+		D28E065589C944358621E4D0 /* WatchSyncManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = WatchSyncManager.swift; path = ListenUp/Services/WatchSyncManager.swift; sourceTree = "<group>"; };
+		D85A4510F15047778D1131ED /* LibraryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = LibraryView.swift; path = ListenUp/Views/Library/LibraryView.swift; sourceTree = "<group>"; };
+		ECB0517D89B745B197CE3D03 /* PlaybackSpeedMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PlaybackSpeedMenu.swift; path = ListenUp/Views/Player/PlaybackSpeedMenu.swift; sourceTree = "<group>"; };
+		F6F70C93E9284ECA977D1441 /* CircularProgressView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CircularProgressView.swift; path = ListenUp/Views/Components/CircularProgressView.swift; sourceTree = "<group>"; };
+		E01E00022DC24155864ECE02 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Assets.xcassets; path = ListenUp/Assets.xcassets; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		787B77043FB24B41B90958A4 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		B01D6459131145F087D837C8 = {
+			isa = PBXGroup;
+			children = (
+				6F519C3DD3BC405BABA01D01 /* ListenUpApp.swift */,
+				1410648F0811493B8BE5CD2B /* ItemKind.swift */,
+				38A8B900358F422EAE75297F /* LibraryItem.swift */,
+				1065A44E1A1141238F2D7C55 /* AudioPlayerManager.swift */,
+				6450DCAC40AF41AA8DA0A850 /* FileImporterService.swift */,
+				D28E065589C944358621E4D0 /* WatchSyncManager.swift */,
+				01D000F5E9994231B019411A /* TimeFormatting.swift */,
+				88D9E47BD7214E079FEFFD9C /* ArtworkImageView.swift */,
+				F6F70C93E9284ECA977D1441 /* CircularProgressView.swift */,
+				881078C2EC8141D3A883D0E9 /* LibraryRow.swift */,
+				D85A4510F15047778D1131ED /* LibraryView.swift */,
+				D14C52A963544626A0115DE6 /* FullPlayerView.swift */,
+				B27B95033304496F9B146AD3 /* MiniPlayerView.swift */,
+				ECB0517D89B745B197CE3D03 /* PlaybackSpeedMenu.swift */,
+				8E3857B0F7F6446DA97DBDA0 /* SleepTimerSheet.swift */,
+				E01E00022DC24155864ECE02 /* Assets.xcassets */,
+				EF8AB5528B0B46AE86E26C6D /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		EF8AB5528B0B46AE86E26C6D /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				6139F0DE69004A37BE70910F /* ListenUp.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		A640A0AB6135472FA365FE71 /* ListenUp */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A00E46D0AA2041D08D45FE97 /* Build configuration list for PBXNativeTarget "ListenUp" */;
+			buildPhases = (
+				A4F57192156845579E6ACF88 /* Sources */,
+				787B77043FB24B41B90958A4 /* Frameworks */,
+				2AD2BF34B9F64047A63A5BD5 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = ListenUp;
+			productName = ListenUp;
+			productReference = 6139F0DE69004A37BE70910F /* ListenUp.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		D0DAFF0D033744C688735580 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastUpgradeCheck = 1600;
+				TargetAttributes = {
+					A640A0AB6135472FA365FE71 = {
+						CreatedOnToolsVersion = 16.0;
+					};
+				};
+			};
+			buildConfigurationList = E5185BD1E5E04E1197F6F1F1 /* Build configuration list for PBXProject "ListenUp" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = B01D6459131145F087D837C8;
+			productRefGroup = EF8AB5528B0B46AE86E26C6D /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				A640A0AB6135472FA365FE71 /* ListenUp */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		2AD2BF34B9F64047A63A5BD5 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E01E00012DC24155864ECE01 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		A4F57192156845579E6ACF88 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				9CF5D1EEADD8458CBD2835A4 /* ListenUpApp.swift in Sources */,
+				D038539DF3B4461DAD88B71E /* ItemKind.swift in Sources */,
+				8BE5C2555E644D329AEE6849 /* LibraryItem.swift in Sources */,
+				F794CFBB2A4545BB8D03192A /* AudioPlayerManager.swift in Sources */,
+				7B62E788EF7A430583EE6C4F /* FileImporterService.swift in Sources */,
+				2EC8E08C682140A7947317ED /* WatchSyncManager.swift in Sources */,
+				FC1EBEEC74AF4D199A29DD18 /* TimeFormatting.swift in Sources */,
+				4C15A38FFFAA4A7AA21CCD05 /* ArtworkImageView.swift in Sources */,
+				1862F56C5A37417DB09BE135 /* CircularProgressView.swift in Sources */,
+				77B344F472044FE38E2658B6 /* LibraryRow.swift in Sources */,
+				C26B4FFBCE1C4C6DACEF7713 /* LibraryView.swift in Sources */,
+				D779B81BA0134A7987C823CC /* FullPlayerView.swift in Sources */,
+				7301B936A8644908AE641147 /* MiniPlayerView.swift in Sources */,
+				78EC711B28434DFC9F43D4B4 /* PlaybackSpeedMenu.swift in Sources */,
+				C1E97DE5556A418AB82C9AEC /* SleepTimerSheet.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		1767C95A2DC24155864ECE6D /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GENERATE_ASSET_SYMBOLS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = NO;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = M29WM7FZTK;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = ListenUp/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = scot.mcg.ListenUp;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		84986A3FD51C4D4297D1B16E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GENERATE_ASSET_SYMBOLS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = NO;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = M29WM7FZTK;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = ListenUp/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = scot.mcg.ListenUp;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		B1D10A99D6C04FE596F90292 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Debug;
+		};
+		CF137AAD9D374A4B80B77E40 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		A00E46D0AA2041D08D45FE97 /* Build configuration list for PBXNativeTarget "ListenUp" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				84986A3FD51C4D4297D1B16E /* Debug */,
+				1767C95A2DC24155864ECE6D /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		E5185BD1E5E04E1197F6F1F1 /* Build configuration list for PBXProject "ListenUp" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B1D10A99D6C04FE596F90292 /* Debug */,
+				CF137AAD9D374A4B80B77E40 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = D0DAFF0D033744C688735580 /* Project object */;
+}

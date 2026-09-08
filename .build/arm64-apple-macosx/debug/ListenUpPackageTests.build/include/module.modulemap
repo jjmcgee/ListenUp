@@ -1,0 +1,3 @@
+module ListenUpPackageTests {
+    header "/Users/john/Develop/ListenUp/.build/arm64-apple-macosx/debug/ListenUpPackageTests.build/include/ListenUpPackageTests-Swift.h"
+}
