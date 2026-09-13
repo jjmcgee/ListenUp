@@ -38,6 +38,75 @@ struct ListenUpTests {
         #expect(TimeFormatting.formatVerbalDuration(5400) == "1 hr 30 min")
     }
     
+    @Test("TimeFormatting formats chapter start timestamp as HH:mm:ss")
+    func testFormatChapterTimestamp() {
+        #expect(TimeFormatting.formatChapterTimestamp(0) == "00:00:00")
+        #expect(TimeFormatting.formatChapterTimestamp(75) == "00:01:15")
+        #expect(TimeFormatting.formatChapterTimestamp(3600) == "01:00:00")
+        #expect(TimeFormatting.formatChapterTimestamp(10367) == "02:52:47")
+    }
+    
+    @Test("TimeFormatting formats chapter duration as mm:ss or HH:mm:ss")
+    func testFormatChapterDuration() {
+        #expect(TimeFormatting.formatChapterDuration(35) == "00:35")
+        #expect(TimeFormatting.formatChapterDuration(423) == "07:03")
+        #expect(TimeFormatting.formatChapterDuration(586) == "09:46")
+        #expect(TimeFormatting.formatChapterDuration(3665) == "01:01:05")
+    }
+    
+    @Test("TimeFormatting formats chapter remaining countdown matching -mm:ss")
+    func testFormatChapterRemaining() {
+        #expect(TimeFormatting.formatChapterRemaining(0) == "-00:00")
+        #expect(TimeFormatting.formatChapterRemaining(248) == "-04:08")
+        #expect(TimeFormatting.formatChapterRemaining(35) == "-00:35")
+        #expect(TimeFormatting.formatChapterRemaining(3665) == "-01:01:05")
+    }
+    
+    // MARK: - Chapter Model & Navigation Tests
+    
+    @Test("ChapterInfo correctly computes end time and properties")
+    func testChapterInfoProperties() {
+        let chapter = ChapterInfo(
+            index: 32,
+            title: "Game #2: Somewhere in Kentucky, Four Days Later",
+            startTime: 10331.0,
+            duration: 35.0
+        )
+        
+        #expect(chapter.index == 32)
+        #expect(chapter.title == "Game #2: Somewhere in Kentucky, Four Days Later")
+        #expect(chapter.startTime == 10331.0)
+        #expect(chapter.duration == 35.0)
+        #expect(chapter.endTime == 10366.0)
+    }
+    
+    @Test("Chapter navigation correctly maps playback position to active chapter")
+    func testChapterLookupMath() {
+        let ch1 = ChapterInfo(index: 0, title: "Chapter 1", startTime: 0.0, duration: 300.0)
+        let ch2 = ChapterInfo(index: 1, title: "Chapter 2", startTime: 300.0, duration: 500.0)
+        let ch3 = ChapterInfo(index: 2, title: "Chapter 3", startTime: 800.0, duration: 400.0)
+        let chapters = [ch1, ch2, ch3]
+        
+        func findChapter(at time: Double) -> ChapterInfo? {
+            for c in chapters {
+                if time >= c.startTime && time < c.endTime {
+                    return c
+                }
+            }
+            if let last = chapters.last, time >= last.startTime {
+                return last
+            }
+            return chapters.first
+        }
+        
+        #expect(findChapter(at: 0.0)?.index == 0)
+        #expect(findChapter(at: 150.0)?.index == 0)
+        #expect(findChapter(at: 300.0)?.index == 1)
+        #expect(findChapter(at: 799.0)?.index == 1)
+        #expect(findChapter(at: 800.0)?.index == 2)
+        #expect(findChapter(at: 1250.0)?.index == 2)
+    }
+    
     // MARK: - SwiftData Model & CloudKit Tests
     
     @Test("LibraryItem initializes with valid CloudKit defaults")

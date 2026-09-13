@@ -367,30 +367,6 @@ extern "C" {
 
 #if defined(__OBJC__)
 
-/// Robust, Swift 6 compliant audio playback engine for ListenUp.
-/// Key Architectural Features:
-/// <ul>
-///   <li>
-///     Continuous virtual timeline across multi-part audiobooks using <code>AVQueuePlayer</code>.
-///   </li>
-///   <li>
-///     Automatic track chaining without physical file concatenation.
-///   </li>
-///   <li>
-///     System-level integration with <code>AVAudioSession</code>, <code>MPNowPlayingInfoCenter</code>, and <code>MPRemoteCommandCenter</code>.
-///   </li>
-///   <li>
-///     Audio interruption, route change handling, and customizable sleep timers.
-///   </li>
-///   <li>
-///     Strictly bound to <code>@MainActor</code>.
-///   </li>
-/// </ul>
-SWIFT_CLASS("_TtC8ListenUp18AudioPlayerManager")
-@interface AudioPlayerManager : NSObject
-- (nonnull instancetype)init OBJC_DESIGNATED_INITIALIZER;
-@end
-
 /// Multi-device sync manager coordinating lightweight playback state and offline audio file transfers
 /// via WatchConnectivity (<code>WCSession</code>).
 /// Invariant: State conflict resolution follows “latest <code>lastUpdated</code> timestamp wins”.

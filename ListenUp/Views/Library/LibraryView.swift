@@ -3,7 +3,7 @@ import SwiftData
 import UniformTypeIdentifiers
 
 /// The root library screen displaying audiobooks and folders,
-/// providing directory drilling, search, filtering, and `.fileImporter` ingestion.
+/// providing directory drilling, search filtering, and `.fileImporter` ingestion.
 public struct LibraryView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(AudioPlayerManager.self) private var player
@@ -11,14 +11,15 @@ public struct LibraryView: View {
     /// Optional parent folder for recursive drilling. When `nil`, shows root library.
     public let parentFolder: LibraryItem?
     
+    /// Search query passed from the bottom floating navigation bar or internal state.
+    public let searchText: String
+    
     @Query private var allItems: [LibraryItem]
     
-    @State private var searchText: String = ""
     @State private var filterSelection: FilterOption = .all
     @State private var isShowingFileImporter: Bool = false
     @State private var isImporting: Bool = false
     @State private var importErrorMessage: String? = nil
-    @State private var isShowingFullPlayer: Bool = false
     
     public enum FilterOption: String, CaseIterable, Identifiable {
         case all = "All"
@@ -28,83 +29,70 @@ public struct LibraryView: View {
         public var id: String { rawValue }
     }
     
-    public init(parentFolder: LibraryItem? = nil) {
+    public init(parentFolder: LibraryItem? = nil, searchText: String = "") {
         self.parentFolder = parentFolder
+        self.searchText = searchText
     }
     
     public var body: some View {
         NavigationStack {
-            ZStack(alignment: .bottom) {
-                VStack(spacing: 0) {
-                    if parentFolder == nil && !allItems.isEmpty {
-                        Picker("Filter", selection: $filterSelection) {
-                            ForEach(FilterOption.allCases) { option in
-                                Text(option.rawValue).tag(option)
-                            }
+            VStack(spacing: 0) {
+                if parentFolder == nil && !allItems.isEmpty {
+                    Picker("Filter", selection: $filterSelection) {
+                        ForEach(FilterOption.allCases) { option in
+                            Text(option.rawValue).tag(option)
                         }
-                        .pickerStyle(.segmented)
-                        .padding(.horizontal)
-                        .padding(.vertical, 8)
                     }
-                    
-                    // Main Library List or Empty State
-                    if displayedItems.isEmpty {
-                        emptyStateView
-                    } else {
-                        List {
-                            ForEach(displayedItems) { item in
-                                if item.kind == .folder {
-                                    NavigationLink {
-                                        LibraryView(parentFolder: item)
-                                    } label: {
-                                        LibraryRow(
-                                            item: item,
-                                            isCurrentlyPlaying: isItemPlaying(item),
-                                            onDelete: {
-                                                deleteItem(item)
-                                            }
-                                        )
-                                    }
-                                } else {
+                    .pickerStyle(.segmented)
+                    .padding(.horizontal)
+                    .padding(.vertical, 8)
+                }
+                
+                // Main Library List or Empty State
+                if displayedItems.isEmpty {
+                    emptyStateView
+                } else {
+                    List {
+                        ForEach(displayedItems) { item in
+                            if item.kind == .folder {
+                                NavigationLink {
+                                    LibraryView(parentFolder: item, searchText: searchText)
+                                } label: {
                                     LibraryRow(
                                         item: item,
                                         isCurrentlyPlaying: isItemPlaying(item),
-                                        onPlay: {
-                                            player.play(item: item)
-                                        },
                                         onDelete: {
                                             deleteItem(item)
                                         }
                                     )
-                                    .onTapGesture {
+                                }
+                            } else {
+                                LibraryRow(
+                                    item: item,
+                                    isCurrentlyPlaying: isItemPlaying(item),
+                                    onPlay: {
                                         player.play(item: item)
+                                    },
+                                    onDelete: {
+                                        deleteItem(item)
                                     }
+                                )
+                                .onTapGesture {
+                                    player.play(item: item)
                                 }
                             }
-                            .onDelete(perform: deleteItems)
-                            
-                            // Extra spacer padding at bottom to prevent floating mini-player from occluding items
-                            if player.currentItem != nil {
-                                Color.clear
-                                    .frame(height: 70)
-                                    .listRowBackground(Color.clear)
-                            }
                         }
-                        .listStyle(.plain)
+                        .onDelete(perform: deleteItems)
+                        
+                        // Extra bottom padding to ensure items scroll clear of the floating bottom bar & mini player
+                        Color.clear
+                            .frame(height: 120)
+                            .listRowBackground(Color.clear)
                     }
-                }
-                
-                // Floating Mini-Player Dock
-                if player.currentItem != nil {
-                    MiniPlayerView(player: player) {
-                        isShowingFullPlayer = true
-                    }
-                    .padding(.bottom, 10)
-                    .transition(.move(edge: .bottom).combined(with: .opacity))
+                    .listStyle(.plain)
                 }
             }
-            .navigationTitle(parentFolder?.title ?? "ListenUp")
-            .searchable(text: $searchText, prompt: "Search audiobooks & courses...")
+            .navigationTitle(parentFolder?.title ?? "Library")
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
                     Button {
@@ -120,9 +108,6 @@ public struct LibraryView: View {
                 allowsMultipleSelection: false
             ) { result in
                 handleImportResult(result)
-            }
-            .sheet(isPresented: $isShowingFullPlayer) {
-                FullPlayerView(player: player)
             }
             .overlay {
                 if isImporting {
@@ -157,11 +142,13 @@ public struct LibraryView: View {
             baseItems = allItems.filter { $0.parent == nil }
         }
         
+        let trimmedQuery = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+        
         return baseItems.filter { item in
             // Search filter
-            let matchesSearch = searchText.isEmpty ||
-                item.title.localizedCaseInsensitiveContains(searchText) ||
-                (item.author?.localizedCaseInsensitiveContains(searchText) ?? false)
+            let matchesSearch = trimmedQuery.isEmpty ||
+                item.title.localizedCaseInsensitiveContains(trimmedQuery) ||
+                (item.author?.localizedCaseInsensitiveContains(trimmedQuery) ?? false)
             
             guard matchesSearch else { return false }
             
@@ -190,31 +177,46 @@ public struct LibraryView: View {
     
     private var emptyStateView: some View {
         VStack(spacing: 16) {
-            Image(systemName: "books.vertical")
-                .font(.system(size: 64))
-                .foregroundStyle(Color.secondary.opacity(0.4))
-            
-            Text(parentFolder == nil ? "Your Library is Empty" : "Folder is Empty")
-                .font(.title3.weight(.bold))
-            
-            Text("Import single audiobooks (.m4b, .m4a, .mp3) or entire multi-track course folders.")
-                .font(.subheadline)
-                .foregroundStyle(Color.secondary)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, 32)
-            
-            Button {
-                isShowingFileImporter = true
-            } label: {
-                Label("Import Audio Files", systemImage: "square.and.arrow.down")
-                    .font(.headline)
-                    .padding(.horizontal, 20)
-                    .padding(.vertical, 10)
-                    .background(Color.accentColor)
-                    .foregroundStyle(.white)
-                    .clipShape(Capsule())
+            if !searchText.isEmpty {
+                Image(systemName: "magnifyingglass")
+                    .font(.system(size: 56))
+                    .foregroundStyle(Color.secondary.opacity(0.4))
+                
+                Text("No Results Found")
+                    .font(.title3.weight(.bold))
+                
+                Text("No audiobooks matching \"\(searchText)\" were found in your library.")
+                    .font(.subheadline)
+                    .foregroundStyle(Color.secondary)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 32)
+            } else {
+                Image(systemName: "books.vertical")
+                    .font(.system(size: 64))
+                    .foregroundStyle(Color.secondary.opacity(0.4))
+                
+                Text(parentFolder == nil ? "Your Library is Empty" : "Folder is Empty")
+                    .font(.title3.weight(.bold))
+                
+                Text("Import single audiobooks (.m4b, .m4a, .mp3) or entire multi-track course folders.")
+                    .font(.subheadline)
+                    .foregroundStyle(Color.secondary)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 32)
+                
+                Button {
+                    isShowingFileImporter = true
+                } label: {
+                    Label("Import Audio Files", systemImage: "square.and.arrow.down")
+                        .font(.headline)
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 10)
+                        .background(Color.accentColor)
+                        .foregroundStyle(.white)
+                        .clipShape(Capsule())
+                }
+                .padding(.top, 8)
             }
-            .padding(.top, 8)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .padding()

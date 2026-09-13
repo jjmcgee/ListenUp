@@ -28,6 +28,10 @@
       "inputs" : [
         {
           "kind" : "file",
+          "name" : "/Users/john/Develop/ListenUp/ListenUp/Models/ChapterInfo.swift"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/john/Develop/ListenUp/ListenUp/Models/ItemKind.swift"
         },
         {
@@ -37,6 +41,10 @@
         {
           "kind" : "file",
           "name" : "/Users/john/Develop/ListenUp/ListenUp/Services/AudioPlayerManager.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/john/Develop/ListenUp/ListenUp/Services/ChapterExtractor.swift"
         },
         {
           "kind" : "file",
@@ -60,11 +68,23 @@
         },
         {
           "kind" : "file",
+          "name" : "/Users/john/Develop/ListenUp/ListenUp/Views/Components/FloatingNavBar.swift"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/john/Develop/ListenUp/ListenUp/Views/Library/LibraryRow.swift"
         },
         {
           "kind" : "file",
           "name" : "/Users/john/Develop/ListenUp/ListenUp/Views/Library/LibraryView.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/john/Develop/ListenUp/ListenUp/Views/MainTabView.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/john/Develop/ListenUp/ListenUp/Views/Player/ChaptersSheet.swift"
         },
         {
           "kind" : "file",
@@ -84,6 +104,18 @@
         },
         {
           "kind" : "file",
+          "name" : "/Users/john/Develop/ListenUp/ListenUp/Views/Profile/ProfileView.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/john/Develop/ListenUp/ListenUp/Views/Search/SearchView.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/john/Develop/ListenUp/ListenUp/Views/Settings/SettingsView.swift"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/john/Develop/ListenUp/.build/arm64-apple-macosx/debug/swift-version--58304C5D6DBC2206.txt"
         },
         {
@@ -95,20 +127,28 @@
       "moduleName" : "ListenUp",
       "moduleOutputPath" : "/Users/john/Develop/ListenUp/.build/arm64-apple-macosx/debug/Modules/ListenUp.swiftmodule",
       "objects" : [
+        "/Users/john/Develop/ListenUp/.build/arm64-apple-macosx/debug/ListenUp.build/ChapterInfo.swift.o",
         "/Users/john/Develop/ListenUp/.build/arm64-apple-macosx/debug/ListenUp.build/ItemKind.swift.o",
         "/Users/john/Develop/ListenUp/.build/arm64-apple-macosx/debug/ListenUp.build/LibraryItem.swift.o",
         "/Users/john/Develop/ListenUp/.build/arm64-apple-macosx/debug/ListenUp.build/AudioPlayerManager.swift.o",
+        "/Users/john/Develop/ListenUp/.build/arm64-apple-macosx/debug/ListenUp.build/ChapterExtractor.swift.o",
         "/Users/john/Develop/ListenUp/.build/arm64-apple-macosx/debug/ListenUp.build/FileImporterService.swift.o",
         "/Users/john/Develop/ListenUp/.build/arm64-apple-macosx/debug/ListenUp.build/WatchSyncManager.swift.o",
         "/Users/john/Develop/ListenUp/.build/arm64-apple-macosx/debug/ListenUp.build/TimeFormatting.swift.o",
         "/Users/john/Develop/ListenUp/.build/arm64-apple-macosx/debug/ListenUp.build/ArtworkImageView.swift.o",
         "/Users/john/Develop/ListenUp/.build/arm64-apple-macosx/debug/ListenUp.build/CircularProgressView.swift.o",
+        "/Users/john/Develop/ListenUp/.build/arm64-apple-macosx/debug/ListenUp.build/FloatingNavBar.swift.o",
         "/Users/john/Develop/ListenUp/.build/arm64-apple-macosx/debug/ListenUp.build/LibraryRow.swift.o",
         "/Users/john/Develop/ListenUp/.build/arm64-apple-macosx/debug/ListenUp.build/LibraryView.swift.o",
+        "/Users/john/Develop/ListenUp/.build/arm64-apple-macosx/debug/ListenUp.build/MainTabView.swift.o",
+        "/Users/john/Develop/ListenUp/.build/arm64-apple-macosx/debug/ListenUp.build/ChaptersSheet.swift.o",
         "/Users/john/Develop/ListenUp/.build/arm64-apple-macosx/debug/ListenUp.build/FullPlayerView.swift.o",
         "/Users/john/Develop/ListenUp/.build/arm64-apple-macosx/debug/ListenUp.build/MiniPlayerView.swift.o",
         "/Users/john/Develop/ListenUp/.build/arm64-apple-macosx/debug/ListenUp.build/PlaybackSpeedMenu.swift.o",
-        "/Users/john/Develop/ListenUp/.build/arm64-apple-macosx/debug/ListenUp.build/SleepTimerSheet.swift.o"
+        "/Users/john/Develop/ListenUp/.build/arm64-apple-macosx/debug/ListenUp.build/SleepTimerSheet.swift.o",
+        "/Users/john/Develop/ListenUp/.build/arm64-apple-macosx/debug/ListenUp.build/ProfileView.swift.o",
+        "/Users/john/Develop/ListenUp/.build/arm64-apple-macosx/debug/ListenUp.build/SearchView.swift.o",
+        "/Users/john/Develop/ListenUp/.build/arm64-apple-macosx/debug/ListenUp.build/SettingsView.swift.o"
       ],
       "otherArguments" : [
         "-target",
@@ -163,6 +203,10 @@
       "outputs" : [
         {
           "kind" : "file",
+          "name" : "/Users/john/Develop/ListenUp/.build/arm64-apple-macosx/debug/ListenUp.build/ChapterInfo.swift.o"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/john/Develop/ListenUp/.build/arm64-apple-macosx/debug/ListenUp.build/ItemKind.swift.o"
         },
         {
@@ -172,6 +216,10 @@
         {
           "kind" : "file",
           "name" : "/Users/john/Develop/ListenUp/.build/arm64-apple-macosx/debug/ListenUp.build/AudioPlayerManager.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/john/Develop/ListenUp/.build/arm64-apple-macosx/debug/ListenUp.build/ChapterExtractor.swift.o"
         },
         {
           "kind" : "file",
@@ -195,11 +243,23 @@
         },
         {
           "kind" : "file",
+          "name" : "/Users/john/Develop/ListenUp/.build/arm64-apple-macosx/debug/ListenUp.build/FloatingNavBar.swift.o"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/john/Develop/ListenUp/.build/arm64-apple-macosx/debug/ListenUp.build/LibraryRow.swift.o"
         },
         {
           "kind" : "file",
           "name" : "/Users/john/Develop/ListenUp/.build/arm64-apple-macosx/debug/ListenUp.build/LibraryView.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/john/Develop/ListenUp/.build/arm64-apple-macosx/debug/ListenUp.build/MainTabView.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/john/Develop/ListenUp/.build/arm64-apple-macosx/debug/ListenUp.build/ChaptersSheet.swift.o"
         },
         {
           "kind" : "file",
@@ -219,25 +279,45 @@
         },
         {
           "kind" : "file",
+          "name" : "/Users/john/Develop/ListenUp/.build/arm64-apple-macosx/debug/ListenUp.build/ProfileView.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/john/Develop/ListenUp/.build/arm64-apple-macosx/debug/ListenUp.build/SearchView.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/john/Develop/ListenUp/.build/arm64-apple-macosx/debug/ListenUp.build/SettingsView.swift.o"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/john/Develop/ListenUp/.build/arm64-apple-macosx/debug/Modules/ListenUp.swiftmodule"
         }
       ],
       "prepareForIndexing" : false,
       "sources" : [
+        "/Users/john/Develop/ListenUp/ListenUp/Models/ChapterInfo.swift",
         "/Users/john/Develop/ListenUp/ListenUp/Models/ItemKind.swift",
         "/Users/john/Develop/ListenUp/ListenUp/Models/LibraryItem.swift",
         "/Users/john/Develop/ListenUp/ListenUp/Services/AudioPlayerManager.swift",
+        "/Users/john/Develop/ListenUp/ListenUp/Services/ChapterExtractor.swift",
         "/Users/john/Develop/ListenUp/ListenUp/Services/FileImporterService.swift",
         "/Users/john/Develop/ListenUp/ListenUp/Services/WatchSyncManager.swift",
         "/Users/john/Develop/ListenUp/ListenUp/Utilities/TimeFormatting.swift",
         "/Users/john/Develop/ListenUp/ListenUp/Views/Components/ArtworkImageView.swift",
         "/Users/john/Develop/ListenUp/ListenUp/Views/Components/CircularProgressView.swift",
+        "/Users/john/Develop/ListenUp/ListenUp/Views/Components/FloatingNavBar.swift",
         "/Users/john/Develop/ListenUp/ListenUp/Views/Library/LibraryRow.swift",
         "/Users/john/Develop/ListenUp/ListenUp/Views/Library/LibraryView.swift",
+        "/Users/john/Develop/ListenUp/ListenUp/Views/MainTabView.swift",
+        "/Users/john/Develop/ListenUp/ListenUp/Views/Player/ChaptersSheet.swift",
         "/Users/john/Develop/ListenUp/ListenUp/Views/Player/FullPlayerView.swift",
         "/Users/john/Develop/ListenUp/ListenUp/Views/Player/MiniPlayerView.swift",
         "/Users/john/Develop/ListenUp/ListenUp/Views/Player/PlaybackSpeedMenu.swift",
-        "/Users/john/Develop/ListenUp/ListenUp/Views/Player/SleepTimerSheet.swift"
+        "/Users/john/Develop/ListenUp/ListenUp/Views/Player/SleepTimerSheet.swift",
+        "/Users/john/Develop/ListenUp/ListenUp/Views/Profile/ProfileView.swift",
+        "/Users/john/Develop/ListenUp/ListenUp/Views/Search/SearchView.swift",
+        "/Users/john/Develop/ListenUp/ListenUp/Views/Settings/SettingsView.swift"
       ],
       "tempsPath" : "/Users/john/Develop/ListenUp/.build/arm64-apple-macosx/debug/ListenUp.build",
       "wholeModuleOptimization" : false
@@ -443,20 +523,28 @@
       "-package-name",
       "listenup",
       "-c",
+      "/Users/john/Develop/ListenUp/ListenUp/Models/ChapterInfo.swift",
       "/Users/john/Develop/ListenUp/ListenUp/Models/ItemKind.swift",
       "/Users/john/Develop/ListenUp/ListenUp/Models/LibraryItem.swift",
       "/Users/john/Develop/ListenUp/ListenUp/Services/AudioPlayerManager.swift",
+      "/Users/john/Develop/ListenUp/ListenUp/Services/ChapterExtractor.swift",
       "/Users/john/Develop/ListenUp/ListenUp/Services/FileImporterService.swift",
       "/Users/john/Develop/ListenUp/ListenUp/Services/WatchSyncManager.swift",
       "/Users/john/Develop/ListenUp/ListenUp/Utilities/TimeFormatting.swift",
       "/Users/john/Develop/ListenUp/ListenUp/Views/Components/ArtworkImageView.swift",
       "/Users/john/Develop/ListenUp/ListenUp/Views/Components/CircularProgressView.swift",
+      "/Users/john/Develop/ListenUp/ListenUp/Views/Components/FloatingNavBar.swift",
       "/Users/john/Develop/ListenUp/ListenUp/Views/Library/LibraryRow.swift",
       "/Users/john/Develop/ListenUp/ListenUp/Views/Library/LibraryView.swift",
+      "/Users/john/Develop/ListenUp/ListenUp/Views/MainTabView.swift",
+      "/Users/john/Develop/ListenUp/ListenUp/Views/Player/ChaptersSheet.swift",
       "/Users/john/Develop/ListenUp/ListenUp/Views/Player/FullPlayerView.swift",
       "/Users/john/Develop/ListenUp/ListenUp/Views/Player/MiniPlayerView.swift",
       "/Users/john/Develop/ListenUp/ListenUp/Views/Player/PlaybackSpeedMenu.swift",
       "/Users/john/Develop/ListenUp/ListenUp/Views/Player/SleepTimerSheet.swift",
+      "/Users/john/Develop/ListenUp/ListenUp/Views/Profile/ProfileView.swift",
+      "/Users/john/Develop/ListenUp/ListenUp/Views/Search/SearchView.swift",
+      "/Users/john/Develop/ListenUp/ListenUp/Views/Settings/SettingsView.swift",
       "-I",
       "/Users/john/Develop/ListenUp/.build/arm64-apple-macosx/debug/Modules",
       "-target",
@@ -672,6 +760,10 @@
         },
         {
           "kind" : "file",
+          "name" : "/Users/john/Develop/ListenUp/ListenUp/Models/ChapterInfo.swift"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/john/Develop/ListenUp/ListenUp/Models/ItemKind.swift"
         },
         {
@@ -681,6 +773,10 @@
         {
           "kind" : "file",
           "name" : "/Users/john/Develop/ListenUp/ListenUp/Services/AudioPlayerManager.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/john/Develop/ListenUp/ListenUp/Services/ChapterExtractor.swift"
         },
         {
           "kind" : "file",
@@ -704,11 +800,23 @@
         },
         {
           "kind" : "file",
+          "name" : "/Users/john/Develop/ListenUp/ListenUp/Views/Components/FloatingNavBar.swift"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/john/Develop/ListenUp/ListenUp/Views/Library/LibraryRow.swift"
         },
         {
           "kind" : "file",
           "name" : "/Users/john/Develop/ListenUp/ListenUp/Views/Library/LibraryView.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/john/Develop/ListenUp/ListenUp/Views/MainTabView.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/john/Develop/ListenUp/ListenUp/Views/Player/ChaptersSheet.swift"
         },
         {
           "kind" : "file",
@@ -725,6 +833,18 @@
         {
           "kind" : "file",
           "name" : "/Users/john/Develop/ListenUp/ListenUp/Views/Player/SleepTimerSheet.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/john/Develop/ListenUp/ListenUp/Views/Profile/ProfileView.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/john/Develop/ListenUp/ListenUp/Views/Search/SearchView.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/john/Develop/ListenUp/ListenUp/Views/Settings/SettingsView.swift"
         }
       ],
       "outputFilePath" : "/Users/john/Develop/ListenUp/.build/arm64-apple-macosx/debug/ListenUp.build/sources"
@@ -760,11 +880,27 @@
         },
         {
           "kind" : "file",
+          "name" : "/Users/john/Develop/ListenUp/.build/arm64-apple-macosx/debug/ListenUp.build/ChapterExtractor.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/john/Develop/ListenUp/.build/arm64-apple-macosx/debug/ListenUp.build/ChapterInfo.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/john/Develop/ListenUp/.build/arm64-apple-macosx/debug/ListenUp.build/ChaptersSheet.swift.o"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/john/Develop/ListenUp/.build/arm64-apple-macosx/debug/ListenUp.build/CircularProgressView.swift.o"
         },
         {
           "kind" : "file",
           "name" : "/Users/john/Develop/ListenUp/.build/arm64-apple-macosx/debug/ListenUp.build/FileImporterService.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/john/Develop/ListenUp/.build/arm64-apple-macosx/debug/ListenUp.build/FloatingNavBar.swift.o"
         },
         {
           "kind" : "file",
@@ -788,11 +924,27 @@
         },
         {
           "kind" : "file",
+          "name" : "/Users/john/Develop/ListenUp/.build/arm64-apple-macosx/debug/ListenUp.build/MainTabView.swift.o"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/john/Develop/ListenUp/.build/arm64-apple-macosx/debug/ListenUp.build/MiniPlayerView.swift.o"
         },
         {
           "kind" : "file",
           "name" : "/Users/john/Develop/ListenUp/.build/arm64-apple-macosx/debug/ListenUp.build/PlaybackSpeedMenu.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/john/Develop/ListenUp/.build/arm64-apple-macosx/debug/ListenUp.build/ProfileView.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/john/Develop/ListenUp/.build/arm64-apple-macosx/debug/ListenUp.build/SearchView.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/john/Develop/ListenUp/.build/arm64-apple-macosx/debug/ListenUp.build/SettingsView.swift.o"
         },
         {
           "kind" : "file",

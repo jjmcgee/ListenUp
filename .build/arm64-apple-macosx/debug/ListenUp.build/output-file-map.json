@@ -2,6 +2,13 @@
   "": {
     "swift-dependencies": "/Users/john/Develop/ListenUp/.build/arm64-apple-macosx/debug/ListenUp.build/primary.swiftdeps"
   },
+  "/Users/john/Develop/ListenUp/ListenUp/Models/ChapterInfo.swift": {
+    "dependencies": "/Users/john/Develop/ListenUp/.build/arm64-apple-macosx/debug/ListenUp.build/ChapterInfo.d",
+    "object": "/Users/john/Develop/ListenUp/.build/arm64-apple-macosx/debug/ListenUp.build/ChapterInfo.swift.o",
+    "swiftmodule": "/Users/john/Develop/ListenUp/.build/arm64-apple-macosx/debug/ListenUp.build/ChapterInfo~partial.swiftmodule",
+    "swift-dependencies": "/Users/john/Develop/ListenUp/.build/arm64-apple-macosx/debug/ListenUp.build/ChapterInfo.swiftdeps",
+    "diagnostics": "/Users/john/Develop/ListenUp/.build/arm64-apple-macosx/debug/ListenUp.build/ChapterInfo.dia"
+  },
   "/Users/john/Develop/ListenUp/ListenUp/Models/ItemKind.swift": {
     "dependencies": "/Users/john/Develop/ListenUp/.build/arm64-apple-macosx/debug/ListenUp.build/ItemKind.d",
     "object": "/Users/john/Develop/ListenUp/.build/arm64-apple-macosx/debug/ListenUp.build/ItemKind.swift.o",
@@ -22,6 +29,13 @@
     "swiftmodule": "/Users/john/Develop/ListenUp/.build/arm64-apple-macosx/debug/ListenUp.build/AudioPlayerManager~partial.swiftmodule",
     "swift-dependencies": "/Users/john/Develop/ListenUp/.build/arm64-apple-macosx/debug/ListenUp.build/AudioPlayerManager.swiftdeps",
     "diagnostics": "/Users/john/Develop/ListenUp/.build/arm64-apple-macosx/debug/ListenUp.build/AudioPlayerManager.dia"
+  },
+  "/Users/john/Develop/ListenUp/ListenUp/Services/ChapterExtractor.swift": {
+    "dependencies": "/Users/john/Develop/ListenUp/.build/arm64-apple-macosx/debug/ListenUp.build/ChapterExtractor.d",
+    "object": "/Users/john/Develop/ListenUp/.build/arm64-apple-macosx/debug/ListenUp.build/ChapterExtractor.swift.o",
+    "swiftmodule": "/Users/john/Develop/ListenUp/.build/arm64-apple-macosx/debug/ListenUp.build/ChapterExtractor~partial.swiftmodule",
+    "swift-dependencies": "/Users/john/Develop/ListenUp/.build/arm64-apple-macosx/debug/ListenUp.build/ChapterExtractor.swiftdeps",
+    "diagnostics": "/Users/john/Develop/ListenUp/.build/arm64-apple-macosx/debug/ListenUp.build/ChapterExtractor.dia"
   },
   "/Users/john/Develop/ListenUp/ListenUp/Services/FileImporterService.swift": {
     "dependencies": "/Users/john/Develop/ListenUp/.build/arm64-apple-macosx/debug/ListenUp.build/FileImporterService.d",
@@ -58,6 +72,13 @@
     "swift-dependencies": "/Users/john/Develop/ListenUp/.build/arm64-apple-macosx/debug/ListenUp.build/CircularProgressView.swiftdeps",
     "diagnostics": "/Users/john/Develop/ListenUp/.build/arm64-apple-macosx/debug/ListenUp.build/CircularProgressView.dia"
   },
+  "/Users/john/Develop/ListenUp/ListenUp/Views/Components/FloatingNavBar.swift": {
+    "dependencies": "/Users/john/Develop/ListenUp/.build/arm64-apple-macosx/debug/ListenUp.build/FloatingNavBar.d",
+    "object": "/Users/john/Develop/ListenUp/.build/arm64-apple-macosx/debug/ListenUp.build/FloatingNavBar.swift.o",
+    "swiftmodule": "/Users/john/Develop/ListenUp/.build/arm64-apple-macosx/debug/ListenUp.build/FloatingNavBar~partial.swiftmodule",
+    "swift-dependencies": "/Users/john/Develop/ListenUp/.build/arm64-apple-macosx/debug/ListenUp.build/FloatingNavBar.swiftdeps",
+    "diagnostics": "/Users/john/Develop/ListenUp/.build/arm64-apple-macosx/debug/ListenUp.build/FloatingNavBar.dia"
+  },
   "/Users/john/Develop/ListenUp/ListenUp/Views/Library/LibraryRow.swift": {
     "dependencies": "/Users/john/Develop/ListenUp/.build/arm64-apple-macosx/debug/ListenUp.build/LibraryRow.d",
     "object": "/Users/john/Develop/ListenUp/.build/arm64-apple-macosx/debug/ListenUp.build/LibraryRow.swift.o",
@@ -71,6 +92,20 @@
     "swiftmodule": "/Users/john/Develop/ListenUp/.build/arm64-apple-macosx/debug/ListenUp.build/LibraryView~partial.swiftmodule",
     "swift-dependencies": "/Users/john/Develop/ListenUp/.build/arm64-apple-macosx/debug/ListenUp.build/LibraryView.swiftdeps",
     "diagnostics": "/Users/john/Develop/ListenUp/.build/arm64-apple-macosx/debug/ListenUp.build/LibraryView.dia"
+  },
+  "/Users/john/Develop/ListenUp/ListenUp/Views/MainTabView.swift": {
+    "dependencies": "/Users/john/Develop/ListenUp/.build/arm64-apple-macosx/debug/ListenUp.build/MainTabView.d",
+    "object": "/Users/john/Develop/ListenUp/.build/arm64-apple-macosx/debug/ListenUp.build/MainTabView.swift.o",
+    "swiftmodule": "/Users/john/Develop/ListenUp/.build/arm64-apple-macosx/debug/ListenUp.build/MainTabView~partial.swiftmodule",
+    "swift-dependencies": "/Users/john/Develop/ListenUp/.build/arm64-apple-macosx/debug/ListenUp.build/MainTabView.swiftdeps",
+    "diagnostics": "/Users/john/Develop/ListenUp/.build/arm64-apple-macosx/debug/ListenUp.build/MainTabView.dia"
+  },
+  "/Users/john/Develop/ListenUp/ListenUp/Views/Player/ChaptersSheet.swift": {
+    "dependencies": "/Users/john/Develop/ListenUp/.build/arm64-apple-macosx/debug/ListenUp.build/ChaptersSheet.d",
+    "object": "/Users/john/Develop/ListenUp/.build/arm64-apple-macosx/debug/ListenUp.build/ChaptersSheet.swift.o",
+    "swiftmodule": "/Users/john/Develop/ListenUp/.build/arm64-apple-macosx/debug/ListenUp.build/ChaptersSheet~partial.swiftmodule",
+    "swift-dependencies": "/Users/john/Develop/ListenUp/.build/arm64-apple-macosx/debug/ListenUp.build/ChaptersSheet.swiftdeps",
+    "diagnostics": "/Users/john/Develop/ListenUp/.build/arm64-apple-macosx/debug/ListenUp.build/ChaptersSheet.dia"
   },
   "/Users/john/Develop/ListenUp/ListenUp/Views/Player/FullPlayerView.swift": {
     "dependencies": "/Users/john/Develop/ListenUp/.build/arm64-apple-macosx/debug/ListenUp.build/FullPlayerView.d",
@@ -99,5 +134,26 @@
     "swiftmodule": "/Users/john/Develop/ListenUp/.build/arm64-apple-macosx/debug/ListenUp.build/SleepTimerSheet~partial.swiftmodule",
     "swift-dependencies": "/Users/john/Develop/ListenUp/.build/arm64-apple-macosx/debug/ListenUp.build/SleepTimerSheet.swiftdeps",
     "diagnostics": "/Users/john/Develop/ListenUp/.build/arm64-apple-macosx/debug/ListenUp.build/SleepTimerSheet.dia"
+  },
+  "/Users/john/Develop/ListenUp/ListenUp/Views/Profile/ProfileView.swift": {
+    "dependencies": "/Users/john/Develop/ListenUp/.build/arm64-apple-macosx/debug/ListenUp.build/ProfileView.d",
+    "object": "/Users/john/Develop/ListenUp/.build/arm64-apple-macosx/debug/ListenUp.build/ProfileView.swift.o",
+    "swiftmodule": "/Users/john/Develop/ListenUp/.build/arm64-apple-macosx/debug/ListenUp.build/ProfileView~partial.swiftmodule",
+    "swift-dependencies": "/Users/john/Develop/ListenUp/.build/arm64-apple-macosx/debug/ListenUp.build/ProfileView.swiftdeps",
+    "diagnostics": "/Users/john/Develop/ListenUp/.build/arm64-apple-macosx/debug/ListenUp.build/ProfileView.dia"
+  },
+  "/Users/john/Develop/ListenUp/ListenUp/Views/Search/SearchView.swift": {
+    "dependencies": "/Users/john/Develop/ListenUp/.build/arm64-apple-macosx/debug/ListenUp.build/SearchView.d",
+    "object": "/Users/john/Develop/ListenUp/.build/arm64-apple-macosx/debug/ListenUp.build/SearchView.swift.o",
+    "swiftmodule": "/Users/john/Develop/ListenUp/.build/arm64-apple-macosx/debug/ListenUp.build/SearchView~partial.swiftmodule",
+    "swift-dependencies": "/Users/john/Develop/ListenUp/.build/arm64-apple-macosx/debug/ListenUp.build/SearchView.swiftdeps",
+    "diagnostics": "/Users/john/Develop/ListenUp/.build/arm64-apple-macosx/debug/ListenUp.build/SearchView.dia"
+  },
+  "/Users/john/Develop/ListenUp/ListenUp/Views/Settings/SettingsView.swift": {
+    "dependencies": "/Users/john/Develop/ListenUp/.build/arm64-apple-macosx/debug/ListenUp.build/SettingsView.d",
+    "object": "/Users/john/Develop/ListenUp/.build/arm64-apple-macosx/debug/ListenUp.build/SettingsView.swift.o",
+    "swiftmodule": "/Users/john/Develop/ListenUp/.build/arm64-apple-macosx/debug/ListenUp.build/SettingsView~partial.swiftmodule",
+    "swift-dependencies": "/Users/john/Develop/ListenUp/.build/arm64-apple-macosx/debug/ListenUp.build/SettingsView.swiftdeps",
+    "diagnostics": "/Users/john/Develop/ListenUp/.build/arm64-apple-macosx/debug/ListenUp.build/SettingsView.dia"
   }
 }

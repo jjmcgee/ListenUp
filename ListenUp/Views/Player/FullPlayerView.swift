@@ -9,8 +9,10 @@ public struct FullPlayerView: View {
     
     @State private var sliderValue: Double = 0.0
     @State private var isDraggingSlider: Bool = false
+    @State private var isShowingBookScrubber: Bool = false
+    @State private var activeScrubbingChapter: ChapterInfo? = nil
     @State private var showingSleepTimerSheet: Bool = false
-    @State private var showingTrackListSheet: Bool = false
+    @State private var showingChaptersSheet: Bool = false
     
     public init(player: AudioPlayerManager) {
         self.player = player
@@ -29,7 +31,30 @@ public struct FullPlayerView: View {
         return AnyView(
             NavigationStack {
                 GeometryReader { geometry in
-                    VStack(spacing: 20) {
+                    let hasChapters = !player.chapters.isEmpty
+                    let isChapterMode = hasChapters && !isShowingBookScrubber
+                    let activeChapter = activeScrubbingChapter ?? player.currentChapter
+                    
+                    let scrubberMaxDuration: Double = {
+                        if isChapterMode, let ch = activeChapter {
+                            return max(ch.duration, 1.0)
+                        } else {
+                            return max(player.totalDuration, 1.0)
+                        }
+                    }()
+                    
+                    let currentScrubberDisplayValue: Double = {
+                        if isDraggingSlider {
+                            return sliderValue
+                        }
+                        if isChapterMode {
+                            return player.currentChapterElapsed
+                        } else {
+                            return player.currentTime
+                        }
+                    }()
+                    
+                    VStack(spacing: 16) {
                         
                         // Top Drag Indicator / Header
                         HStack {
@@ -42,27 +67,16 @@ public struct FullPlayerView: View {
                             }
                             
                             Spacer()
-                            
-                            if item.kind == .multiPart {
-                                Button {
-                                    showingTrackListSheet = true
-                                } label: {
-                                    Image(systemName: "list.bullet")
-                                        .font(.system(size: 18, weight: .semibold))
-                                        .foregroundStyle(Color.primary)
-                                        .padding(8)
-                                        .background(Color.secondary.opacity(0.12))
-                                        .clipShape(Circle())
-                                }
-                            }
                         }
                         .padding(.horizontal, 24)
                         .padding(.top, 8)
                         
-                        Spacer(minLength: 8)
+                        Spacer(minLength: 4)
                         
                         // Large Artwork Cover with Deep Shadow
-                        let artworkSize = min(geometry.size.width - 64, geometry.size.height * 0.38)
+                        let artworkWidth = max(0.0, geometry.size.width - 64)
+                        let artworkHeight = max(0.0, geometry.size.height * 0.34)
+                        let artworkSize = max(50.0, min(artworkWidth, artworkHeight))
                         ArtworkImageView(
                             artworkData: item.artworkData,
                             title: item.title,
@@ -72,10 +86,10 @@ public struct FullPlayerView: View {
                         .frame(width: artworkSize, height: artworkSize)
                         .shadow(color: .black.opacity(0.25), radius: 20, x: 0, y: 10)
                         
-                        Spacer(minLength: 8)
+                        Spacer(minLength: 4)
                         
-                        // Titles & Part Subtitle
-                        VStack(spacing: 6) {
+                        // Titles & Author
+                        VStack(spacing: 4) {
                             Text(item.title)
                                 .font(.system(size: 22, weight: .bold, design: .rounded))
                                 .multilineTextAlignment(.center)
@@ -89,57 +103,192 @@ public struct FullPlayerView: View {
                                     .foregroundStyle(Color.secondary)
                                     .lineLimit(1)
                             }
-                            
-                            // Multi-part Track / Chapter Indicator
-                            if item.kind == .multiPart, let currentTrack = player.currentTrack {
-                                Text("Part \(player.currentTrackIndex + 1) of \(item.playableTracks.count) — \(currentTrack.title)")
-                                    .font(.caption)
-                                    .fontWeight(.semibold)
-                                    .foregroundStyle(Color.accentColor)
-                                    .padding(.top, 2)
-                            }
                         }
                         
-                        // Interactive Scrubber
+                        // Chapter Navigation Header (< Chapter Title >)
+                        if hasChapters, let currentChapter = player.currentChapter {
+                            HStack {
+                                // Skip Previous Chapter
+                                Button {
+                                    player.skipToPreviousChapter()
+                                } label: {
+                                    Image(systemName: "chevron.left")
+                                        .font(.system(size: 20, weight: .semibold))
+                                        .foregroundStyle(Color.primary)
+                                        .frame(width: 44, height: 36)
+                                        .contentShape(Rectangle())
+                                }
+                                .disabled(player.currentChapterIndex == 0 && player.currentChapterElapsed <= 3.0)
+                                .opacity((player.currentChapterIndex == 0 && player.currentChapterElapsed <= 3.0) ? 0.35 : 1.0)
+                                
+                                Spacer()
+                                
+                                // Chapter Title (tap opens chapters sheet)
+                                Button {
+                                    showingChaptersSheet = true
+                                } label: {
+                                    Text(currentChapter.title)
+                                        .font(.system(size: 18, weight: .semibold, design: .rounded))
+                                        .foregroundStyle(Color.primary)
+                                        .lineLimit(1)
+                                        .truncationMode(.tail)
+                                }
+                                
+                                Spacer()
+                                
+                                // Skip Next Chapter
+                                Button {
+                                    player.skipToNextChapter()
+                                } label: {
+                                    Image(systemName: "chevron.right")
+                                        .font(.system(size: 20, weight: .semibold))
+                                        .foregroundStyle(Color.primary)
+                                        .frame(width: 44, height: 36)
+                                        .contentShape(Rectangle())
+                                }
+                                .disabled(player.currentChapterIndex == (player.chapters.count - 1))
+                                .opacity((player.currentChapterIndex == (player.chapters.count - 1)) ? 0.35 : 1.0)
+                            }
+                            .padding(.horizontal, 20)
+                        } else if item.kind == .multiPart, let currentTrack = player.currentTrack {
+                            Text("Part \(player.currentTrackIndex + 1) of \(item.playableTracks.count) — \(currentTrack.title)")
+                                .font(.caption)
+                                .fontWeight(.semibold)
+                                .foregroundStyle(Color.accentColor)
+                                .lineLimit(1)
+                        }
+                        
+                        // Interactive Scrubber & Timeline
                         VStack(spacing: 6) {
                             Slider(
                                 value: Binding(
                                     get: {
-                                        isDraggingSlider ? sliderValue : player.currentTime
+                                        currentScrubberDisplayValue
                                     },
                                     set: { newValue in
                                         sliderValue = newValue
                                         if !isDraggingSlider {
-                                            player.startScrubbing()
                                             isDraggingSlider = true
+                                            activeScrubbingChapter = player.currentChapter
+                                            player.startScrubbing()
                                         }
-                                        player.scrubUpdate(to: newValue)
+                                        if isChapterMode, let ch = activeScrubbingChapter ?? player.currentChapter {
+                                            let targetTime = min(max(ch.startTime + newValue, ch.startTime), ch.endTime)
+                                            player.scrubUpdate(to: targetTime)
+                                        } else {
+                                            player.scrubUpdate(to: newValue)
+                                        }
                                     }
                                 ),
-                                in: 0...max(player.totalDuration, 1.0),
+                                in: 0...scrubberMaxDuration,
                                 onEditingChanged: { isEditing in
-                                    if !isEditing {
-                                        player.endScrubbing(to: sliderValue)
+                                    if isEditing {
+                                        isDraggingSlider = true
+                                        activeScrubbingChapter = player.currentChapter
+                                        sliderValue = isChapterMode ? player.currentChapterElapsed : player.currentTime
+                                        player.startScrubbing()
+                                    } else {
+                                        if isChapterMode, let ch = activeScrubbingChapter ?? player.currentChapter {
+                                            let targetTime = min(max(ch.startTime + sliderValue, ch.startTime), ch.endTime)
+                                            player.endScrubbing(to: targetTime)
+                                        } else {
+                                            player.endScrubbing(to: sliderValue)
+                                        }
                                         isDraggingSlider = false
+                                        activeScrubbingChapter = nil
                                     }
                                 }
                             )
                             .tint(Color.accentColor)
                             
-                            // Time Labels
+                            // Time Labels (05:38 - Chapter 44 of 136 - -04:08)
                             HStack {
-                                Text(TimeFormatting.formatTimestamp(isDraggingSlider ? sliderValue : player.currentTime))
-                                    .font(.system(.caption, design: .monospaced))
-                                    .foregroundStyle(Color.secondary)
+                                // Left: Elapsed Time
+                                Text(
+                                    isChapterMode
+                                        ? TimeFormatting.formatChapterDuration(isDraggingSlider ? sliderValue : player.currentChapterElapsed)
+                                        : TimeFormatting.formatTimestamp(isDraggingSlider ? sliderValue : player.currentTime)
+                                )
+                                .font(.system(.caption, design: .monospaced))
+                                .foregroundStyle(Color.secondary)
                                 
                                 Spacer()
                                 
-                                Text(TimeFormatting.formatRemainingTimestamp(
-                                    current: isDraggingSlider ? sliderValue : player.currentTime,
-                                    total: player.totalDuration
-                                ))
+                                // Center: Chapter X of Y
+                                if let ch = activeChapter, hasChapters {
+                                    Text("Chapter \(ch.index + 1) of \(player.chapters.count)")
+                                        .font(.system(.caption, design: .rounded, weight: .medium))
+                                        .foregroundStyle(Color.secondary)
+                                    
+                                    Spacer()
+                                } else if item.kind == .multiPart {
+                                    Text("Part \(player.currentTrackIndex + 1) of \(item.playableTracks.count)")
+                                        .font(.system(.caption, design: .rounded, weight: .medium))
+                                        .foregroundStyle(Color.secondary)
+                                    
+                                    Spacer()
+                                }
+                                
+                                // Right: Remaining Time
+                                Text(
+                                    isChapterMode
+                                        ? TimeFormatting.formatChapterRemaining(
+                                            isDraggingSlider
+                                                ? max(0.0, (activeChapter?.duration ?? 0.0) - sliderValue)
+                                                : player.currentChapterRemaining
+                                        )
+                                        : TimeFormatting.formatRemainingTimestamp(
+                                            current: isDraggingSlider ? sliderValue : player.currentTime,
+                                            total: player.totalDuration
+                                        )
+                                )
                                 .font(.system(.caption, design: .monospaced))
                                 .foregroundStyle(Color.secondary)
+                            }
+                            
+                            // Book Remaining Indicator & Scrubber Mode Toggle
+                            let bookRemainingSeconds = max(0.0, player.totalDuration - player.currentTime)
+                            let bookRemainingFormatted = TimeFormatting.formatVerbalDuration(bookRemainingSeconds)
+                            
+                            if hasChapters {
+                                Button {
+                                    withAnimation(.easeInOut(duration: 0.2)) {
+                                        isShowingBookScrubber.toggle()
+                                    }
+                                } label: {
+                                    HStack(spacing: 6) {
+                                        Image(systemName: isShowingBookScrubber ? "list.bullet" : "book.closed")
+                                            .font(.system(size: 11, weight: .medium))
+                                        
+                                        if isShowingBookScrubber {
+                                            Text("Full Book Timeline (\(bookRemainingFormatted) left)")
+                                                .font(.system(size: 12, weight: .medium, design: .rounded))
+                                        } else {
+                                            Text("\(bookRemainingFormatted) left in book")
+                                                .font(.system(size: 12, weight: .medium, design: .rounded))
+                                        }
+                                        
+                                        Image(systemName: "arrow.left.arrow.right")
+                                            .font(.system(size: 10, weight: .semibold))
+                                            .foregroundStyle(Color.accentColor)
+                                    }
+                                    .padding(.horizontal, 12)
+                                    .padding(.vertical, 5)
+                                    .background(Color.secondary.opacity(0.1))
+                                    .clipShape(Capsule())
+                                    .foregroundStyle(Color.secondary)
+                                }
+                                .buttonStyle(.plain)
+                                .padding(.top, 2)
+                            } else {
+                                HStack(spacing: 5) {
+                                    Image(systemName: "book.closed")
+                                        .font(.system(size: 11, weight: .medium))
+                                    Text("\(bookRemainingFormatted) left in book")
+                                        .font(.system(size: 12, weight: .medium, design: .rounded))
+                                }
+                                .foregroundStyle(Color.secondary)
+                                .padding(.top, 2)
                             }
                         }
                         .padding(.horizontal, 24)
@@ -175,8 +324,8 @@ public struct FullPlayerView: View {
                         }
                         .padding(.vertical, 8)
                         
-                        // Secondary Toolbar: Speed & Sleep Timer
-                        HStack {
+                        // Secondary Toolbar: Speed, Sleep Timer & Chapters
+                        HStack(spacing: 12) {
                             PlaybackSpeedMenu(player: player)
                             
                             Spacer()
@@ -203,72 +352,38 @@ public struct FullPlayerView: View {
                                 .clipShape(Capsule())
                                 .foregroundStyle(player.activeSleepTimerOption == .off ? Color.primary : Color.accentColor)
                             }
+                            
+                            // Chapters List Button (Icon 4 placed after timer icon as requested)
+                            Button {
+                                showingChaptersSheet = true
+                            } label: {
+                                Image(systemName: "list.bullet")
+                                    .font(.system(size: 16, weight: .semibold))
+                                    .foregroundStyle(Color.primary)
+                                    .padding(.horizontal, 12)
+                                    .padding(.vertical, 8)
+                                    .background(Color.secondary.opacity(0.12))
+                                    .clipShape(Capsule())
+                            }
+                            .accessibilityLabel("Chapters")
                         }
-                        .padding(.horizontal, 32)
+                        .padding(.horizontal, 28)
                         .padding(.bottom, 24)
                     }
                 }
                 .sheet(isPresented: $showingSleepTimerSheet) {
                     SleepTimerSheet(player: player)
                 }
-                .sheet(isPresented: $showingTrackListSheet) {
-                    TrackListSheet(player: player)
+                .sheet(isPresented: $showingChaptersSheet) {
+                    ChaptersSheet(player: player)
                 }
             }
         )
     }
 }
 
-/// Sheet displaying ordered tracks inside a multi-part audiobook.
-struct TrackListSheet: View {
-    @Environment(\.dismiss) private var dismiss
-    var player: AudioPlayerManager
-    
-    var body: some View {
-        NavigationStack {
-            List {
-                if let item = player.currentItem {
-                    let segments = item.segments
-                    
-                    ForEach(segments) { segment in
-                        Button {
-                            player.seek(to: segment.startVirtualTime)
-                            dismiss()
-                        } label: {
-                            HStack {
-                                VStack(alignment: .leading, spacing: 3) {
-                                    Text(segment.track.title)
-                                        .font(.headline)
-                                        .foregroundStyle(segment.trackIndex == player.currentTrackIndex ? Color.accentColor : Color.primary)
-                                    
-                                    Text(TimeFormatting.formatTimestamp(segment.duration))
-                                        .font(.caption)
-                                        .foregroundStyle(Color.secondary)
-                                }
-                                
-                                Spacer()
-                                
-                                if segment.trackIndex == player.currentTrackIndex {
-                                    Image(systemName: "waveform")
-                                        .font(.system(size: 14, weight: .semibold))
-                                        .foregroundStyle(Color.accentColor)
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            .navigationTitle("Chapters & Parts")
-            #if os(iOS)
-            .navigationBarTitleDisplayMode(.inline)
-            #endif
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Done") {
-                        dismiss()
-                    }
-                }
-            }
-        }
-    }
+#Preview("Full Player Screen") {
+    FullPlayerView(player: .previewMock())
 }
+
+

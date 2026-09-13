@@ -25,7 +25,7 @@ public struct MiniPlayerView: View {
                             .fill(Color.secondary.opacity(0.15))
                         Rectangle()
                             .fill(Color.accentColor)
-                            .frame(width: geo.size.width * CGFloat(progressFraction))
+                            .frame(width: max(0.0, geo.size.width * CGFloat(progressFraction)))
                     }
                 }
                 .frame(height: 2.5)

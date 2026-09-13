@@ -83,6 +83,54 @@ public final class AudioPlayerManager {
     /// Countdown seconds remaining on the active sleep timer.
     public private(set) var sleepTimerRemaining: TimeInterval? = nil
     
+    /// Extracted chapter marks for the currently loaded audiobook.
+    public private(set) var chapters: [ChapterInfo] = []
+    
+    /// Indicates whether chapter extraction is actively in progress.
+    public private(set) var isLoadingChapters: Bool = false
+    
+    /// The currently active chapter based on continuous virtual playback time.
+    public var currentChapter: ChapterInfo? {
+        guard !chapters.isEmpty else { return nil }
+        
+        for chapter in chapters {
+            if currentTime >= chapter.startTime && currentTime < chapter.endTime {
+                return chapter
+            }
+        }
+        
+        if let last = chapters.last, currentTime >= last.startTime {
+            return last
+        }
+        
+        return chapters.first
+    }
+    
+    /// Zero-based index of the currently active chapter.
+    public var currentChapterIndex: Int? {
+        currentChapter?.index
+    }
+    
+    /// Elapsed time in seconds inside the currently active chapter.
+    public var currentChapterElapsed: Double {
+        guard let chapter = currentChapter else { return currentTime }
+        return min(max(0.0, currentTime - chapter.startTime), chapter.duration)
+    }
+    
+    /// Remaining time in seconds inside the currently active chapter.
+    public var currentChapterRemaining: Double {
+        guard let chapter = currentChapter else { return max(0.0, totalDuration - currentTime) }
+        return min(max(0.0, chapter.endTime - currentTime), chapter.duration)
+    }
+    
+    /// Playback completion fraction within the active chapter (`0.0 ... 1.0`).
+    public var currentChapterProgress: Double {
+        guard let chapter = currentChapter, chapter.duration > 0 else {
+            return totalDuration > 0 ? min(max(currentTime / totalDuration, 0.0), 1.0) : 0.0
+        }
+        return min(max(currentChapterElapsed / chapter.duration, 0.0), 1.0)
+    }
+    
     /// Closure invoked whenever progress updates should be persisted to SwiftData.
     public var onPositionUpdated: ((_ item: LibraryItem, _ position: Double) -> Void)?
     
@@ -125,12 +173,14 @@ public final class AudioPlayerManager {
     
     private func setupAudioSession() {
         #if os(iOS) || os(watchOS) || os(tvOS) || os(visionOS)
-        do {
-            let session = AVAudioSession.sharedInstance()
-            try session.setCategory(.playback, mode: .spokenAudio)
-            try session.setActive(true)
-        } catch {
-            print("[AudioPlayerManager] Failed to configure AVAudioSession: \(error.localizedDescription)")
+        Task.detached(priority: .userInitiated) {
+            do {
+                let session = AVAudioSession.sharedInstance()
+                try session.setCategory(.playback, mode: .spokenAudio)
+                try session.setActive(true)
+            } catch {
+                print("[AudioPlayerManager] Failed to configure AVAudioSession: \(error.localizedDescription)")
+            }
         }
         #endif
     }
@@ -191,7 +241,9 @@ public final class AudioPlayerManager {
         guard let player = queuePlayer else { return }
         
         #if os(iOS) || os(watchOS) || os(tvOS) || os(visionOS)
-        try? AVAudioSession.sharedInstance().setActive(true)
+        Task.detached(priority: .userInitiated) {
+            try? AVAudioSession.sharedInstance().setActive(true)
+        }
         #endif
         
         player.play()
@@ -217,6 +269,8 @@ public final class AudioPlayerManager {
         currentTrackIndex = 0
         currentTime = 0.0
         totalDuration = 0.0
+        chapters = []
+        isLoadingChapters = false
         updateNowPlayingInfo()
     }
     
@@ -284,6 +338,79 @@ public final class AudioPlayerManager {
         updateNowPlayingInfo()
     }
     
+    // MARK: - Chapter Navigation & Management
+    
+    /// Forces re-extraction of chapter marks for the currently loaded audiobook.
+    public func reloadChapters() {
+        guard let item = currentItem else { return }
+        loadChapters(for: item)
+    }
+    
+    /// Seeks playback to the start of a specified chapter.
+    public func skipToChapter(_ chapter: ChapterInfo) {
+        seek(to: chapter.startTime)
+    }
+    
+    /// Skips to the next chapter if one exists.
+    public func skipToNextChapter() {
+        guard !chapters.isEmpty,
+              let current = currentChapter,
+              let arrayIndex = chapters.firstIndex(where: { $0.id == current.id }),
+              arrayIndex + 1 < chapters.count else { return }
+        seek(to: chapters[arrayIndex + 1].startTime)
+    }
+    
+    /// Skips to the previous chapter, or rewinds to start of current chapter if played > 3s.
+    public func skipToPreviousChapter() {
+        guard !chapters.isEmpty, let current = currentChapter else { return }
+        
+        if currentTime - current.startTime > 3.0 {
+            seek(to: current.startTime)
+        } else if let arrayIndex = chapters.firstIndex(where: { $0.id == current.id }), arrayIndex > 0 {
+            seek(to: chapters[arrayIndex - 1].startTime)
+        } else {
+            seek(to: 0.0)
+        }
+    }
+    
+    private func loadChapters(for item: LibraryItem) {
+        isLoadingChapters = true
+        let itemId = item.id
+        let isSingle = item.kind == .singleFile
+        
+        // Convert SwiftData model to Sendable descriptors on MainActor before crossing into Task
+        let trackDescriptors: [TrackDescriptor]
+        if isSingle {
+            trackDescriptors = [
+                TrackDescriptor(
+                    url: item.resolvedURL(),
+                    title: item.title,
+                    duration: item.totalDuration,
+                    startVirtualTime: 0.0
+                )
+            ]
+        } else {
+            trackDescriptors = item.segments.map { segment in
+                TrackDescriptor(
+                    url: segment.track.resolvedURL(),
+                    title: segment.track.title,
+                    duration: segment.duration,
+                    startVirtualTime: segment.startVirtualTime
+                )
+            }
+        }
+        
+        Task { [weak self] in
+            let extracted = await ChapterExtractor.extractChapters(for: trackDescriptors, isSingleFile: isSingle)
+            await MainActor.run { [weak self] in
+                guard let self = self, self.currentItem?.id == itemId else { return }
+                self.chapters = extracted
+                self.isLoadingChapters = false
+                self.updateNowPlayingInfo()
+            }
+        }
+    }
+    
     // MARK: - Queue & Virtual Timeline Engine
     
     private func loadItem(_ item: LibraryItem, startAtPosition: Double) {
@@ -297,6 +424,7 @@ public final class AudioPlayerManager {
         let startIndex = targetSegment?.segment.trackIndex ?? 0
         let startOffset = targetSegment?.localOffset ?? 0.0
         
+        loadChapters(for: item)
         rebuildQueue(fromTrackIndex: startIndex, initialOffset: startOffset)
     }
     
@@ -363,6 +491,15 @@ public final class AudioPlayerManager {
         
         let virtualT = item.virtualPosition(trackIndex: currentTrackIndex, localOffset: localSeconds)
         currentTime = virtualT
+        
+        // Handle end-of-chapter sleep timer for embedded chapters
+        if activeSleepTimerOption == .endOfChapter, let chapter = currentChapter {
+            if currentTime >= chapter.endTime - 0.5 {
+                pause()
+                setSleepTimer(.off)
+                return
+            }
+        }
         
         // Debounce SwiftData persistence to once every 5 seconds or significant scrub
         if abs(virtualT - lastPersistedPosition) >= 5.0 {
@@ -542,8 +679,10 @@ public final class AudioPlayerManager {
         
         var info: [String: Any] = [:]
         
-        // Title: If multi-part, show Book Title with Track/Part Subtitle if available
-        if item.kind == .multiPart, let track = currentTrack {
+        // Title: Priority: Chapter title > Multi-part Track title > Book title
+        if !chapters.isEmpty, let chapter = currentChapter {
+            info[MPMediaItemPropertyTitle] = "\(item.title) — \(chapter.title)"
+        } else if item.kind == .multiPart, let track = currentTrack {
             info[MPMediaItemPropertyTitle] = "\(item.title) — \(track.title)"
         } else {
             info[MPMediaItemPropertyTitle] = item.title
@@ -611,6 +750,39 @@ public final class AudioPlayerManager {
         }
     }
     #endif
+    
+    // MARK: - SwiftUI Preview Mock
+    
+    /// Creates a mock AudioPlayerManager pre-populated with sample chapters and playback state.
+    public static func previewMock() -> AudioPlayerManager {
+        let player = AudioPlayerManager()
+        let book = LibraryItem(
+            title: "The Most Dangerous Games",
+            author: "James Patterson",
+            kind: .singleFile,
+            totalDuration: 21600.0,
+            currentPosition: 12030.0
+        )
+        player.currentItem = book
+        player.currentTime = 12030.0
+        player.totalDuration = 21600.0
+        player.chapters = [
+            ChapterInfo(index: 31, title: "Chapter 32", startTime: 10182.0, duration: 149.0),
+            ChapterInfo(index: 32, title: "Game #2: Somewhere in Kentucky, Four Days Later", startTime: 10331.0, duration: 35.0),
+            ChapterInfo(index: 33, title: "Chapter 33", startTime: 10367.0, duration: 423.0),
+            ChapterInfo(index: 34, title: "Chapter 34", startTime: 10791.0, duration: 417.0),
+            ChapterInfo(index: 35, title: "Chapter 35", startTime: 11209.0, duration: 135.0),
+            ChapterInfo(index: 36, title: "Chapter 36", startTime: 11345.0, duration: 346.0),
+            ChapterInfo(index: 37, title: "Chapter 37", startTime: 11692.0, duration: 586.0),
+            ChapterInfo(index: 38, title: "Chapter 38", startTime: 12279.0, duration: 151.0),
+            ChapterInfo(index: 39, title: "Chapter 39", startTime: 12430.0, duration: 254.0),
+            ChapterInfo(index: 40, title: "Chapter 40", startTime: 12684.0, duration: 315.0),
+            ChapterInfo(index: 41, title: "Chapter 41", startTime: 12999.0, duration: 293.0),
+            ChapterInfo(index: 42, title: "Chapter 42", startTime: 13292.0, duration: 306.0),
+            ChapterInfo(index: 43, title: "Chapter 43", startTime: 13598.0, duration: 355.0),
+        ]
+        return player
+    }
 }
 
 // MARK: - Cross-Platform Image Typealias

@@ -16,13 +16,21 @@
 		7B62E788EF7A430583EE6C4F /* FileImporterService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6450DCAC40AF41AA8DA0A850 /* FileImporterService.swift */; };
 		8BE5C2555E644D329AEE6849 /* LibraryItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38A8B900358F422EAE75297F /* LibraryItem.swift */; };
 		9CF5D1EEADD8458CBD2835A4 /* ListenUpApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6F519C3DD3BC405BABA01D01 /* ListenUpApp.swift */; };
+		BB10648F0811493B8BE5CD2B /* ChapterInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10648F0811493B8BE5CD2B /* ChapterInfo.swift */; };
+		BB50DCAC40AF41AA8DA0A850 /* ChapterExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA50DCAC40AF41AA8DA0A850 /* ChapterExtractor.swift */; };
+		BBE3857B0F7F6446DA97DBDA /* ChaptersSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAE3857B0F7F6446DA97DBDA /* ChaptersSheet.swift */; };
 		C1E97DE5556A418AB82C9AEC /* SleepTimerSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E3857B0F7F6446DA97DBDA0 /* SleepTimerSheet.swift */; };
 		C26B4FFBCE1C4C6DACEF7713 /* LibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D85A4510F15047778D1131ED /* LibraryView.swift */; };
 		D038539DF3B4461DAD88B71E /* ItemKind.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1410648F0811493B8BE5CD2B /* ItemKind.swift */; };
 		D779B81BA0134A7987C823CC /* FullPlayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D14C52A963544626A0115DE6 /* FullPlayerView.swift */; };
+		E01E00012DC24155864ECE01 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = E01E00022DC24155864ECE02 /* Assets.xcassets */; };
 		F794CFBB2A4545BB8D03192A /* AudioPlayerManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1065A44E1A1141238F2D7C55 /* AudioPlayerManager.swift */; };
 		FC1EBEEC74AF4D199A29DD18 /* TimeFormatting.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01D000F5E9994231B019411A /* TimeFormatting.swift */; };
-		E01E00012DC24155864ECE01 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = E01E00022DC24155864ECE02 /* Assets.xcassets */; };
+		BB01F56C5A37417DB09BE101 /* FloatingNavBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA01F56C5A37417DB09BE101 /* FloatingNavBar.swift */; };
+		BB02F56C5A37417DB09BE102 /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA02F56C5A37417DB09BE102 /* MainTabView.swift */; };
+		BB03F56C5A37417DB09BE103 /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA03F56C5A37417DB09BE103 /* ProfileView.swift */; };
+		BB04F56C5A37417DB09BE104 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA04F56C5A37417DB09BE104 /* SettingsView.swift */; };
+		BB05F56C5A37417DB09BE105 /* SearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA05F56C5A37417DB09BE105 /* SearchView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -36,13 +44,21 @@
 		881078C2EC8141D3A883D0E9 /* LibraryRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = LibraryRow.swift; path = ListenUp/Views/Library/LibraryRow.swift; sourceTree = "<group>"; };
 		88D9E47BD7214E079FEFFD9C /* ArtworkImageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ArtworkImageView.swift; path = ListenUp/Views/Components/ArtworkImageView.swift; sourceTree = "<group>"; };
 		8E3857B0F7F6446DA97DBDA0 /* SleepTimerSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SleepTimerSheet.swift; path = ListenUp/Views/Player/SleepTimerSheet.swift; sourceTree = "<group>"; };
+		AA10648F0811493B8BE5CD2B /* ChapterInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ChapterInfo.swift; path = ListenUp/Models/ChapterInfo.swift; sourceTree = "<group>"; };
+		AA50DCAC40AF41AA8DA0A850 /* ChapterExtractor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ChapterExtractor.swift; path = ListenUp/Services/ChapterExtractor.swift; sourceTree = "<group>"; };
+		AAE3857B0F7F6446DA97DBDA /* ChaptersSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ChaptersSheet.swift; path = ListenUp/Views/Player/ChaptersSheet.swift; sourceTree = "<group>"; };
 		B27B95033304496F9B146AD3 /* MiniPlayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MiniPlayerView.swift; path = ListenUp/Views/Player/MiniPlayerView.swift; sourceTree = "<group>"; };
 		D14C52A963544626A0115DE6 /* FullPlayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FullPlayerView.swift; path = ListenUp/Views/Player/FullPlayerView.swift; sourceTree = "<group>"; };
 		D28E065589C944358621E4D0 /* WatchSyncManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = WatchSyncManager.swift; path = ListenUp/Services/WatchSyncManager.swift; sourceTree = "<group>"; };
 		D85A4510F15047778D1131ED /* LibraryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = LibraryView.swift; path = ListenUp/Views/Library/LibraryView.swift; sourceTree = "<group>"; };
+		E01E00022DC24155864ECE02 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Assets.xcassets; path = ListenUp/Assets.xcassets; sourceTree = "<group>"; };
 		ECB0517D89B745B197CE3D03 /* PlaybackSpeedMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PlaybackSpeedMenu.swift; path = ListenUp/Views/Player/PlaybackSpeedMenu.swift; sourceTree = "<group>"; };
 		F6F70C93E9284ECA977D1441 /* CircularProgressView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CircularProgressView.swift; path = ListenUp/Views/Components/CircularProgressView.swift; sourceTree = "<group>"; };
-		E01E00022DC24155864ECE02 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Assets.xcassets; path = ListenUp/Assets.xcassets; sourceTree = "<group>"; };
+		AA01F56C5A37417DB09BE101 /* FloatingNavBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FloatingNavBar.swift; path = ListenUp/Views/Components/FloatingNavBar.swift; sourceTree = "<group>"; };
+		AA02F56C5A37417DB09BE102 /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MainTabView.swift; path = ListenUp/Views/MainTabView.swift; sourceTree = "<group>"; };
+		AA03F56C5A37417DB09BE103 /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ProfileView.swift; path = ListenUp/Views/Profile/ProfileView.swift; sourceTree = "<group>"; };
+		AA04F56C5A37417DB09BE104 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SettingsView.swift; path = ListenUp/Views/Settings/SettingsView.swift; sourceTree = "<group>"; };
+		AA05F56C5A37417DB09BE105 /* SearchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SearchView.swift; path = ListenUp/Views/Search/SearchView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -74,6 +90,14 @@
 				B27B95033304496F9B146AD3 /* MiniPlayerView.swift */,
 				ECB0517D89B745B197CE3D03 /* PlaybackSpeedMenu.swift */,
 				8E3857B0F7F6446DA97DBDA0 /* SleepTimerSheet.swift */,
+				AA10648F0811493B8BE5CD2B /* ChapterInfo.swift */,
+				AA50DCAC40AF41AA8DA0A850 /* ChapterExtractor.swift */,
+				AAE3857B0F7F6446DA97DBDA /* ChaptersSheet.swift */,
+				AA01F56C5A37417DB09BE101 /* FloatingNavBar.swift */,
+				AA02F56C5A37417DB09BE102 /* MainTabView.swift */,
+				AA03F56C5A37417DB09BE103 /* ProfileView.swift */,
+				AA04F56C5A37417DB09BE104 /* SettingsView.swift */,
+				AA05F56C5A37417DB09BE105 /* SearchView.swift */,
 				E01E00022DC24155864ECE02 /* Assets.xcassets */,
 				EF8AB5528B0B46AE86E26C6D /* Products */,
 			);
@@ -170,6 +194,14 @@
 				7301B936A8644908AE641147 /* MiniPlayerView.swift in Sources */,
 				78EC711B28434DFC9F43D4B4 /* PlaybackSpeedMenu.swift in Sources */,
 				C1E97DE5556A418AB82C9AEC /* SleepTimerSheet.swift in Sources */,
+				BB10648F0811493B8BE5CD2B /* ChapterInfo.swift in Sources */,
+				BB50DCAC40AF41AA8DA0A850 /* ChapterExtractor.swift in Sources */,
+				BBE3857B0F7F6446DA97DBDA /* ChaptersSheet.swift in Sources */,
+				BB01F56C5A37417DB09BE101 /* FloatingNavBar.swift in Sources */,
+				BB02F56C5A37417DB09BE102 /* MainTabView.swift in Sources */,
+				BB03F56C5A37417DB09BE103 /* ProfileView.swift in Sources */,
+				BB04F56C5A37417DB09BE104 /* SettingsView.swift in Sources */,
+				BB05F56C5A37417DB09BE105 /* SearchView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -188,6 +220,8 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = ListenUp/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = ListenUp;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.books";
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -198,6 +232,9 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_STRICT_CONCURRENCY = complete;
 				SWIFT_VERSION = 6.0;
@@ -217,6 +254,8 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = ListenUp/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = ListenUp;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.books";
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -227,6 +266,9 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_STRICT_CONCURRENCY = complete;
 				SWIFT_VERSION = 6.0;

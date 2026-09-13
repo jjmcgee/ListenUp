@@ -30,7 +30,7 @@ struct ListenUpApp: App {
     
     var body: some Scene {
         WindowGroup {
-            LibraryView()
+            MainTabView()
                 .environment(player)
                 .modelContainer(container)
                 .task {
