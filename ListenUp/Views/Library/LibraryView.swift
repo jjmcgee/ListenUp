@@ -1,6 +1,9 @@
 import SwiftUI
 import SwiftData
 import UniformTypeIdentifiers
+#if canImport(UIKit)
+import UIKit
+#endif
 
 /// The root library screen displaying audiobooks and folders,
 /// providing directory drilling, search filtering, and `.fileImporter` ingestion.
@@ -98,7 +101,7 @@ public struct LibraryView: View {
                     Button {
                         isShowingFileImporter = true
                     } label: {
-                        Label("Import", systemImage: "plus.circle.fill")
+                        addBookLabel
                     }
                 }
             }
@@ -271,4 +274,36 @@ public struct LibraryView: View {
             deleteItem(item)
         }
     }
+    
+    // MARK: - Toolbar Item Label
+    
+    @ViewBuilder
+    private var addBookLabel: some View {
+        #if canImport(UIKit)
+        if UIImage(systemName: "book.badge.plus") != nil {
+            Label("Add Book", systemImage: "book.badge.plus")
+        } else {
+            Label {
+                Text("Add Book")
+            } icon: {
+                ZStack(alignment: .bottomTrailing) {
+                    Image(systemName: "book.closed")
+                        .font(.system(size: 19))
+                    Image(systemName: "plus.circle.fill")
+                        .font(.system(size: 10))
+                        .offset(x: 5, y: 4)
+                }
+            }
+        }
+        #else
+        Label("Add Book", systemImage: "book.badge.plus")
+        #endif
+    }
 }
+
+#Preview {
+    LibraryView()
+        .environment(AudioPlayerManager())
+        .modelContainer(for: LibraryItem.self, inMemory: true)
+}
+
