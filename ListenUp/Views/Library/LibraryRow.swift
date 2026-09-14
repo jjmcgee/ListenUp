@@ -83,6 +83,21 @@ public struct LibraryRow: View {
                             .font(.caption)
                             .foregroundStyle(Color.secondary)
                     }
+                    
+                    // In-flight Watch Transfer indicator
+                    if WatchSyncManager.shared.isTransferring(bookID: item.id) {
+                        Text("•")
+                            .font(.caption2)
+                            .foregroundStyle(Color.secondary.opacity(0.6))
+                        
+                        HStack(spacing: 3) {
+                            Image(systemName: "applewatch.radiowaves.left.and.right")
+                                .font(.system(size: 9))
+                            Text("\(Int(WatchSyncManager.shared.transferProgress(for: item.id) * 100))%")
+                                .font(.system(size: 9, weight: .semibold))
+                        }
+                        .foregroundStyle(Color.accentColor)
+                    }
                 }
             }
             
@@ -122,6 +137,12 @@ public struct LibraryRow: View {
                     onPlay?()
                 } label: {
                     Label(isCurrentlyPlaying ? "Pause" : "Play", systemImage: isCurrentlyPlaying ? "pause.fill" : "play.fill")
+                }
+                
+                Button {
+                    WatchSyncManager.shared.transferBookToWatch(item: item)
+                } label: {
+                    Label("Sync to Apple Watch", systemImage: "applewatch.side.right")
                 }
                 
                 Button {

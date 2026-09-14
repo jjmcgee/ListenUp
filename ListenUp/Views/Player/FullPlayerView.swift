@@ -13,6 +13,7 @@ public struct FullPlayerView: View {
     @State private var activeScrubbingChapter: ChapterInfo? = nil
     @State private var showingSleepTimerSheet: Bool = false
     @State private var showingChaptersSheet: Bool = false
+    @State private var showingWatchSyncSheet: Bool = false
     
     public init(player: AudioPlayerManager) {
         self.player = player
@@ -67,6 +68,15 @@ public struct FullPlayerView: View {
                             }
                             
                             Spacer()
+                            
+                            Button {
+                                showingWatchSyncSheet = true
+                            } label: {
+                                Image(systemName: "applewatch.radiowaves.left.and.right")
+                                    .font(.system(size: 20, weight: .medium))
+                                    .foregroundStyle(Color.secondary)
+                            }
+                            .accessibilityLabel("Apple Watch Sync")
                         }
                         .padding(.horizontal, 24)
                         .padding(.top, 8)
@@ -376,6 +386,9 @@ public struct FullPlayerView: View {
                 }
                 .sheet(isPresented: $showingChaptersSheet) {
                     ChaptersSheet(player: player)
+                }
+                .sheet(isPresented: $showingWatchSyncSheet) {
+                    WatchSyncSheet(item: player.currentItem)
                 }
             }
         )

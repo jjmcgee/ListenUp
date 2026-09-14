@@ -47,6 +47,12 @@ public enum SleepTimerOption: Hashable, Sendable, Identifiable {
 @MainActor
 public final class AudioPlayerManager {
     
+    /// Shared singleton instance for unified access across iOS UI, CarPlay, and system events.
+    public static let shared = AudioPlayerManager()
+    
+    /// Broadcast whenever audio state, now playing info, or active track/chapter changes.
+    public static let playbackStateDidChangeNotification = Notification.Name("AudioPlayerManager.playbackStateDidChangeNotification")
+    
     // MARK: - Observable Playback State
     
     /// The parent item currently loaded (either a single file or a multi-part book).
@@ -329,6 +335,17 @@ public final class AudioPlayerManager {
     /// Adjusts playback rate multiplier.
     public func setPlaybackRate(_ rate: Float) {
         playbackRate = rate
+    }
+    
+    /// Cycles through standard audiobook playback speeds (1.0x -> 1.25x -> 1.5x -> 1.75x -> 2.0x -> 0.75x -> 1.0x).
+    public func cyclePlaybackRate() {
+        let rates: [Float] = [0.75, 1.0, 1.25, 1.5, 1.75, 2.0]
+        if let currentIndex = rates.firstIndex(where: { abs($0 - playbackRate) < 0.01 }) {
+            let nextIndex = (currentIndex + 1) % rates.count
+            setPlaybackRate(rates[nextIndex])
+        } else {
+            setPlaybackRate(1.0)
+        }
     }
     
     private func applyPlaybackRate() {
@@ -665,6 +682,35 @@ public final class AudioPlayerManager {
             }
             return .success
         }
+        
+        // Change Playback Rate (CarPlay & Lock Screen speed controls)
+        commandCenter.changePlaybackRateCommand.isEnabled = true
+        commandCenter.changePlaybackRateCommand.supportedPlaybackRates = [0.75, 1.0, 1.25, 1.5, 1.75, 2.0]
+        commandCenter.changePlaybackRateCommand.addTarget { [weak self] event in
+            guard let rateEvent = event as? MPChangePlaybackRateCommandEvent else { return .commandFailed }
+            Task { @MainActor [weak self] in
+                self?.setPlaybackRate(rateEvent.playbackRate)
+            }
+            return .success
+        }
+        
+        // Next Track / Chapter (CarPlay Next Button)
+        commandCenter.nextTrackCommand.isEnabled = true
+        commandCenter.nextTrackCommand.addTarget { [weak self] _ in
+            Task { @MainActor [weak self] in
+                self?.skipToNextChapter()
+            }
+            return .success
+        }
+        
+        // Previous Track / Chapter (CarPlay Previous Button)
+        commandCenter.previousTrackCommand.isEnabled = true
+        commandCenter.previousTrackCommand.addTarget { [weak self] _ in
+            Task { @MainActor [weak self] in
+                self?.skipToPreviousChapter()
+            }
+            return .success
+        }
         #endif
     }
     
@@ -714,6 +760,8 @@ public final class AudioPlayerManager {
         
         MPNowPlayingInfoCenter.default().nowPlayingInfo = info
         #endif
+        
+        NotificationCenter.default.post(name: Self.playbackStateDidChangeNotification, object: self)
     }
     
     // MARK: - System Notifications
