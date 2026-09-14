@@ -31,6 +31,7 @@
 		BB03F56C5A37417DB09BE103 /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA03F56C5A37417DB09BE103 /* ProfileView.swift */; };
 		BB04F56C5A37417DB09BE104 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA04F56C5A37417DB09BE104 /* SettingsView.swift */; };
 		BB05F56C5A37417DB09BE105 /* SearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA05F56C5A37417DB09BE105 /* SearchView.swift */; };
+		BB06F56C5A37417DB09BE106 /* AppTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA06F56C5A37417DB09BE106 /* AppTheme.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -59,6 +60,7 @@
 		AA03F56C5A37417DB09BE103 /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ProfileView.swift; path = ListenUp/Views/Profile/ProfileView.swift; sourceTree = "<group>"; };
 		AA04F56C5A37417DB09BE104 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SettingsView.swift; path = ListenUp/Views/Settings/SettingsView.swift; sourceTree = "<group>"; };
 		AA05F56C5A37417DB09BE105 /* SearchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SearchView.swift; path = ListenUp/Views/Search/SearchView.swift; sourceTree = "<group>"; };
+		AA06F56C5A37417DB09BE106 /* AppTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppTheme.swift; path = ListenUp/Models/AppTheme.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -98,6 +100,7 @@
 				AA03F56C5A37417DB09BE103 /* ProfileView.swift */,
 				AA04F56C5A37417DB09BE104 /* SettingsView.swift */,
 				AA05F56C5A37417DB09BE105 /* SearchView.swift */,
+				AA06F56C5A37417DB09BE106 /* AppTheme.swift */,
 				E01E00022DC24155864ECE02 /* Assets.xcassets */,
 				EF8AB5528B0B46AE86E26C6D /* Products */,
 			);
@@ -202,6 +205,7 @@
 				BB03F56C5A37417DB09BE103 /* ProfileView.swift in Sources */,
 				BB04F56C5A37417DB09BE104 /* SettingsView.swift in Sources */,
 				BB05F56C5A37417DB09BE105 /* SearchView.swift in Sources */,
+				BB06F56C5A37417DB09BE106 /* AppTheme.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

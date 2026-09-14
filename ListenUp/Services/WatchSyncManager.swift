@@ -83,6 +83,15 @@ public final class WatchSyncManager: NSObject {
     
     public static let shared = WatchSyncManager()
     
+    /// Whether WatchConnectivity is supported on the current platform.
+    public var isSupported: Bool {
+        #if canImport(WatchConnectivity)
+        return WCSession.isSupported()
+        #else
+        return false
+        #endif
+    }
+    
     /// Whether the paired device is currently reachable for real-time messaging.
     public private(set) var isReachable: Bool = false
     
