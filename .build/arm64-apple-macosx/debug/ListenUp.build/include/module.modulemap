@@ -1,3 +1,0 @@
-module ListenUp {
-    header "/Users/john/Develop/ListenUp/.build/arm64-apple-macosx/debug/ListenUp.build/include/ListenUp-Swift.h"
-}

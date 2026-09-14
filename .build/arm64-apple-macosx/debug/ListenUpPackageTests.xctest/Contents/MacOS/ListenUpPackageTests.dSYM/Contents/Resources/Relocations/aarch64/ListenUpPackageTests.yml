@@ -1,5 +1,0 @@
----
-triple:          'arm64-apple-darwin'
-binary-path:     '/Users/john/Develop/ListenUp/.build/arm64-apple-macosx/debug/ListenUpPackageTests.xctest/Contents/MacOS/ListenUpPackageTests'
-relocations:     []
-...

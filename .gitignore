@@ -1,0 +1,38 @@
+# Xcode & Build Artifacts
+build/
+DerivedData/
+*.moved-aside
+*.xccheckout
+*.xcscmblueprint
+
+# Xcode User Data & State
+xcuserdata/
+*.xcuserstate
+*.xcuserdatad
+*.xcodeproj/xcuserdata/
+*.xcodeproj/project.xcworkspace/xcuserdata/
+*.xcworkspace/xcuserdata/
+
+# Swift Package Manager
+.build/
+Packages/
+Package.pins
+.swiftpm/xcode/xcuserdata/
+
+# macOS System Files
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon\r\r
+._*
+.Spotlight-V100
+.Trashes
+
+# Archives & Debug Symbols
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# Playgrounds & Workspaces
+timeline.xctimeline
+playground.xcworkspace
