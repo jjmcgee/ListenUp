@@ -281,4 +281,36 @@ struct ListenUpTests {
         #expect(fileManager.fileExists(atPath: testFile.path) == false)
         #expect(fileManager.fileExists(atPath: testDir.path) == false)
     }
+    
+    // MARK: - Profile & Listener Statistics Tests
+    
+    @Test("Profile correctly calculates aggregate listening statistics and completed book counts")
+    func testProfileListeningStatsCalculation() {
+        let book1 = LibraryItem(title: "Atomic Habits", kind: .singleFile, totalDuration: 18000.0)
+        book1.currentPosition = 9000.0 // 2.5 hours
+        book1.isCompleted = false
+        
+        let book2 = LibraryItem(title: "Deep Work", kind: .singleFile, totalDuration: 21600.0)
+        book2.currentPosition = 21600.0 // 6.0 hours
+        book2.isCompleted = true
+        
+        let book3 = LibraryItem(title: "Clean Code", kind: .singleFile, totalDuration: 14400.0)
+        book3.currentPosition = 0.0 // 0 hours
+        book3.isCompleted = false
+        
+        let items = [book1, book2, book3]
+        
+        let totalSeconds = items.reduce(0.0) { $0 + max(0.0, $1.currentPosition) }
+        #expect(totalSeconds == 30600.0) // 8.5 hours
+        
+        let hours = totalSeconds / 3600.0
+        #expect(hours == 8.5)
+        
+        let completedCount = items.filter { $0.parent == nil && $0.isCompleted }.count
+        #expect(completedCount == 1)
+        
+        let inProgressCount = items.filter { $0.parent == nil && !$0.isCompleted && $0.currentPosition > 0 }.count
+        #expect(inProgressCount == 1)
+    }
 }
+

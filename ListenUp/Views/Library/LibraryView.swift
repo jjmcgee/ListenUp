@@ -41,12 +41,47 @@ public struct LibraryView: View {
         NavigationStack {
             VStack(spacing: 0) {
                 if parentFolder == nil && !allItems.isEmpty {
-                    Picker("Filter", selection: $filterSelection) {
+                    HStack(spacing: 6) {
                         ForEach(FilterOption.allCases) { option in
-                            Text(option.rawValue).tag(option)
+                            let isSelected = filterSelection == option
+                            Button {
+                                #if canImport(UIKit)
+                                UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                                #endif
+                                withAnimation(.spring(response: 0.32, dampingFraction: 0.78)) {
+                                    filterSelection = option
+                                }
+                            } label: {
+                                Text(option.rawValue)
+                                    .font(.system(size: 13, weight: isSelected ? .bold : .medium, design: .rounded))
+                                    .foregroundStyle(isSelected ? Color.accentColor : Color.secondary)
+                                    .padding(.horizontal, 14)
+                                    .padding(.vertical, 6)
+                                    .frame(maxWidth: .infinity)
+                                    .background {
+                                        if isSelected {
+                                            Capsule()
+                                                .fill(Color.accentColor.opacity(0.15))
+                                                .overlay {
+                                                    Capsule()
+                                                        .strokeBorder(
+                                                            LinearGradient(
+                                                                colors: [Color.white.opacity(0.4), Color.clear],
+                                                                startPoint: .topLeading,
+                                                                endPoint: .bottomTrailing
+                                                            ),
+                                                            lineWidth: 1
+                                                        )
+                                                }
+                                                .shadow(color: Color.accentColor.opacity(0.18), radius: 4, x: 0, y: 1)
+                                        }
+                                    }
+                            }
+                            .buttonStyle(.plain)
                         }
                     }
-                    .pickerStyle(.segmented)
+                    .padding(4)
+                    .liquidGlassCapsule(tint: Color.accentColor)
                     .padding(.horizontal)
                     .padding(.vertical, 8)
                 }
@@ -101,7 +136,16 @@ public struct LibraryView: View {
                     Button {
                         isShowingFileImporter = true
                     } label: {
-                        addBookLabel
+                        HStack(spacing: 5) {
+                            Image(systemName: "book.badge.plus")
+                                .font(.system(size: 14, weight: .semibold))
+                            Text("Add")
+                                .font(.system(size: 13, weight: .semibold, design: .rounded))
+                        }
+                        .foregroundStyle(Color.accentColor)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .liquidGlassCapsule(tint: Color.accentColor, isInteractive: true)
                     }
                 }
             }

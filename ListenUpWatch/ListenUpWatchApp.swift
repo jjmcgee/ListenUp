@@ -3,10 +3,11 @@ import SwiftUI
 @main
 struct ListenUpWatchApp: App {
     
-    @State private var syncManager = WatchSyncManager.shared
-    @State private var libraryStore = WatchLibraryStore.shared
-    @State private var localPlayer = WatchAudioPlayerManager.shared
+    private let syncManager = WatchSyncManager.shared
+    private let libraryStore = WatchLibraryStore.shared
+    private let localPlayer = WatchAudioPlayerManager.shared
     
+    @MainActor
     init() {
         setupWatchSyncWiring()
     }
@@ -20,6 +21,7 @@ struct ListenUpWatchApp: App {
         }
     }
     
+    @MainActor
     private func setupWatchSyncWiring() {
         // Wire audio file receipt into local library store
         syncManager.onAudioFileReceived = { [weak libraryStore] localURL, metadata in

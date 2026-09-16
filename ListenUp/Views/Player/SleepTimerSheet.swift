@@ -24,15 +24,31 @@ public struct SleepTimerSheet: View {
             List {
                 if let remaining = player.sleepTimerRemaining, player.activeSleepTimerOption != .off {
                     Section {
-                        HStack {
-                            Label("Active Timer", systemImage: "timer")
+                        HStack(spacing: 12) {
+                            ZStack {
+                                Circle()
+                                    .fill(Color.accentColor.opacity(0.18))
+                                    .frame(width: 36, height: 36)
+                                Image(systemName: "timer")
+                                    .font(.system(size: 18, weight: .semibold))
+                                    .foregroundStyle(Color.accentColor)
+                            }
+                            
+                            Text("Active Timer")
                                 .font(.headline)
+                            
                             Spacer()
+                            
                             Text(TimeFormatting.formatTimestamp(remaining))
-                                .font(.system(.body, design: .monospaced, weight: .semibold))
+                                .font(.system(.title3, design: .monospaced, weight: .bold))
                                 .foregroundStyle(Color.accentColor)
                         }
+                        .padding(.vertical, 4)
                     }
+                    .listRowBackground(
+                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                            .fill(Color.accentColor.opacity(0.12))
+                    )
                 }
                 
                 Section("Select Duration") {

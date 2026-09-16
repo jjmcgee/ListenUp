@@ -16,16 +16,6 @@
 		7B62E788EF7A430583EE6C4F /* FileImporterService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6450DCAC40AF41AA8DA0A850 /* FileImporterService.swift */; };
 		8BE5C2555E644D329AEE6849 /* LibraryItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38A8B900358F422EAE75297F /* LibraryItem.swift */; };
 		9CF5D1EEADD8458CBD2835A4 /* ListenUpApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6F519C3DD3BC405BABA01D01 /* ListenUpApp.swift */; };
-		BB10648F0811493B8BE5CD2B /* ChapterInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10648F0811493B8BE5CD2B /* ChapterInfo.swift */; };
-		BB50DCAC40AF41AA8DA0A850 /* ChapterExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA50DCAC40AF41AA8DA0A850 /* ChapterExtractor.swift */; };
-		BBE3857B0F7F6446DA97DBDA /* ChaptersSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAE3857B0F7F6446DA97DBDA /* ChaptersSheet.swift */; };
-		C1E97DE5556A418AB82C9AEC /* SleepTimerSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E3857B0F7F6446DA97DBDA0 /* SleepTimerSheet.swift */; };
-		C26B4FFBCE1C4C6DACEF7713 /* LibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D85A4510F15047778D1131ED /* LibraryView.swift */; };
-		D038539DF3B4461DAD88B71E /* ItemKind.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1410648F0811493B8BE5CD2B /* ItemKind.swift */; };
-		D779B81BA0134A7987C823CC /* FullPlayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D14C52A963544626A0115DE6 /* FullPlayerView.swift */; };
-		E01E00012DC24155864ECE01 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = E01E00022DC24155864ECE02 /* Assets.xcassets */; };
-		F794CFBB2A4545BB8D03192A /* AudioPlayerManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1065A44E1A1141238F2D7C55 /* AudioPlayerManager.swift */; };
-		FC1EBEEC74AF4D199A29DD18 /* TimeFormatting.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01D000F5E9994231B019411A /* TimeFormatting.swift */; };
 		BB01F56C5A37417DB09BE101 /* FloatingNavBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA01F56C5A37417DB09BE101 /* FloatingNavBar.swift */; };
 		BB02F56C5A37417DB09BE102 /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA02F56C5A37417DB09BE102 /* MainTabView.swift */; };
 		BB03F56C5A37417DB09BE103 /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA03F56C5A37417DB09BE103 /* ProfileView.swift */; };
@@ -35,24 +25,35 @@
 		BB07F56C5A37417DB09BE107 /* WatchSyncSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA07F56C5A37417DB09BE107 /* WatchSyncSheet.swift */; };
 		BB08F56C5A37417DB09BE108 /* WatchLibraryStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA08F56C5A37417DB09BE108 /* WatchLibraryStore.swift */; };
 		BB09F56C5A37417DB09BE109 /* WatchAudioPlayerManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA09F56C5A37417DB09BE109 /* WatchAudioPlayerManager.swift */; };
+		BB10648F0811493B8BE5CD2B /* ChapterInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10648F0811493B8BE5CD2B /* ChapterInfo.swift */; };
+		BB10F56C5A37417DB09BE110 /* LiquidGlass.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10F56C5A37417DB09BE110 /* LiquidGlass.swift */; };
+		BB50DCAC40AF41AA8DA0A850 /* ChapterExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA50DCAC40AF41AA8DA0A850 /* ChapterExtractor.swift */; };
+		BBE3857B0F7F6446DA97DBDA /* ChaptersSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAE3857B0F7F6446DA97DBDA /* ChaptersSheet.swift */; };
+		C1E97DE5556A418AB82C9AEC /* SleepTimerSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E3857B0F7F6446DA97DBDA0 /* SleepTimerSheet.swift */; };
+		C26B4FFBCE1C4C6DACEF7713 /* LibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D85A4510F15047778D1131ED /* LibraryView.swift */; };
+		CC08F56C5A37417DB09BE108 /* WatchLibraryStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA08F56C5A37417DB09BE108 /* WatchLibraryStore.swift */; };
+		CC09F56C5A37417DB09BE109 /* WatchAudioPlayerManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA09F56C5A37417DB09BE109 /* WatchAudioPlayerManager.swift */; };
+		CP01F56C5A37417DB09BE101 /* AppDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA01F56C5A37417DB09BE101 /* AppDatabase.swift */; };
+		CP02F56C5A37417DB09BE102 /* CarPlaySceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA02F56C5A37417DB09BE102 /* CarPlaySceneDelegate.swift */; };
+		CP03F56C5A37417DB09BE103 /* CarPlayTemplateManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA03F56C5A37417DB09BE103 /* CarPlayTemplateManager.swift */; };
+		D038539DF3B4461DAD88B71E /* ItemKind.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1410648F0811493B8BE5CD2B /* ItemKind.swift */; };
+		D779B81BA0134A7987C823CC /* FullPlayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D14C52A963544626A0115DE6 /* FullPlayerView.swift */; };
+		E01E00012DC24155864ECE01 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = E01E00022DC24155864ECE02 /* Assets.xcassets */; };
+		EB6139F0DE69004A37BE70910F /* ListenUpWatch.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = W6139F0DE69004A37BE70910F /* ListenUpWatch.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		F794CFBB2A4545BB8D03192A /* AudioPlayerManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1065A44E1A1141238F2D7C55 /* AudioPlayerManager.swift */; };
+		FC1EBEEC74AF4D199A29DD18 /* TimeFormatting.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01D000F5E9994231B019411A /* TimeFormatting.swift */; };
+		WB01D000F5E9994231B01941 /* TimeFormatting.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01D000F5E9994231B019411A /* TimeFormatting.swift */; };
 		WB01F56C5A37417DB09BE101 /* ListenUpWatchApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = WA01F56C5A37417DB09BE101 /* ListenUpWatchApp.swift */; };
 		WB02F56C5A37417DB09BE102 /* WatchContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = WA02F56C5A37417DB09BE102 /* WatchContentView.swift */; };
 		WB03F56C5A37417DB09BE103 /* WatchNowPlayingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = WA03F56C5A37417DB09BE103 /* WatchNowPlayingView.swift */; };
 		WB04F56C5A37417DB09BE104 /* WatchLibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = WA04F56C5A37417DB09BE104 /* WatchLibraryView.swift */; };
 		WB05F56C5A37417DB09BE105 /* WatchBookDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = WA05F56C5A37417DB09BE105 /* WatchBookDetailView.swift */; };
 		WB06F56C5A37417DB09BE106 /* WatchDownloadsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = WA06F56C5A37417DB09BE106 /* WatchDownloadsView.swift */; };
-		CC08F56C5A37417DB09BE108 /* WatchLibraryStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA08F56C5A37417DB09BE108 /* WatchLibraryStore.swift */; };
-		CC09F56C5A37417DB09BE109 /* WatchAudioPlayerManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA09F56C5A37417DB09BE109 /* WatchAudioPlayerManager.swift */; };
-		WBD28E065589C944358621E4 /* WatchSyncManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D28E065589C944358621E4D0 /* WatchSyncManager.swift */; };
 		WB1410648F0811493B8BE5CD /* ItemKind.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1410648F0811493B8BE5CD2B /* ItemKind.swift */; };
 		WB38A8B900358F422EAE7529 /* LibraryItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38A8B900358F422EAE75297F /* LibraryItem.swift */; };
 		WBAA10648F0811493B8BE5CD /* ChapterInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10648F0811493B8BE5CD2B /* ChapterInfo.swift */; };
-		WB01D000F5E9994231B01941 /* TimeFormatting.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01D000F5E9994231B019411A /* TimeFormatting.swift */; };
+		WBD28E065589C944358621E4 /* WatchSyncManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D28E065589C944358621E4D0 /* WatchSyncManager.swift */; };
 		WBE01E00012DC24155864ECE /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = E01E00022DC24155864ECE02 /* Assets.xcassets */; };
-		EB6139F0DE69004A37BE70910F /* ListenUpWatch.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = W6139F0DE69004A37BE70910F /* ListenUpWatch.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
-		CP01F56C5A37417DB09BE101 /* AppDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA01F56C5A37417DB09BE101 /* AppDatabase.swift */; };
-		CP02F56C5A37417DB09BE102 /* CarPlaySceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA02F56C5A37417DB09BE102 /* CarPlaySceneDelegate.swift */; };
-		CP03F56C5A37417DB09BE103 /* CarPlayTemplateManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA03F56C5A37417DB09BE103 /* CarPlayTemplateManager.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -90,16 +91,6 @@
 		881078C2EC8141D3A883D0E9 /* LibraryRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = LibraryRow.swift; path = ListenUp/Views/Library/LibraryRow.swift; sourceTree = "<group>"; };
 		88D9E47BD7214E079FEFFD9C /* ArtworkImageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ArtworkImageView.swift; path = ListenUp/Views/Components/ArtworkImageView.swift; sourceTree = "<group>"; };
 		8E3857B0F7F6446DA97DBDA0 /* SleepTimerSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SleepTimerSheet.swift; path = ListenUp/Views/Player/SleepTimerSheet.swift; sourceTree = "<group>"; };
-		AA10648F0811493B8BE5CD2B /* ChapterInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ChapterInfo.swift; path = ListenUp/Models/ChapterInfo.swift; sourceTree = "<group>"; };
-		AA50DCAC40AF41AA8DA0A850 /* ChapterExtractor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ChapterExtractor.swift; path = ListenUp/Services/ChapterExtractor.swift; sourceTree = "<group>"; };
-		AAE3857B0F7F6446DA97DBDA /* ChaptersSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ChaptersSheet.swift; path = ListenUp/Views/Player/ChaptersSheet.swift; sourceTree = "<group>"; };
-		B27B95033304496F9B146AD3 /* MiniPlayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MiniPlayerView.swift; path = ListenUp/Views/Player/MiniPlayerView.swift; sourceTree = "<group>"; };
-		D14C52A963544626A0115DE6 /* FullPlayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FullPlayerView.swift; path = ListenUp/Views/Player/FullPlayerView.swift; sourceTree = "<group>"; };
-		D28E065589C944358621E4D0 /* WatchSyncManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = WatchSyncManager.swift; path = ListenUp/Services/WatchSyncManager.swift; sourceTree = "<group>"; };
-		D85A4510F15047778D1131ED /* LibraryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = LibraryView.swift; path = ListenUp/Views/Library/LibraryView.swift; sourceTree = "<group>"; };
-		E01E00022DC24155864ECE02 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Assets.xcassets; path = ListenUp/Assets.xcassets; sourceTree = "<group>"; };
-		ECB0517D89B745B197CE3D03 /* PlaybackSpeedMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PlaybackSpeedMenu.swift; path = ListenUp/Views/Player/PlaybackSpeedMenu.swift; sourceTree = "<group>"; };
-		F6F70C93E9284ECA977D1441 /* CircularProgressView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CircularProgressView.swift; path = ListenUp/Views/Components/CircularProgressView.swift; sourceTree = "<group>"; };
 		AA01F56C5A37417DB09BE101 /* FloatingNavBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FloatingNavBar.swift; path = ListenUp/Views/Components/FloatingNavBar.swift; sourceTree = "<group>"; };
 		AA02F56C5A37417DB09BE102 /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MainTabView.swift; path = ListenUp/Views/MainTabView.swift; sourceTree = "<group>"; };
 		AA03F56C5A37417DB09BE103 /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ProfileView.swift; path = ListenUp/Views/Profile/ProfileView.swift; sourceTree = "<group>"; };
@@ -109,16 +100,27 @@
 		AA07F56C5A37417DB09BE107 /* WatchSyncSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = WatchSyncSheet.swift; path = ListenUp/Views/Player/WatchSyncSheet.swift; sourceTree = "<group>"; };
 		AA08F56C5A37417DB09BE108 /* WatchLibraryStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = WatchLibraryStore.swift; path = ListenUp/Services/WatchLibraryStore.swift; sourceTree = "<group>"; };
 		AA09F56C5A37417DB09BE109 /* WatchAudioPlayerManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = WatchAudioPlayerManager.swift; path = ListenUp/Services/WatchAudioPlayerManager.swift; sourceTree = "<group>"; };
+		AA10648F0811493B8BE5CD2B /* ChapterInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ChapterInfo.swift; path = ListenUp/Models/ChapterInfo.swift; sourceTree = "<group>"; };
+		AA10F56C5A37417DB09BE110 /* LiquidGlass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = LiquidGlass.swift; path = ListenUp/Views/Components/LiquidGlass.swift; sourceTree = "<group>"; };
+		AA50DCAC40AF41AA8DA0A850 /* ChapterExtractor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ChapterExtractor.swift; path = ListenUp/Services/ChapterExtractor.swift; sourceTree = "<group>"; };
+		AAE3857B0F7F6446DA97DBDA /* ChaptersSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ChaptersSheet.swift; path = ListenUp/Views/Player/ChaptersSheet.swift; sourceTree = "<group>"; };
+		B27B95033304496F9B146AD3 /* MiniPlayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MiniPlayerView.swift; path = ListenUp/Views/Player/MiniPlayerView.swift; sourceTree = "<group>"; };
+		CA01F56C5A37417DB09BE101 /* AppDatabase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDatabase.swift; path = ListenUp/Services/AppDatabase.swift; sourceTree = "<group>"; };
+		CA02F56C5A37417DB09BE102 /* CarPlaySceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CarPlaySceneDelegate.swift; path = ListenUp/CarPlay/CarPlaySceneDelegate.swift; sourceTree = "<group>"; };
+		CA03F56C5A37417DB09BE103 /* CarPlayTemplateManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CarPlayTemplateManager.swift; path = ListenUp/CarPlay/CarPlayTemplateManager.swift; sourceTree = "<group>"; };
+		D14C52A963544626A0115DE6 /* FullPlayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FullPlayerView.swift; path = ListenUp/Views/Player/FullPlayerView.swift; sourceTree = "<group>"; };
+		D28E065589C944358621E4D0 /* WatchSyncManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = WatchSyncManager.swift; path = ListenUp/Services/WatchSyncManager.swift; sourceTree = "<group>"; };
+		D85A4510F15047778D1131ED /* LibraryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = LibraryView.swift; path = ListenUp/Views/Library/LibraryView.swift; sourceTree = "<group>"; };
+		E01E00022DC24155864ECE02 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Assets.xcassets; path = ListenUp/Assets.xcassets; sourceTree = "<group>"; };
+		ECB0517D89B745B197CE3D03 /* PlaybackSpeedMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PlaybackSpeedMenu.swift; path = ListenUp/Views/Player/PlaybackSpeedMenu.swift; sourceTree = "<group>"; };
+		F6F70C93E9284ECA977D1441 /* CircularProgressView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CircularProgressView.swift; path = ListenUp/Views/Components/CircularProgressView.swift; sourceTree = "<group>"; };
+		W6139F0DE69004A37BE70910F /* ListenUpWatch.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ListenUpWatch.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		WA01F56C5A37417DB09BE101 /* ListenUpWatchApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ListenUpWatchApp.swift; path = ListenUpWatch/ListenUpWatchApp.swift; sourceTree = "<group>"; };
 		WA02F56C5A37417DB09BE102 /* WatchContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = WatchContentView.swift; path = ListenUpWatch/Views/WatchContentView.swift; sourceTree = "<group>"; };
 		WA03F56C5A37417DB09BE103 /* WatchNowPlayingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = WatchNowPlayingView.swift; path = ListenUpWatch/Views/WatchNowPlayingView.swift; sourceTree = "<group>"; };
 		WA04F56C5A37417DB09BE104 /* WatchLibraryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = WatchLibraryView.swift; path = ListenUpWatch/Views/WatchLibraryView.swift; sourceTree = "<group>"; };
 		WA05F56C5A37417DB09BE105 /* WatchBookDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = WatchBookDetailView.swift; path = ListenUpWatch/Views/WatchBookDetailView.swift; sourceTree = "<group>"; };
 		WA06F56C5A37417DB09BE106 /* WatchDownloadsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = WatchDownloadsView.swift; path = ListenUpWatch/Views/WatchDownloadsView.swift; sourceTree = "<group>"; };
-		W6139F0DE69004A37BE70910F /* ListenUpWatch.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ListenUpWatch.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		CA01F56C5A37417DB09BE101 /* AppDatabase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDatabase.swift; path = ListenUp/Services/AppDatabase.swift; sourceTree = "<group>"; };
-		CA02F56C5A37417DB09BE102 /* CarPlaySceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CarPlaySceneDelegate.swift; path = ListenUp/CarPlay/CarPlaySceneDelegate.swift; sourceTree = "<group>"; };
-		CA03F56C5A37417DB09BE103 /* CarPlayTemplateManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CarPlayTemplateManager.swift; path = ListenUp/CarPlay/CarPlayTemplateManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -161,13 +163,14 @@
 				AA50DCAC40AF41AA8DA0A850 /* ChapterExtractor.swift */,
 				AAE3857B0F7F6446DA97DBDA /* ChaptersSheet.swift */,
 				AA01F56C5A37417DB09BE101 /* FloatingNavBar.swift */,
+				AA10F56C5A37417DB09BE110 /* LiquidGlass.swift */,
 				AA02F56C5A37417DB09BE102 /* MainTabView.swift */,
 				AA03F56C5A37417DB09BE103 /* ProfileView.swift */,
 				AA04F56C5A37417DB09BE104 /* SettingsView.swift */,
 				AA05F56C5A37417DB09BE105 /* SearchView.swift */,
 				AA06F56C5A37417DB09BE106 /* AppTheme.swift */,
 				E01E00022DC24155864ECE02 /* Assets.xcassets */,
-								AA07F56C5A37417DB09BE107 /* WatchSyncSheet.swift */,
+				AA07F56C5A37417DB09BE107 /* WatchSyncSheet.swift */,
 				AA08F56C5A37417DB09BE108 /* WatchLibraryStore.swift */,
 				AA09F56C5A37417DB09BE109 /* WatchAudioPlayerManager.swift */,
 				WA01F56C5A37417DB09BE101 /* ListenUpWatchApp.swift */,
@@ -238,7 +241,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastUpgradeCheck = 1600;
+				LastUpgradeCheck = 2700;
 				TargetAttributes = {
 					A640A0AB6135472FA365FE71 = {
 						CreatedOnToolsVersion = 16.0;
@@ -286,14 +289,6 @@
 		};
 /* End PBXResourcesBuildPhase section */
 
-/* Begin PBXTargetDependency section */
-		DEP01F56C5A37417DB09BE100 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = WTA640A0AB6135472FA365FE /* ListenUpWatch */;
-			targetProxy = PRX01F56C5A37417DB09BE100 /* PBXContainerItemProxy */;
-		};
-/* End PBXTargetDependency section */
-
 /* Begin PBXSourcesBuildPhase section */
 		A4F57192156845579E6ACF88 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
@@ -318,6 +313,7 @@
 				BB50DCAC40AF41AA8DA0A850 /* ChapterExtractor.swift in Sources */,
 				BBE3857B0F7F6446DA97DBDA /* ChaptersSheet.swift in Sources */,
 				BB01F56C5A37417DB09BE101 /* FloatingNavBar.swift in Sources */,
+				BB10F56C5A37417DB09BE110 /* LiquidGlass.swift in Sources */,
 				BB02F56C5A37417DB09BE102 /* MainTabView.swift in Sources */,
 				BB03F56C5A37417DB09BE103 /* ProfileView.swift in Sources */,
 				BB04F56C5A37417DB09BE104 /* SettingsView.swift in Sources */,
@@ -354,6 +350,14 @@
 		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXTargetDependency section */
+		DEP01F56C5A37417DB09BE100 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = WTA640A0AB6135472FA365FE /* ListenUpWatch */;
+			targetProxy = PRX01F56C5A37417DB09BE100 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin XCBuildConfiguration section */
 		1767C95A2DC24155864ECE6D /* Release */ = {
 			isa = XCBuildConfiguration;
@@ -361,15 +365,15 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GENERATE_ASSET_SYMBOLS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = NO;
+				CLANG_ENABLE_OBJC_WEAK = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = M29WM7FZTK;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = ListenUp/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = ListenUp;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.books";
-				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -395,15 +399,15 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GENERATE_ASSET_SYMBOLS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = NO;
+				CLANG_ENABLE_OBJC_WEAK = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = M29WM7FZTK;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = ListenUp/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = ListenUp;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.books";
-				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -428,19 +432,47 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ENABLE_MODULES = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = M29WM7FZTK;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG=1",
 					"$(inherited)",
 				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_STRICT_CONCURRENCY = complete;
@@ -453,17 +485,76 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ENABLE_MODULES = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = M29WM7FZTK;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_STRICT_CONCURRENCY = complete;
 				SWIFT_VERSION = 6.0;
 				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		W1767C95A2DC24155864ECE6D /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GENERATE_ASSET_SYMBOLS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = NO;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = ListenUp;
+				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = scot.mcg.ListenUp;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = scot.mcg.ListenUp.watchkitapp;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SUPPORTED_PLATFORMS = "watchos watchsimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 27.0;
 			};
 			name = Release;
 		};
@@ -473,9 +564,9 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GENERATE_ASSET_SYMBOLS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = NO;
+				CLANG_ENABLE_OBJC_WEAK = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = M29WM7FZTK;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = ListenUp;
@@ -493,41 +584,10 @@
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_STRICT_CONCURRENCY = complete;
 				SWIFT_VERSION = 6.0;
-				TARGETED_DEVICE_FAMILY = "4";
-				WATCHOS_DEPLOYMENT_TARGET = 10.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 27.0;
 			};
 			name = Debug;
-		};
-		W1767C95A2DC24155864ECE6D /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_GENERATE_ASSET_SYMBOLS = NO;
-				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = NO;
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = M29WM7FZTK;
-				ENABLE_PREVIEWS = YES;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = ListenUp;
-				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = scot.mcg.ListenUp;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-				);
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = scot.mcg.ListenUp.watchkitapp;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = watchos;
-				SUPPORTED_PLATFORMS = "watchos watchsimulator";
-				SUPPORTS_MACCATALYST = NO;
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_STRICT_CONCURRENCY = complete;
-				SWIFT_VERSION = 6.0;
-				TARGETED_DEVICE_FAMILY = "4";
-				WATCHOS_DEPLOYMENT_TARGET = 10.0;
-			};
-			name = Release;
 		};
 /* End XCBuildConfiguration section */
 

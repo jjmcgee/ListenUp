@@ -4,9 +4,9 @@ import PackageDescription
 let package = Package(
     name: "ListenUp",
     platforms: [
-        .iOS(.v18),
+        .iOS("27.0"),
         .macOS(.v15),
-        .watchOS(.v11)
+        .watchOS("27.0")
     ],
     products: [
         .library(name: "ListenUp", targets: ["ListenUp"]),

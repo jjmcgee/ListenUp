@@ -71,24 +71,17 @@ public struct MiniPlayerView: View {
                         player.togglePlayPause()
                     } label: {
                         Image(systemName: player.isPlaying ? "pause.fill" : "play.fill")
-                            .font(.system(size: 22))
-                            .foregroundStyle(Color.primary)
-                            .frame(width: 32, height: 32)
+                            .font(.system(size: 17, weight: .bold))
+                            .foregroundStyle(Color.accentColor)
+                            .frame(width: 36, height: 36)
+                            .liquidGlassCircle(tint: Color.accentColor, isInteractive: true)
                     }
                     .padding(.trailing, 4)
                 }
                 .padding(.horizontal, 14)
                 .padding(.vertical, 8)
             }
-            .background(
-                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .fill(.ultraThinMaterial)
-                    .shadow(color: .black.opacity(0.12), radius: 12, x: 0, y: 4)
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .stroke(Color.primary.opacity(0.08), lineWidth: 1)
-            )
+            .liquidGlass(cornerRadius: 18, tint: Color.accentColor)
             .padding(.horizontal, 12)
             .contentShape(Rectangle())
             .onTapGesture {

@@ -29,25 +29,19 @@ public struct SearchView: View {
                     if displayedItems.isEmpty {
                         emptyStateView
                     } else {
-                        // Grouped card matching the screenshot layout
-                        VStack(spacing: 0) {
-                            ForEach(Array(displayedItems.enumerated()), id: \.element.id) { index, item in
-                                searchRow(for: item)
-                                
-                                if index < displayedItems.count - 1 {
-                                    Divider()
-                                        .padding(.leading, 78)
-                                        .opacity(0.4)
+                        // Grouped card matching the layout encased in Liquid Glass
+                        LiquidGlassCard(cornerRadius: 18) {
+                            VStack(spacing: 0) {
+                                ForEach(Array(displayedItems.enumerated()), id: \.element.id) { index, item in
+                                    searchRow(for: item)
+                                    
+                                    if index < displayedItems.count - 1 {
+                                        Divider()
+                                            .padding(.leading, 78)
+                                            .opacity(0.3)
+                                    }
                                 }
                             }
-                        }
-                        .background {
-                            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                #if canImport(UIKit)
-                                .fill(Color(uiColor: .secondarySystemGroupedBackground))
-                                #else
-                                .fill(Color.secondary.opacity(0.12))
-                                #endif
                         }
                         .padding(.horizontal, 16)
                     }

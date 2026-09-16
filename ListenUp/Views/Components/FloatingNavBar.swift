@@ -82,15 +82,7 @@ public struct FloatingNavBar: View {
             }
             .frame(maxWidth: isSearchActive ? circleSize : .infinity)
             .frame(height: barHeight)
-            .background {
-                Capsule()
-                    .fill(.ultraThinMaterial)
-                    .shadow(color: Color.black.opacity(0.12), radius: 10, x: 0, y: 4)
-            }
-            .overlay {
-                Capsule()
-                    .stroke(Color.primary.opacity(0.08), lineWidth: 1)
-            }
+            .liquidGlassCapsule(tint: Color.accentColor)
             
             // MARK: - Right Element (Morphs between Circular Search Button and Wide Search Bar)
             ZStack {
@@ -154,15 +146,7 @@ public struct FloatingNavBar: View {
             }
             .frame(maxWidth: isSearchActive ? .infinity : circleSize)
             .frame(height: barHeight)
-            .background {
-                Capsule()
-                    .fill(.ultraThinMaterial)
-                    .shadow(color: Color.black.opacity(0.12), radius: 10, x: 0, y: 4)
-            }
-            .overlay {
-                Capsule()
-                    .stroke(Color.primary.opacity(0.08), lineWidth: 1)
-            }
+            .liquidGlassCapsule(tint: isSearchActive ? Color.accentColor : nil)
         }
     }
     
@@ -194,7 +178,19 @@ public struct FloatingNavBar: View {
             .background {
                 if isSelected {
                     Capsule()
-                        .fill(Color.secondary.opacity(0.16))
+                        .fill(Color.accentColor.opacity(0.16))
+                        .overlay {
+                            Capsule()
+                                .strokeBorder(
+                                    LinearGradient(
+                                        colors: [Color.white.opacity(0.4), Color.clear],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    ),
+                                    lineWidth: 1
+                                )
+                        }
+                        .shadow(color: Color.accentColor.opacity(0.2), radius: 6, x: 0, y: 2)
                         .transition(.scale.combined(with: .opacity))
                 }
             }

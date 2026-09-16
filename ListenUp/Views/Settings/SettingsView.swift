@@ -168,7 +168,7 @@ public struct SettingsView: View {
             VStack(spacing: 8) {
                 // Miniature UI preview card
                 ZStack {
-                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
                         .fill(cardBackgroundColor(for: theme))
                     
                     Image(systemName: theme.iconName)
@@ -176,10 +176,7 @@ public struct SettingsView: View {
                         .foregroundStyle(cardIconColor(for: theme))
                 }
                 .frame(height: 54)
-                .overlay {
-                    RoundedRectangle(cornerRadius: 10, style: .continuous)
-                        .stroke(isSelected ? Color.accentColor : Color.primary.opacity(0.12), lineWidth: isSelected ? 2 : 1)
-                }
+                .liquidGlass(cornerRadius: 12, tint: isSelected ? Color.accentColor : nil, isInteractive: true)
                 
                 // Title and checkmark
                 HStack(spacing: 4) {

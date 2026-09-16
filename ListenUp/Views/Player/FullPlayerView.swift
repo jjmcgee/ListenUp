@@ -31,55 +31,65 @@ public struct FullPlayerView: View {
         
         return AnyView(
             NavigationStack {
-                GeometryReader { geometry in
-                    let hasChapters = !player.chapters.isEmpty
-                    let isChapterMode = hasChapters && !isShowingBookScrubber
-                    let activeChapter = activeScrubbingChapter ?? player.currentChapter
+                ZStack {
+                    LiquidGlassMeshBackground(
+                        primaryColor: Color.accentColor,
+                        secondaryColor: Color.purple
+                    )
                     
-                    let scrubberMaxDuration: Double = {
-                        if isChapterMode, let ch = activeChapter {
-                            return max(ch.duration, 1.0)
-                        } else {
-                            return max(player.totalDuration, 1.0)
-                        }
-                    }()
-                    
-                    let currentScrubberDisplayValue: Double = {
-                        if isDraggingSlider {
-                            return sliderValue
-                        }
-                        if isChapterMode {
-                            return player.currentChapterElapsed
-                        } else {
-                            return player.currentTime
-                        }
-                    }()
-                    
-                    VStack(spacing: 16) {
+                    GeometryReader { geometry in
+                        let hasChapters = !player.chapters.isEmpty
+                        let isChapterMode = hasChapters && !isShowingBookScrubber
+                        let activeChapter = activeScrubbingChapter ?? player.currentChapter
                         
-                        // Top Drag Indicator / Header
-                        HStack {
-                            Button {
-                                dismiss()
-                            } label: {
-                                Image(systemName: "chevron.compact.down")
-                                    .font(.system(size: 30, weight: .medium))
-                                    .foregroundStyle(Color.secondary)
+                        let scrubberMaxDuration: Double = {
+                            if isChapterMode, let ch = activeChapter {
+                                return max(ch.duration, 1.0)
+                            } else {
+                                return max(player.totalDuration, 1.0)
                             }
-                            
-                            Spacer()
-                            
-                            Button {
-                                showingWatchSyncSheet = true
-                            } label: {
-                                Image(systemName: "applewatch.radiowaves.left.and.right")
-                                    .font(.system(size: 20, weight: .medium))
-                                    .foregroundStyle(Color.secondary)
+                        }()
+                        
+                        let currentScrubberDisplayValue: Double = {
+                            if isDraggingSlider {
+                                return sliderValue
                             }
-                            .accessibilityLabel("Apple Watch Sync")
-                        }
-                        .padding(.horizontal, 24)
-                        .padding(.top, 8)
+                            if isChapterMode {
+                                return player.currentChapterElapsed
+                            } else {
+                                return player.currentTime
+                            }
+                        }()
+                        
+                        VStack(spacing: 16) {
+                            
+                            // Top Drag Indicator / Header
+                            HStack {
+                                Button {
+                                    dismiss()
+                                } label: {
+                                    Image(systemName: "chevron.compact.down")
+                                        .font(.system(size: 26, weight: .bold))
+                                        .foregroundStyle(Color.secondary)
+                                        .frame(width: 40, height: 40)
+                                        .liquidGlassCircle(isInteractive: true)
+                                }
+                                
+                                Spacer()
+                                
+                                Button {
+                                    showingWatchSyncSheet = true
+                                } label: {
+                                    Image(systemName: "applewatch.radiowaves.left.and.right")
+                                        .font(.system(size: 18, weight: .semibold))
+                                        .foregroundStyle(Color.accentColor)
+                                        .frame(width: 40, height: 40)
+                                        .liquidGlassCircle(tint: Color.accentColor, isInteractive: true)
+                                }
+                                .accessibilityLabel("Apple Watch Sync")
+                            }
+                            .padding(.horizontal, 24)
+                            .padding(.top, 8)
                         
                         Spacer(minLength: 4)
                         
@@ -123,10 +133,10 @@ public struct FullPlayerView: View {
                                     player.skipToPreviousChapter()
                                 } label: {
                                     Image(systemName: "chevron.left")
-                                        .font(.system(size: 20, weight: .semibold))
+                                        .font(.system(size: 15, weight: .bold))
                                         .foregroundStyle(Color.primary)
-                                        .frame(width: 44, height: 36)
-                                        .contentShape(Rectangle())
+                                        .frame(width: 36, height: 36)
+                                        .liquidGlassCircle(isInteractive: true)
                                 }
                                 .disabled(player.currentChapterIndex == 0 && player.currentChapterElapsed <= 3.0)
                                 .opacity((player.currentChapterIndex == 0 && player.currentChapterElapsed <= 3.0) ? 0.35 : 1.0)
@@ -138,10 +148,13 @@ public struct FullPlayerView: View {
                                     showingChaptersSheet = true
                                 } label: {
                                     Text(currentChapter.title)
-                                        .font(.system(size: 18, weight: .semibold, design: .rounded))
+                                        .font(.system(size: 15, weight: .semibold, design: .rounded))
                                         .foregroundStyle(Color.primary)
                                         .lineLimit(1)
                                         .truncationMode(.tail)
+                                        .padding(.horizontal, 14)
+                                        .padding(.vertical, 7)
+                                        .liquidGlassCapsule(tint: Color.accentColor, isInteractive: true)
                                 }
                                 
                                 Spacer()
@@ -151,10 +164,10 @@ public struct FullPlayerView: View {
                                     player.skipToNextChapter()
                                 } label: {
                                     Image(systemName: "chevron.right")
-                                        .font(.system(size: 20, weight: .semibold))
+                                        .font(.system(size: 15, weight: .bold))
                                         .foregroundStyle(Color.primary)
-                                        .frame(width: 44, height: 36)
-                                        .contentShape(Rectangle())
+                                        .frame(width: 36, height: 36)
+                                        .liquidGlassCircle(isInteractive: true)
                                 }
                                 .disabled(player.currentChapterIndex == (player.chapters.count - 1))
                                 .opacity((player.currentChapterIndex == (player.chapters.count - 1)) ? 0.35 : 1.0)
@@ -282,11 +295,10 @@ public struct FullPlayerView: View {
                                             .font(.system(size: 10, weight: .semibold))
                                             .foregroundStyle(Color.accentColor)
                                     }
-                                    .padding(.horizontal, 12)
-                                    .padding(.vertical, 5)
-                                    .background(Color.secondary.opacity(0.1))
-                                    .clipShape(Capsule())
-                                    .foregroundStyle(Color.secondary)
+                                    .padding(.horizontal, 14)
+                                    .padding(.vertical, 6)
+                                    .liquidGlassCapsule(tint: isShowingBookScrubber ? Color.accentColor : nil, isInteractive: true)
+                                    .foregroundStyle(Color.primary)
                                 }
                                 .buttonStyle(.plain)
                                 .padding(.top, 2)
@@ -297,6 +309,9 @@ public struct FullPlayerView: View {
                                     Text("\(bookRemainingFormatted) left in book")
                                         .font(.system(size: 12, weight: .medium, design: .rounded))
                                 }
+                                .padding(.horizontal, 14)
+                                .padding(.vertical, 6)
+                                .liquidGlassCapsule()
                                 .foregroundStyle(Color.secondary)
                                 .padding(.top, 2)
                             }
@@ -304,14 +319,16 @@ public struct FullPlayerView: View {
                         .padding(.horizontal, 24)
                         
                         // Primary Playback Controls
-                        HStack(spacing: 36) {
+                        HStack(spacing: 32) {
                             // Skip Backward 15s
                             Button {
                                 player.skipBackward(by: 15)
                             } label: {
                                 Image(systemName: "gobackward.15")
-                                    .font(.system(size: 32))
+                                    .font(.system(size: 24, weight: .semibold))
                                     .foregroundStyle(Color.primary)
+                                    .frame(width: 56, height: 56)
+                                    .liquidGlassCircle(isInteractive: true)
                             }
                             
                             // Play / Pause Toggle
@@ -319,8 +336,9 @@ public struct FullPlayerView: View {
                                 player.togglePlayPause()
                             } label: {
                                 Image(systemName: player.isPlaying ? "pause.circle.fill" : "play.circle.fill")
-                                    .font(.system(size: 72))
+                                    .font(.system(size: 74))
                                     .foregroundStyle(Color.accentColor)
+                                    .shadow(color: Color.accentColor.opacity(0.35), radius: 14, x: 0, y: 6)
                             }
                             
                             // Skip Forward 30s
@@ -328,8 +346,10 @@ public struct FullPlayerView: View {
                                 player.skipForward(by: 30)
                             } label: {
                                 Image(systemName: "goforward.30")
-                                    .font(.system(size: 32))
+                                    .font(.system(size: 24, weight: .semibold))
                                     .foregroundStyle(Color.primary)
+                                    .frame(width: 56, height: 56)
+                                    .liquidGlassCircle(isInteractive: true)
                             }
                         }
                         .padding(.vertical, 8)
@@ -346,7 +366,7 @@ public struct FullPlayerView: View {
                             } label: {
                                 HStack(spacing: 5) {
                                     Image(systemName: player.activeSleepTimerOption == .off ? "timer" : "timer.circle.fill")
-                                        .font(.system(size: 16))
+                                        .font(.system(size: 15))
                                     
                                     if let remaining = player.sleepTimerRemaining, player.activeSleepTimerOption != .off {
                                         Text(TimeFormatting.formatTimestamp(remaining))
@@ -356,10 +376,9 @@ public struct FullPlayerView: View {
                                             .font(.system(.subheadline, design: .rounded, weight: .medium))
                                     }
                                 }
-                                .padding(.horizontal, 12)
-                                .padding(.vertical, 6)
-                                .background(player.activeSleepTimerOption == .off ? Color.secondary.opacity(0.12) : Color.accentColor.opacity(0.15))
-                                .clipShape(Capsule())
+                                .padding(.horizontal, 14)
+                                .padding(.vertical, 7)
+                                .liquidGlassCapsule(tint: player.activeSleepTimerOption == .off ? nil : Color.accentColor, isInteractive: true)
                                 .foregroundStyle(player.activeSleepTimerOption == .off ? Color.primary : Color.accentColor)
                             }
                             
@@ -368,18 +387,17 @@ public struct FullPlayerView: View {
                                 showingChaptersSheet = true
                             } label: {
                                 Image(systemName: "list.bullet")
-                                    .font(.system(size: 16, weight: .semibold))
+                                    .font(.system(size: 15, weight: .semibold))
                                     .foregroundStyle(Color.primary)
-                                    .padding(.horizontal, 12)
-                                    .padding(.vertical, 8)
-                                    .background(Color.secondary.opacity(0.12))
-                                    .clipShape(Capsule())
+                                    .frame(width: 36, height: 36)
+                                    .liquidGlassCircle(isInteractive: true)
                             }
                             .accessibilityLabel("Chapters")
                         }
                         .padding(.horizontal, 28)
                         .padding(.bottom, 24)
                     }
+                }
                 }
                 .sheet(isPresented: $showingSleepTimerSheet) {
                     SleepTimerSheet(player: player)

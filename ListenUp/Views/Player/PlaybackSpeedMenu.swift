@@ -27,11 +27,10 @@ public struct PlaybackSpeedMenu: View {
         } label: {
             Text(String(format: "%.2fx", player.playbackRate))
                 .font(.system(.subheadline, design: .rounded, weight: .semibold))
-                .padding(.horizontal, 10)
-                .padding(.vertical, 5)
-                .background(Color.secondary.opacity(0.15))
-                .clipShape(Capsule())
-                .foregroundStyle(Color.primary)
+                .foregroundStyle(Color.accentColor)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 6)
+                .liquidGlassCapsule(tint: Color.accentColor, isInteractive: true)
         }
     }
 }

@@ -145,7 +145,8 @@ public final class AudioPlayerManager {
     private var queuePlayer: AVQueuePlayer?
     private var timeObserverToken: Any?
     private var itemDidPlayToEndObserver: NSObjectProtocol?
-    private var interruptionObserver: NSObjectProtocol?
+    private var didBecomeInactiveObserver: NSObjectProtocol?
+    private var resumptionRecommendationObserver: NSObjectProtocol?
     private var routeChangeObserver: NSObjectProtocol?
     private var lastPersistedPosition: Double = 0.0
     private var sleepTimerTask: Task<Void, Never>?
@@ -164,9 +165,13 @@ public final class AudioPlayerManager {
         sleepTimerTask?.cancel()
         sleepTimerTask = nil
         teardownPlayer()
-        if let observer = interruptionObserver {
+        if let observer = didBecomeInactiveObserver {
             NotificationCenter.default.removeObserver(observer)
-            interruptionObserver = nil
+            didBecomeInactiveObserver = nil
+        }
+        if let observer = resumptionRecommendationObserver {
+            NotificationCenter.default.removeObserver(observer)
+            resumptionRecommendationObserver = nil
         }
         if let observer = routeChangeObserver {
             NotificationCenter.default.removeObserver(observer)
@@ -193,16 +198,27 @@ public final class AudioPlayerManager {
     
     private func setupNotifications() {
         #if os(iOS) || os(watchOS) || os(tvOS) || os(visionOS)
-        interruptionObserver = NotificationCenter.default.addObserver(
-            forName: AVAudioSession.interruptionNotification,
+        didBecomeInactiveObserver = NotificationCenter.default.addObserver(
+            forName: AVAudioSession.didBecomeInactiveNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor [weak self] in
+                self?.pause()
+            }
+        }
+        
+        resumptionRecommendationObserver = NotificationCenter.default.addObserver(
+            forName: AVAudioSession.resumptionRecommendationNotification,
             object: nil,
             queue: .main
         ) { [weak self] notification in
-            guard let userInfo = notification.userInfo,
-                  let typeValue = userInfo[AVAudioSessionInterruptionTypeKey] as? UInt else { return }
-            let optionsValue = userInfo[AVAudioSessionInterruptionOptionKey] as? UInt
+            let context = notification.userInfo?[AVAudioSession.resumptionContextKey] as? AVAudioSession.ResumptionContext
+            let shouldResume = context?.recommendation == .shouldResume
             Task { @MainActor [weak self] in
-                self?.handleAudioInterruption(typeValue: typeValue, optionsValue: optionsValue)
+                if shouldResume {
+                    self?.resume()
+                }
             }
         }
         
@@ -526,7 +542,7 @@ public final class AudioPlayerManager {
     
     private func setupItemEndObserver() {
         itemDidPlayToEndObserver = NotificationCenter.default.addObserver(
-            forName: .AVPlayerItemDidPlayToEndTime,
+            forName: AVPlayerItem.didPlayToEndTimeNotification,
             object: nil,
             queue: .main
         ) { [weak self] _ in
@@ -767,26 +783,6 @@ public final class AudioPlayerManager {
     // MARK: - System Notifications
     
     #if os(iOS) || os(watchOS) || os(tvOS) || os(visionOS)
-    private func handleAudioInterruption(typeValue: UInt, optionsValue: UInt?) {
-        guard let type = AVAudioSession.InterruptionType(rawValue: typeValue) else {
-            return
-        }
-        
-        switch type {
-        case .began:
-            pause()
-        case .ended:
-            if let optionsValue = optionsValue {
-                let options = AVAudioSession.InterruptionOptions(rawValue: optionsValue)
-                if options.contains(.shouldResume) {
-                    resume()
-                }
-            }
-        @unknown default:
-            break
-        }
-    }
-    
     private func handleRouteChange(reasonValue: UInt) {
         guard let reason = AVAudioSession.RouteChangeReason(rawValue: reasonValue) else {
             return

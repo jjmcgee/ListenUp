@@ -9,8 +9,8 @@ struct ListenUpApp: App {
     let container = AppDatabase.shared.container
     
     // Playback and sync managers
-    @State private var player = AudioPlayerManager.shared
-    @State private var watchSync = WatchSyncManager.shared
+    private let player = AudioPlayerManager.shared
+    private let watchSync = WatchSyncManager.shared
     
     // User interface theme setting
     @AppStorage("appTheme") private var appTheme: AppTheme = .system
@@ -24,11 +24,9 @@ struct ListenUpApp: App {
         WindowGroup {
             MainTabView()
                 .environment(player)
+                .environment(watchSync)
                 .modelContainer(container)
                 .preferredColorScheme(appTheme.colorScheme)
-                .task {
-                    setupSyncWiring()
-                }
         }
     }
     

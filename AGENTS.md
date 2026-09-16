@@ -3,8 +3,8 @@
 ## Project Overview
 - **App Name:** ListenUp
 - **Purpose:** A native, subscription-free audio player for iOS and watchOS, tailored for both long-form fiction audiobooks and structured learning courses (e.g., Pimsleur language series).
-- **Target OS:** iOS 26+, watchOS
-- **IDE & Toolchain:** Xcode 26.6, Swift 6 (Strict Concurrency enabled)
+- **Target OS:** iOS 27+, watchOS 27+
+- **IDE & Toolchain:** Xcode 27.0, Swift 6 (Strict Concurrency enabled)
 - **Primary Frameworks:** SwiftUI, SwiftData, AVFoundation, MediaPlayer, WatchConnectivity, CloudKit
 
 ## Fundamental Architecture & Technical Invariants

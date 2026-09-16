@@ -70,7 +70,14 @@ public struct ChaptersSheet: View {
                                                 .foregroundStyle(Color.accentColor)
                                         }
                                     }
-                                    .padding(.vertical, 4)
+                                    .padding(.vertical, 8)
+                                    .padding(.horizontal, 10)
+                                    .background {
+                                        if player.currentChapter?.id == chapter.id {
+                                            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                                .fill(Color.accentColor.opacity(0.12))
+                                        }
+                                    }
                                     .contentShape(Rectangle())
                                 }
                                 .id(chapter.id)
@@ -103,11 +110,10 @@ public struct ChaptersSheet: View {
                         dismiss()
                     } label: {
                         Image(systemName: "xmark")
-                            .font(.system(size: 14, weight: .bold))
+                            .font(.system(size: 13, weight: .bold))
                             .foregroundStyle(Color.primary)
-                            .frame(width: 32, height: 32)
-                            .background(Color.secondary.opacity(0.15))
-                            .clipShape(Circle())
+                            .frame(width: 34, height: 34)
+                            .liquidGlassCircle(isInteractive: true)
                     }
                     .accessibilityLabel("Close")
                 }
@@ -117,15 +123,16 @@ public struct ChaptersSheet: View {
                     Button {
                         player.reloadChapters()
                     } label: {
-                        Text("Reload")
-                            .font(.system(size: 14, weight: .medium))
-                            .foregroundStyle(Color.accentColor)
-                            .padding(.horizontal, 14)
-                            .padding(.vertical, 5)
-                            .overlay(
-                                Capsule()
-                                    .stroke(Color.accentColor.opacity(0.4), lineWidth: 1)
-                            )
+                        HStack(spacing: 4) {
+                            Image(systemName: "arrow.clockwise")
+                                .font(.system(size: 11, weight: .bold))
+                            Text("Reload")
+                                .font(.system(size: 13, weight: .semibold, design: .rounded))
+                        }
+                        .foregroundStyle(Color.accentColor)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .liquidGlassCapsule(tint: Color.accentColor, isInteractive: true)
                     }
                     .disabled(player.isLoadingChapters)
                     .accessibilityLabel("Reload Chapters")
