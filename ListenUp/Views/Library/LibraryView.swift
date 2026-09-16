@@ -139,8 +139,6 @@ public struct LibraryView: View {
                         HStack(spacing: 5) {
                             Image(systemName: "book.badge.plus")
                                 .font(.system(size: 14, weight: .semibold))
-                            Text("Add")
-                                .font(.system(size: 13, weight: .semibold, design: .rounded))
                         }
                         .foregroundStyle(Color.accentColor)
                         .padding(.horizontal, 12)
