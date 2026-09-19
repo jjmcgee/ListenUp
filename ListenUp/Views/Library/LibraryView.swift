@@ -23,6 +23,8 @@ public struct LibraryView: View {
     @State private var isShowingFileImporter: Bool = false
     @State private var isImporting: Bool = false
     @State private var importErrorMessage: String? = nil
+    @State private var bookPendingDeletionPrompt: LibraryItem? = nil
+    @State private var itemShowingOffloadedAlert: LibraryItem? = nil
     
     public enum FilterOption: String, CaseIterable, Identifiable {
         case all = "All"
@@ -40,7 +42,7 @@ public struct LibraryView: View {
     public var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
-                if parentFolder == nil && !allItems.isEmpty {
+                if parentFolder == nil && !allItems.filter({ !$0.isDeletedFromLibrary }).isEmpty {
                     HStack(spacing: 6) {
                         ForEach(FilterOption.allCases) { option in
                             let isSelected = filterSelection == option
@@ -109,14 +111,28 @@ public struct LibraryView: View {
                                     item: item,
                                     isCurrentlyPlaying: isItemPlaying(item),
                                     onPlay: {
-                                        player.play(item: item)
+                                        if item.isFileOffloaded {
+                                            itemShowingOffloadedAlert = item
+                                        } else {
+                                            player.play(item: item)
+                                        }
                                     },
                                     onDelete: {
                                         deleteItem(item)
+                                    },
+                                    onToggleCompleted: {
+                                        toggleCompleted(for: item)
+                                    },
+                                    onDeleteAudioFile: {
+                                        offloadFile(for: item)
                                     }
                                 )
                                 .onTapGesture {
-                                    player.play(item: item)
+                                    if item.isFileOffloaded {
+                                        itemShowingOffloadedAlert = item
+                                    } else {
+                                        player.play(item: item)
+                                    }
                                 }
                             }
                         }
@@ -173,6 +189,36 @@ public struct LibraryView: View {
             } message: {
                 Text(importErrorMessage ?? "")
             }
+            .alert(
+                "Delete Audio File?",
+                isPresented: Binding(
+                    get: { bookPendingDeletionPrompt != nil },
+                    set: { if !$0 { bookPendingDeletionPrompt = nil } }
+                ),
+                presenting: bookPendingDeletionPrompt
+            ) { item in
+                Button("Delete File", role: .destructive) {
+                    offloadFile(for: item)
+                    bookPendingDeletionPrompt = nil
+                }
+                Button("Keep File", role: .cancel) {
+                    bookPendingDeletionPrompt = nil
+                }
+            } message: { item in
+                Text("You marked \"\(item.title)\" as finished. Would you like to delete the audio file to free up storage? Your listening history will be preserved.")
+            }
+            .alert(
+                "Audio File Offloaded",
+                isPresented: Binding(
+                    get: { itemShowingOffloadedAlert != nil },
+                    set: { if !$0 { itemShowingOffloadedAlert = nil } }
+                ),
+                presenting: itemShowingOffloadedAlert
+            ) { _ in
+                Button("OK", role: .cancel) {}
+            } message: { item in
+                Text("The audio file for \"\(item.title)\" was removed to save storage. Your completion status and listening history are preserved.")
+            }
         }
     }
     
@@ -181,10 +227,23 @@ public struct LibraryView: View {
     private var displayedItems: [LibraryItem] {
         let baseItems: [LibraryItem]
         if let parent = parentFolder {
-            baseItems = parent.sortedChildren
+            baseItems = parent.sortedChildren.filter { !$0.isDeletedFromLibrary }
         } else {
-            // Root items only (parent == nil)
-            baseItems = allItems.filter { $0.parent == nil }
+            switch filterSelection {
+            case .all:
+                // Root items only (parent == nil and active in library)
+                baseItems = allItems.filter { $0.parent == nil && !$0.isDeletedFromLibrary }
+            case .inProgress:
+                // All active audiobooks (excluding structural folders, child tracks, and soft-deleted items)
+                baseItems = allItems.filter { item in
+                    item.kind != .folder && item.parent?.kind != .multiPart && !item.isCompleted && item.currentPosition > 0 && !item.isDeletedFromLibrary
+                }
+            case .completed:
+                // All finished audiobooks in library (excluding structural folders, child tracks, and soft-deleted items)
+                baseItems = allItems.filter { item in
+                    item.kind != .folder && item.parent?.kind != .multiPart && item.isCompleted && !item.isDeletedFromLibrary
+                }
+            }
         }
         
         let trimmedQuery = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -197,15 +256,20 @@ public struct LibraryView: View {
             
             guard matchesSearch else { return false }
             
-            // Tab filter
-            switch filterSelection {
-            case .all:
-                return true
-            case .inProgress:
-                return !item.isCompleted && item.currentPosition > 0
-            case .completed:
-                return item.isCompleted
+            // Tab filter when drilled into a parent folder
+            if parentFolder != nil {
+                guard !item.isDeletedFromLibrary else { return false }
+                switch filterSelection {
+                case .all:
+                    return true
+                case .inProgress:
+                    return item.kind != .folder && !item.isCompleted && item.currentPosition > 0
+                case .completed:
+                    return item.kind != .folder && item.isCompleted
+                }
             }
+            
+            return true
         }
     }
     
@@ -236,31 +300,77 @@ public struct LibraryView: View {
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 32)
             } else {
-                Image(systemName: "books.vertical")
-                    .font(.system(size: 64))
-                    .foregroundStyle(Color.secondary.opacity(0.4))
-                
-                Text(parentFolder == nil ? "Your Library is Empty" : "Folder is Empty")
-                    .font(.title3.weight(.bold))
-                
-                Text("Import single audiobooks (.m4b, .m4a, .mp3) or entire multi-track course folders.")
-                    .font(.subheadline)
-                    .foregroundStyle(Color.secondary)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal, 32)
-                
-                Button {
-                    isShowingFileImporter = true
-                } label: {
-                    Label("Import Audio Files", systemImage: "square.and.arrow.down")
-                        .font(.headline)
-                        .padding(.horizontal, 20)
-                        .padding(.vertical, 10)
-                        .background(Color.accentColor)
-                        .foregroundStyle(.white)
-                        .clipShape(Capsule())
+                switch filterSelection {
+                case .completed:
+                    Image(systemName: "checkmark.circle")
+                        .font(.system(size: 64))
+                        .foregroundStyle(Color.secondary.opacity(0.4))
+                    
+                    Text("No Finished Books")
+                        .font(.title3.weight(.bold))
+                    
+                    Text("Keep reading and finished items will appear.")
+                        .font(.subheadline)
+                        .foregroundStyle(Color.secondary)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 32)
+                    
+                case .inProgress:
+                    Image(systemName: "clock")
+                        .font(.system(size: 64))
+                        .foregroundStyle(Color.secondary.opacity(0.4))
+                    
+                    Text("No Books In Progress")
+                        .font(.title3.weight(.bold))
+                    
+                    Text("Start listening to an audiobook and it will appear here.")
+                        .font(.subheadline)
+                        .foregroundStyle(Color.secondary)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 32)
+                    
+                case .all:
+                    if parentFolder == nil {
+                        Image(systemName: "books.vertical")
+                            .font(.system(size: 64))
+                            .foregroundStyle(Color.secondary.opacity(0.4))
+                        
+                        Text("Your Library is Empty")
+                            .font(.title3.weight(.bold))
+                        
+                        Text("Import single audiobooks (.m4b, .m4a, .mp3) or entire multi-track course folders.")
+                            .font(.subheadline)
+                            .foregroundStyle(Color.secondary)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 32)
+                        
+                        Button {
+                            isShowingFileImporter = true
+                        } label: {
+                            Label("Import Audio Files", systemImage: "square.and.arrow.down")
+                                .font(.headline)
+                                .padding(.horizontal, 20)
+                                .padding(.vertical, 10)
+                                .background(Color.accentColor)
+                                .foregroundStyle(.white)
+                                .clipShape(Capsule())
+                        }
+                        .padding(.top, 8)
+                    } else {
+                        Image(systemName: "folder")
+                            .font(.system(size: 64))
+                            .foregroundStyle(Color.secondary.opacity(0.4))
+                        
+                        Text("Folder is Empty")
+                            .font(.title3.weight(.bold))
+                        
+                        Text("This folder contains no audio tracks.")
+                            .font(.subheadline)
+                            .foregroundStyle(Color.secondary)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 32)
+                    }
                 }
-                .padding(.top, 8)
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -299,6 +409,36 @@ public struct LibraryView: View {
         }
     }
     
+    // MARK: - Completion & Offloading Actions
+    
+    private func toggleCompleted(for item: LibraryItem) {
+        if item.isCompleted {
+            item.isCompleted = false
+            item.completedDate = nil
+            item.lastUpdated = Date()
+            try? modelContext.save()
+        } else {
+            item.isCompleted = true
+            item.completedDate = Date()
+            item.lastUpdated = Date()
+            try? modelContext.save()
+            
+            if !item.isFileOffloaded {
+                bookPendingDeletionPrompt = item
+            }
+        }
+    }
+    
+    private func offloadFile(for item: LibraryItem) {
+        if player.currentItem?.id == item.id || item.playableTracks.contains(where: { $0.id == player.currentItem?.id }) {
+            player.stop()
+        }
+        FileImporterService.deletePhysicalFiles(for: item)
+        item.isFileOffloaded = true
+        item.lastUpdated = Date()
+        try? modelContext.save()
+    }
+    
     // MARK: - Deletion
     
     private func deleteItem(_ item: LibraryItem) {
@@ -306,8 +446,18 @@ public struct LibraryView: View {
             player.stop()
         }
         FileImporterService.deletePhysicalFiles(for: item)
-        modelContext.delete(item)
-        try? modelContext.save()
+        
+        // If the book has listening history or completion, preserve it for profile stats and history
+        if item.isCompleted || item.currentPosition > 0 {
+            item.isDeletedFromLibrary = true
+            item.isFileOffloaded = true
+            item.parent = nil
+            item.lastUpdated = Date()
+            try? modelContext.save()
+        } else {
+            modelContext.delete(item)
+            try? modelContext.save()
+        }
     }
     
     private func deleteItems(at offsets: IndexSet) {

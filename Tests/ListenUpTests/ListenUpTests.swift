@@ -312,5 +312,122 @@ struct ListenUpTests {
         let inProgressCount = items.filter { $0.parent == nil && !$0.isCompleted && $0.currentPosition > 0 }.count
         #expect(inProgressCount == 1)
     }
+    
+    // MARK: - Library Finished Tab Filtering Tests
+    
+    @Test("Finished tab filtering isolates finished books and excludes folders and unfinished books")
+    func testFinishedTabFiltering() {
+        let finishedSingle = LibraryItem(title: "Finished Novel", kind: .singleFile, totalDuration: 3600.0, isCompleted: true)
+        let unfinishedSingle = LibraryItem(title: "Reading Novel", kind: .singleFile, totalDuration: 3600.0, currentPosition: 500.0, isCompleted: false)
+        let unreadSingle = LibraryItem(title: "Unread Novel", kind: .singleFile, totalDuration: 3600.0, currentPosition: 0.0, isCompleted: false)
+        let folder = LibraryItem(title: "Audio Courses", kind: .folder)
+        
+        let finishedMulti = LibraryItem(title: "Finished MultiPart", kind: .multiPart, totalDuration: 7200.0, isCompleted: true)
+        let childTrack = LibraryItem(title: "Track 1", kind: .singleFile, totalDuration: 3600.0, isCompleted: true, parent: finishedMulti)
+        finishedMulti.children = [childTrack]
+        
+        let allItems = [finishedSingle, unfinishedSingle, unreadSingle, folder, finishedMulti, childTrack]
+        
+        // Filter logic for Finished tab
+        let finishedBooks = allItems.filter { item in
+            item.kind != .folder && item.parent?.kind != .multiPart && item.isCompleted
+        }
+        
+        #expect(finishedBooks.count == 2)
+        #expect(finishedBooks.contains(where: { $0.title == "Finished Novel" }))
+        #expect(finishedBooks.contains(where: { $0.title == "Finished MultiPart" }))
+        #expect(!finishedBooks.contains(where: { $0.title == "Audio Courses" }))
+        #expect(!finishedBooks.contains(where: { $0.title == "Reading Novel" }))
+        #expect(!finishedBooks.contains(where: { $0.title == "Unread Novel" }))
+        #expect(!finishedBooks.contains(where: { $0.title == "Track 1" }))
+        
+        // Filter logic when no books are completed
+        let noCompletedItems = [unfinishedSingle, unreadSingle, folder]
+        let emptyFinished = noCompletedItems.filter { item in
+            item.kind != .folder && item.parent?.kind != .multiPart && item.isCompleted
+        }
+        #expect(emptyFinished.isEmpty)
+    }
+    
+    // MARK: - Book History & Audio File Offloading Tests
+    
+    @Test("Offloading completed book deletes file reference but preserves history and completion metadata")
+    func testFinishedBookOffloadingPreservesMetadataAndHistory() {
+        let completionDate = Date()
+        let book = LibraryItem(
+            title: "Dune",
+            author: "Frank Herbert",
+            kind: .singleFile,
+            relativePath: "Audiobooks/Dune.m4b",
+            totalDuration: 72000.0,
+            currentPosition: 72000.0,
+            isCompleted: true,
+            completedDate: completionDate,
+            isFileOffloaded: false,
+            isDeletedFromLibrary: false
+        )
+        
+        #expect(book.isCompleted == true)
+        #expect(book.completedDate == completionDate)
+        #expect(book.formattedCompletedDate?.contains("Completed") == true)
+        
+        // Simulate offloading audio file to save storage
+        book.isFileOffloaded = true
+        #expect(book.hasLocalAudio == false)
+        #expect(book.title == "Dune")
+        #expect(book.author == "Frank Herbert")
+        #expect(book.totalDuration == 72000.0)
+        #expect(book.isCompleted == true)
+        #expect(book.completedDate == completionDate)
+    }
+    
+    @Test("Deleting book from library sets isDeletedFromLibrary but preserves history in profile stats")
+    func testDeletedBookFromLibraryPreservesListeningHistory() {
+        let completedDate = Date()
+        let book1 = LibraryItem(
+            title: "1984",
+            kind: .singleFile,
+            totalDuration: 36000.0,
+            currentPosition: 36000.0,
+            isCompleted: true,
+            completedDate: completedDate
+        )
+        
+        let book2 = LibraryItem(
+            title: "Brave New World",
+            kind: .singleFile,
+            totalDuration: 28800.0,
+            currentPosition: 14400.0,
+            isCompleted: false
+        )
+        
+        let activeItems = [book1, book2]
+        
+        // Initially both are in the library
+        let libraryCountBefore = activeItems.filter { $0.parent == nil && !$0.isDeletedFromLibrary }.count
+        #expect(libraryCountBefore == 2)
+        
+        // User deletes book1 from library: soft-delete preserves history
+        book1.isDeletedFromLibrary = true
+        book1.isFileOffloaded = true
+        
+        // Active library should now only contain book2
+        let libraryCountAfter = activeItems.filter { $0.parent == nil && !$0.isDeletedFromLibrary }.count
+        #expect(libraryCountAfter == 1)
+        
+        // Profile listening statistics must retain book1's completed status and listened hours
+        let totalSeconds = activeItems.reduce(0.0) { $0 + max(0.0, $1.currentPosition) }
+        #expect(totalSeconds == 50400.0) // 36000 + 14400 (14.0 hours)
+        
+        let completedCount = activeItems.filter { $0.kind != .folder && $0.parent?.kind != .multiPart && $0.isCompleted }.count
+        #expect(completedCount == 1) // 1984 still counts as completed!
+        
+        // History items query in ProfileView
+        let historyItems = activeItems.filter { item in
+            item.kind != .folder && item.parent?.kind != .multiPart && (item.isCompleted || item.currentPosition > 0)
+        }
+        #expect(historyItems.count == 2)
+        #expect(historyItems.contains(where: { $0.title == "1984" && $0.isDeletedFromLibrary == true }))
+    }
 }
 

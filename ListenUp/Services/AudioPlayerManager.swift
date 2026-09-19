@@ -58,6 +58,9 @@ public final class AudioPlayerManager {
     /// The parent item currently loaded (either a single file or a multi-part book).
     public private(set) var currentItem: LibraryItem?
     
+    /// Holds a book that just completed playback and is awaiting user decision on whether to delete audio files to save storage.
+    public var bookPendingDeletionPrompt: LibraryItem? = nil
+    
     /// The active physical track being played inside the queue.
     public private(set) var currentTrack: LibraryItem?
     
@@ -240,6 +243,8 @@ public final class AudioPlayerManager {
     
     /// Loads an item (singleFile or multiPart) and initiates playback at its last saved position.
     public func play(item: LibraryItem) {
+        guard !item.isFileOffloaded else { return }
+        
         if currentItem?.id == item.id && queuePlayer != nil {
             resume()
             return
@@ -573,8 +578,13 @@ public final class AudioPlayerManager {
             // All segments completed
             currentTime = totalDuration
             item.isCompleted = true
+            item.completedDate = item.completedDate ?? Date()
             persistCurrentPosition()
             pause()
+            
+            if !item.isFileOffloaded {
+                bookPendingDeletionPrompt = item
+            }
         }
     }
     

@@ -4,6 +4,7 @@ import SwiftData
 /// Root coordinator tab view managing primary app navigation,
 /// floating glass bottom navigation bar, mini-player dock, and search coordination.
 public struct MainTabView: View {
+    @Environment(\.modelContext) private var modelContext
     @Environment(AudioPlayerManager.self) private var player
     
     @State private var selectedTab: NavTab = .library
@@ -56,6 +57,27 @@ public struct MainTabView: View {
         }
         .sheet(isPresented: $isShowingFullPlayer) {
             FullPlayerView(player: player)
+        }
+        .alert(
+            "Book Completed",
+            isPresented: Binding(
+                get: { player.bookPendingDeletionPrompt != nil },
+                set: { if !$0 { player.bookPendingDeletionPrompt = nil } }
+            ),
+            presenting: player.bookPendingDeletionPrompt
+        ) { item in
+            Button("Delete Audio File", role: .destructive) {
+                FileImporterService.deletePhysicalFiles(for: item)
+                item.isFileOffloaded = true
+                item.lastUpdated = Date()
+                try? modelContext.save()
+                player.bookPendingDeletionPrompt = nil
+            }
+            Button("Keep File", role: .cancel) {
+                player.bookPendingDeletionPrompt = nil
+            }
+        } message: { item in
+            Text("You've finished listening to \"\(item.title)\". Would you like to delete the audio file to free up storage? Your listening history will be preserved.")
         }
     }
 }

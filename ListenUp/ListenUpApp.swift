@@ -133,7 +133,7 @@ struct ListenUpApp: App {
     private func broadcastLibraryCatalogToWatch() {
         let context = container.mainContext
         let descriptor = FetchDescriptor<LibraryItem>(
-            predicate: #Predicate { $0.parent == nil }
+            predicate: #Predicate { $0.parent == nil && !$0.isDeletedFromLibrary }
         )
         
         guard let items = try? context.fetch(descriptor) else { return }

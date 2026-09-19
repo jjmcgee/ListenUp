@@ -32,6 +32,9 @@ public struct ProfileView: View {
                     // MARK: - Achievements Section
                     achievementsSection
                     
+                    // MARK: - Listening History Section
+                    listeningHistorySection
+                    
                     // MARK: - Library & Storage Summary
                     storageSummaryCard
                     
@@ -316,6 +319,153 @@ public struct ProfileView: View {
         }
     }
     
+    // MARK: - Listening History Section
+    
+    private var historyItems: [LibraryItem] {
+        allItems.filter { item in
+            item.kind != .folder && item.parent?.kind != .multiPart && (item.isCompleted || item.currentPosition > 0)
+        }
+        .sorted {
+            let date0 = $0.completedDate ?? $0.lastUpdated
+            let date1 = $1.completedDate ?? $1.lastUpdated
+            return date0 > date1
+        }
+    }
+    
+    private var listeningHistorySection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Text("Listening History")
+                    .font(.headline)
+                    .foregroundStyle(Color.secondary)
+                
+                Spacer()
+                
+                if !historyItems.isEmpty {
+                    Text("\(historyItems.count) titles")
+                        .font(.caption)
+                        .foregroundStyle(Color.secondary)
+                }
+            }
+            .padding(.horizontal, 4)
+            
+            if historyItems.isEmpty {
+                LiquidGlassCard(cornerRadius: 14) {
+                    HStack(spacing: 12) {
+                        Image(systemName: "clock.arrow.circlepath")
+                            .font(.system(size: 22))
+                            .foregroundStyle(Color.secondary.opacity(0.6))
+                        
+                        Text("No listening history yet. Start listening to an audiobook to build your history!")
+                            .font(.caption)
+                            .foregroundStyle(Color.secondary)
+                    }
+                    .padding(14)
+                }
+            } else {
+                VStack(spacing: 8) {
+                    ForEach(historyItems) { item in
+                        historyRow(for: item)
+                    }
+                }
+            }
+        }
+    }
+    
+    @ViewBuilder
+    private func historyRow(for item: LibraryItem) -> some View {
+        LiquidGlassCard(cornerRadius: 14) {
+            HStack(spacing: 12) {
+                // Cover Artwork
+                ArtworkImageView(
+                    artworkData: item.artworkData,
+                    title: item.title,
+                    kind: item.kind,
+                    cornerRadius: 8
+                )
+                .frame(width: 46, height: 46)
+                
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(item.title)
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(Color.primary)
+                        .lineLimit(1)
+                    
+                    if let author = item.author, !author.isEmpty {
+                        Text(author)
+                            .font(.caption2)
+                            .foregroundStyle(Color.secondary)
+                            .lineLimit(1)
+                    }
+                    
+                    HStack(spacing: 6) {
+                        if item.isCompleted, let formattedDate = item.formattedCompletedDate {
+                            Text(formattedDate)
+                                .font(.system(size: 10))
+                                .foregroundStyle(Color.green)
+                        } else if item.totalDuration > 0 {
+                            let percent = Int(item.progress * 100)
+                            Text("\(percent)% listened")
+                                .font(.system(size: 10))
+                                .foregroundStyle(Color.accentColor)
+                        }
+                        
+                        if item.totalDuration > 0 {
+                            Text("•")
+                                .font(.caption2)
+                                .foregroundStyle(Color.secondary.opacity(0.5))
+                            
+                            Text(item.formattedTotalDuration)
+                                .font(.system(size: 10))
+                                .foregroundStyle(Color.secondary)
+                        }
+                    }
+                }
+                
+                Spacer()
+                
+                // Status Badge
+                VStack(alignment: .trailing, spacing: 4) {
+                    if item.isDeletedFromLibrary {
+                        Text("Archived")
+                            .font(.system(size: 9, weight: .semibold, design: .rounded))
+                            .foregroundStyle(Color.secondary)
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 2)
+                            .background(Color.secondary.opacity(0.12))
+                            .clipShape(Capsule())
+                    } else if item.isFileOffloaded {
+                        Text("Offloaded")
+                            .font(.system(size: 9, weight: .semibold, design: .rounded))
+                            .foregroundStyle(Color.blue)
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 2)
+                            .background(Color.blue.opacity(0.12))
+                            .clipShape(Capsule())
+                    } else if item.isCompleted {
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.system(size: 16))
+                            .foregroundStyle(.green)
+                    }
+                }
+            }
+            .padding(10)
+        }
+        .contextMenu {
+            Button(role: .destructive) {
+                deleteFromHistory(item)
+            } label: {
+                Label("Delete from History", systemImage: "trash")
+            }
+        }
+    }
+    
+    private func deleteFromHistory(_ item: LibraryItem) {
+        FileImporterService.deletePhysicalFiles(for: item)
+        modelContext.delete(item)
+        try? modelContext.save()
+    }
+    
     // MARK: - Storage Summary Card
     
     private var storageSummaryCard: some View {
@@ -330,9 +480,17 @@ public struct ProfileView: View {
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Library Storage")
                         .font(.subheadline.weight(.semibold))
-                    Text("\(allItems.filter { $0.parent == nil }.count) audiobooks kept locally in device sandbox.")
-                        .font(.caption)
-                        .foregroundStyle(Color.secondary)
+                    let localCount = allItems.filter { $0.parent == nil && !$0.isDeletedFromLibrary && !$0.isFileOffloaded }.count
+                    let offloadedCount = allItems.filter { $0.isFileOffloaded }.count
+                    if offloadedCount > 0 {
+                        Text("\(localCount) audiobooks on device • \(offloadedCount) offloaded.")
+                            .font(.caption)
+                            .foregroundStyle(Color.secondary)
+                    } else {
+                        Text("\(localCount) audiobooks kept locally in device sandbox.")
+                            .font(.caption)
+                            .foregroundStyle(Color.secondary)
+                    }
                 }
                 
                 Spacer()
@@ -359,11 +517,11 @@ public struct ProfileView: View {
     }
     
     private var completedBooksCount: Int {
-        allItems.filter { $0.parent == nil && $0.isCompleted }.count
+        allItems.filter { $0.kind != .folder && $0.parent?.kind != .multiPart && $0.isCompleted }.count
     }
     
     private var inProgressBooksCount: Int {
-        allItems.filter { $0.parent == nil && !$0.isCompleted && $0.currentPosition > 0 }.count
+        allItems.filter { $0.kind != .folder && $0.parent?.kind != .multiPart && !$0.isCompleted && $0.currentPosition > 0 && !$0.isDeletedFromLibrary }.count
     }
     
     private var todayListenedMinutes: Int {

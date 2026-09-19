@@ -7,17 +7,23 @@ public struct LibraryRow: View {
     public let isCurrentlyPlaying: Bool
     public var onPlay: (() -> Void)?
     public var onDelete: (() -> Void)?
+    public var onToggleCompleted: (() -> Void)?
+    public var onDeleteAudioFile: (() -> Void)?
     
     public init(
         item: LibraryItem,
         isCurrentlyPlaying: Bool = false,
         onPlay: (() -> Void)? = nil,
-        onDelete: (() -> Void)? = nil
+        onDelete: (() -> Void)? = nil,
+        onToggleCompleted: (() -> Void)? = nil,
+        onDeleteAudioFile: (() -> Void)? = nil
     ) {
         self.item = item
         self.isCurrentlyPlaying = isCurrentlyPlaying
         self.onPlay = onPlay
         self.onDelete = onDelete
+        self.onToggleCompleted = onToggleCompleted
+        self.onDeleteAudioFile = onDeleteAudioFile
     }
     
     public var body: some View {
@@ -73,8 +79,16 @@ public struct LibraryRow: View {
                             .foregroundStyle(Color.secondary)
                     }
                     
-                    // Duration or Remaining Time
-                    if item.totalDuration > 0 {
+                    // Duration or Completion Date
+                    if item.isCompleted, let formattedDate = item.formattedCompletedDate {
+                        Text("•")
+                            .font(.caption2)
+                            .foregroundStyle(Color.secondary.opacity(0.6))
+                        
+                        Text(formattedDate)
+                            .font(.caption)
+                            .foregroundStyle(Color.secondary)
+                    } else if item.totalDuration > 0 {
                         Text("•")
                             .font(.caption2)
                             .foregroundStyle(Color.secondary.opacity(0.6))
@@ -85,7 +99,7 @@ public struct LibraryRow: View {
                     }
                     
                     // In-flight Watch Transfer indicator
-                    if WatchSyncManager.shared.isTransferring(bookID: item.id) {
+                    if !item.isFileOffloaded && WatchSyncManager.shared.isTransferring(bookID: item.id) {
                         Text("•")
                             .font(.caption2)
                             .foregroundStyle(Color.secondary.opacity(0.6))
@@ -103,7 +117,7 @@ public struct LibraryRow: View {
             
             Spacer()
             
-            // Right Accessor: Folder chevron OR Audio progress ring
+            // Right Accessor: Folder chevron OR Audio progress ring / completion status
             if item.kind == .folder {
                 Image(systemName: "chevron.forward")
                     .font(.system(size: 14, weight: .semibold))
@@ -114,6 +128,12 @@ public struct LibraryRow: View {
                         Image(systemName: "checkmark.circle.fill")
                             .font(.system(size: 22))
                             .foregroundStyle(.green)
+                        
+                        if item.isFileOffloaded {
+                            Text("Offloaded")
+                                .font(.system(size: 8, weight: .semibold, design: .rounded))
+                                .foregroundStyle(Color.secondary)
+                        }
                     } else {
                         CircularProgressView(
                             progress: item.progress,
@@ -133,26 +153,41 @@ public struct LibraryRow: View {
         .contentShape(Rectangle())
         .contextMenu {
             if item.kind != .folder {
-                Button {
-                    onPlay?()
-                } label: {
-                    Label(isCurrentlyPlaying ? "Pause" : "Play", systemImage: isCurrentlyPlaying ? "pause.fill" : "play.fill")
+                if !item.isFileOffloaded {
+                    Button {
+                        onPlay?()
+                    } label: {
+                        Label(isCurrentlyPlaying ? "Pause" : "Play", systemImage: isCurrentlyPlaying ? "pause.fill" : "play.fill")
+                    }
+                    
+                    Button {
+                        WatchSyncManager.shared.transferBookToWatch(item: item)
+                    } label: {
+                        Label("Sync to Apple Watch", systemImage: "applewatch.side.right")
+                    }
                 }
                 
                 Button {
-                    WatchSyncManager.shared.transferBookToWatch(item: item)
-                } label: {
-                    Label("Sync to Apple Watch", systemImage: "applewatch.side.right")
-                }
-                
-                Button {
-                    item.isCompleted.toggle()
-                    item.lastUpdated = Date()
+                    if let onToggle = onToggleCompleted {
+                        onToggle()
+                    } else {
+                        item.isCompleted.toggle()
+                        item.completedDate = item.isCompleted ? Date() : nil
+                        item.lastUpdated = Date()
+                    }
                 } label: {
                     Label(
                         item.isCompleted ? "Mark as Unfinished" : "Mark as Finished",
                         systemImage: item.isCompleted ? "arrow.counterclockwise" : "checkmark"
                     )
+                }
+                
+                if item.isCompleted && !item.isFileOffloaded {
+                    Button(role: .destructive) {
+                        onDeleteAudioFile?()
+                    } label: {
+                        Label("Delete Audio File", systemImage: "arrow.down.circle.dotted")
+                    }
                 }
             }
             
@@ -161,7 +196,7 @@ public struct LibraryRow: View {
                 Button(role: .destructive) {
                     onDelete()
                 } label: {
-                    Label("Delete", systemImage: "trash")
+                    Label("Delete from Library", systemImage: "trash")
                 }
             }
         }

@@ -30,6 +30,15 @@ public final class LibraryItem {
     /// Whether the user has marked or completed listening to this item.
     public var isCompleted: Bool = false
     
+    /// Date when the item was finished or marked as completed.
+    public var completedDate: Date? = nil
+    
+    /// Indicates whether physical audio files were removed to reclaim storage while keeping the book reference.
+    public var isFileOffloaded: Bool = false
+    
+    /// Soft-delete flag indicating the item was removed from the active library view but preserved in listening history.
+    public var isDeletedFromLibrary: Bool = false
+    
     /// User or file-order sort index within a parent collection.
     public var sortOrder: Int = 0
     
@@ -58,6 +67,9 @@ public final class LibraryItem {
         totalDuration: Double = 0.0,
         currentPosition: Double = 0.0,
         isCompleted: Bool = false,
+        completedDate: Date? = nil,
+        isFileOffloaded: Bool = false,
+        isDeletedFromLibrary: Bool = false,
         sortOrder: Int = 0,
         lastUpdated: Date = Date(),
         artworkData: Data? = nil,
@@ -71,6 +83,9 @@ public final class LibraryItem {
         self.totalDuration = totalDuration
         self.currentPosition = currentPosition
         self.isCompleted = isCompleted
+        self.completedDate = completedDate
+        self.isFileOffloaded = isFileOffloaded
+        self.isDeletedFromLibrary = isDeletedFromLibrary
         self.sortOrder = sortOrder
         self.lastUpdated = lastUpdated
         self.artworkData = artworkData
@@ -134,6 +149,21 @@ extension LibraryItem {
     /// Formatted remaining duration timestamp (e.g. "-15:20").
     public var formattedRemainingDuration: String {
         TimeFormatting.formatRemainingTimestamp(current: currentPosition, total: totalDuration)
+    }
+    
+    /// Whether this item has local audio files physically present on disk.
+    public var hasLocalAudio: Bool {
+        guard !isFileOffloaded, let url = resolvedURL() else { return false }
+        return FileManager.default.fileExists(atPath: url.path)
+    }
+    
+    /// Formatted completion date string (e.g. "Completed Sep 19, 2026").
+    public var formattedCompletedDate: String? {
+        guard let completedDate = completedDate else { return nil }
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .none
+        return "Completed " + formatter.string(from: completedDate)
     }
     
     /// Resolves the absolute file URL within the application sandbox documents directory.

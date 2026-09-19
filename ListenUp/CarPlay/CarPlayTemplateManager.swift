@@ -143,7 +143,7 @@ public final class CarPlayTemplateManager: NSObject {
         
         // Query items currently in progress (currentPosition > 0 and not marked completed)
         let descriptor = FetchDescriptor<LibraryItem>(
-            predicate: #Predicate { $0.parent == nil && $0.currentPosition > 0 && !$0.isCompleted },
+            predicate: #Predicate { $0.parent == nil && $0.currentPosition > 0 && !$0.isCompleted && !$0.isDeletedFromLibrary && !$0.isFileOffloaded },
             sortBy: [SortDescriptor(\.lastUpdated, order: .reverse)]
         )
         
@@ -186,7 +186,7 @@ public final class CarPlayTemplateManager: NSObject {
         
         // Fetch top-level library items
         let descriptor = FetchDescriptor<LibraryItem>(
-            predicate: #Predicate { $0.parent == nil },
+            predicate: #Predicate { $0.parent == nil && !$0.isDeletedFromLibrary },
             sortBy: [
                 SortDescriptor(\.sortOrder, order: .forward),
                 SortDescriptor(\.title, order: .forward)
