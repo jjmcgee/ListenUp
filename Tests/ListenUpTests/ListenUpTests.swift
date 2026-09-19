@@ -313,40 +313,35 @@ struct ListenUpTests {
         #expect(inProgressCount == 1)
     }
     
-    // MARK: - Library Finished Tab Filtering Tests
+    // MARK: - Library Filter Tests
     
-    @Test("Finished tab filtering isolates finished books and excludes folders and unfinished books")
-    func testFinishedTabFiltering() {
+    @Test("Library FilterOption contains only All and In Progress tabs")
+    func testLibraryFilterOptions() {
+        let options = LibraryView.FilterOption.allCases
+        #expect(options.count == 2)
+        #expect(options.contains(.all))
+        #expect(options.contains(.inProgress))
+    }
+    
+    @Test("In Progress tab filtering isolates active unfinished books and excludes completed books and folders")
+    func testInProgressTabFiltering() {
         let finishedSingle = LibraryItem(title: "Finished Novel", kind: .singleFile, totalDuration: 3600.0, isCompleted: true)
         let unfinishedSingle = LibraryItem(title: "Reading Novel", kind: .singleFile, totalDuration: 3600.0, currentPosition: 500.0, isCompleted: false)
         let unreadSingle = LibraryItem(title: "Unread Novel", kind: .singleFile, totalDuration: 3600.0, currentPosition: 0.0, isCompleted: false)
         let folder = LibraryItem(title: "Audio Courses", kind: .folder)
         
-        let finishedMulti = LibraryItem(title: "Finished MultiPart", kind: .multiPart, totalDuration: 7200.0, isCompleted: true)
-        let childTrack = LibraryItem(title: "Track 1", kind: .singleFile, totalDuration: 3600.0, isCompleted: true, parent: finishedMulti)
-        finishedMulti.children = [childTrack]
+        let allItems = [finishedSingle, unfinishedSingle, unreadSingle, folder]
         
-        let allItems = [finishedSingle, unfinishedSingle, unreadSingle, folder, finishedMulti, childTrack]
-        
-        // Filter logic for Finished tab
-        let finishedBooks = allItems.filter { item in
-            item.kind != .folder && item.parent?.kind != .multiPart && item.isCompleted
+        // Filter logic for In Progress tab
+        let inProgressBooks = allItems.filter { item in
+            item.kind != .folder && item.parent?.kind != .multiPart && !item.isCompleted && item.currentPosition > 0 && !item.isDeletedFromLibrary
         }
         
-        #expect(finishedBooks.count == 2)
-        #expect(finishedBooks.contains(where: { $0.title == "Finished Novel" }))
-        #expect(finishedBooks.contains(where: { $0.title == "Finished MultiPart" }))
-        #expect(!finishedBooks.contains(where: { $0.title == "Audio Courses" }))
-        #expect(!finishedBooks.contains(where: { $0.title == "Reading Novel" }))
-        #expect(!finishedBooks.contains(where: { $0.title == "Unread Novel" }))
-        #expect(!finishedBooks.contains(where: { $0.title == "Track 1" }))
-        
-        // Filter logic when no books are completed
-        let noCompletedItems = [unfinishedSingle, unreadSingle, folder]
-        let emptyFinished = noCompletedItems.filter { item in
-            item.kind != .folder && item.parent?.kind != .multiPart && item.isCompleted
-        }
-        #expect(emptyFinished.isEmpty)
+        #expect(inProgressBooks.count == 1)
+        #expect(inProgressBooks.contains(where: { $0.title == "Reading Novel" }))
+        #expect(!inProgressBooks.contains(where: { $0.title == "Finished Novel" }))
+        #expect(!inProgressBooks.contains(where: { $0.title == "Unread Novel" }))
+        #expect(!inProgressBooks.contains(where: { $0.title == "Audio Courses" }))
     }
     
     // MARK: - Book History & Audio File Offloading Tests

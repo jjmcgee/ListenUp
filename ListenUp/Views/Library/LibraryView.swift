@@ -29,7 +29,6 @@ public struct LibraryView: View {
     public enum FilterOption: String, CaseIterable, Identifiable {
         case all = "All"
         case inProgress = "In Progress"
-        case completed = "Finished"
         
         public var id: String { rawValue }
     }
@@ -238,11 +237,6 @@ public struct LibraryView: View {
                 baseItems = allItems.filter { item in
                     item.kind != .folder && item.parent?.kind != .multiPart && !item.isCompleted && item.currentPosition > 0 && !item.isDeletedFromLibrary
                 }
-            case .completed:
-                // All finished audiobooks in library (excluding structural folders, child tracks, and soft-deleted items)
-                baseItems = allItems.filter { item in
-                    item.kind != .folder && item.parent?.kind != .multiPart && item.isCompleted && !item.isDeletedFromLibrary
-                }
             }
         }
         
@@ -264,8 +258,6 @@ public struct LibraryView: View {
                     return true
                 case .inProgress:
                     return item.kind != .folder && !item.isCompleted && item.currentPosition > 0
-                case .completed:
-                    return item.kind != .folder && item.isCompleted
                 }
             }
             
@@ -301,20 +293,6 @@ public struct LibraryView: View {
                     .padding(.horizontal, 32)
             } else {
                 switch filterSelection {
-                case .completed:
-                    Image(systemName: "checkmark.circle")
-                        .font(.system(size: 64))
-                        .foregroundStyle(Color.secondary.opacity(0.4))
-                    
-                    Text("No Finished Books")
-                        .font(.title3.weight(.bold))
-                    
-                    Text("Keep reading and finished items will appear.")
-                        .font(.subheadline)
-                        .foregroundStyle(Color.secondary)
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal, 32)
-                    
                 case .inProgress:
                     Image(systemName: "clock")
                         .font(.system(size: 64))
