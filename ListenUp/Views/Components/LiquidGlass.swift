@@ -34,7 +34,7 @@ public struct LiquidGlassModifier: ViewModifier {
     }
     
     public func body(content: Content) -> some View {
-        content
+        clippedContent(content)
             .background {
                 glassBackdrop
             }
@@ -58,6 +58,18 @@ public struct LiquidGlassModifier: ViewModifier {
             )
             .scaleEffect(isInteractive && isPressed ? 0.97 : 1.0)
             .animation(.spring(response: 0.28, dampingFraction: 0.72), value: isPressed)
+    }
+    
+    @ViewBuilder
+    private func clippedContent(_ content: Content) -> some View {
+        switch shapeKind {
+        case .capsule:
+            content.clipShape(Capsule())
+        case .circle:
+            content.clipShape(Circle())
+        case .roundedRectangle(let radius):
+            content.clipShape(RoundedRectangle(cornerRadius: radius, style: .continuous))
+        }
     }
     
     // MARK: - Glass Backdrop & Fluid Radiance

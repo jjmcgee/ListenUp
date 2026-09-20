@@ -15,20 +15,24 @@ public struct MiniPlayerView: View {
         if let item = player.currentItem {
             VStack(spacing: 0) {
                 // Top Mini Scrub Progress Line
-                GeometryReader { geo in
-                    let progressFraction = player.totalDuration > 0
-                        ? min(max(player.currentTime / player.totalDuration, 0.0), 1.0)
-                        : 0.0
+                ZStack(alignment: .leading) {
+                    Capsule()
+                        .fill(Color.secondary.opacity(0.18))
                     
-                    ZStack(alignment: .leading) {
-                        Rectangle()
-                            .fill(Color.secondary.opacity(0.15))
+                    GeometryReader { geo in
+                        let progressFraction = player.totalDuration > 0
+                            ? min(max(player.currentTime / player.totalDuration, 0.0), 1.0)
+                            : 0.0
+                        
                         Rectangle()
                             .fill(Color.accentColor)
                             .frame(width: max(0.0, geo.size.width * CGFloat(progressFraction)))
                     }
+                    .clipShape(Capsule())
                 }
                 .frame(height: 2.5)
+                .padding(.horizontal, 14)
+                .padding(.top, 6)
                 
                 HStack(spacing: 12) {
                     // Artwork Thumbnail
@@ -79,14 +83,23 @@ public struct MiniPlayerView: View {
                     .padding(.trailing, 4)
                 }
                 .padding(.horizontal, 14)
-                .padding(.vertical, 8)
+                .padding(.top, 4)
+                .padding(.bottom, 8)
             }
             .liquidGlass(cornerRadius: 18, tint: Color.accentColor)
-            .padding(.horizontal, 12)
-            .contentShape(Rectangle())
+            .contentShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
             .onTapGesture {
                 onExpand()
             }
+            .padding(.horizontal, 12)
         }
+    }
+}
+
+#Preview("Mini Player") {
+    ZStack(alignment: .bottom) {
+        Color.black.ignoresSafeArea()
+        MiniPlayerView(player: .previewMock()) {}
+            .padding(.bottom, 20)
     }
 }
