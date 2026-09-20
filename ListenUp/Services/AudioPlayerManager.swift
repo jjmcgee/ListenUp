@@ -152,6 +152,7 @@ public final class AudioPlayerManager {
     private var resumptionRecommendationObserver: NSObjectProtocol?
     private var routeChangeObserver: NSObjectProtocol?
     private var lastPersistedPosition: Double = 0.0
+    private var lastListeningRecordedPosition: Double?
     private var sleepTimerTask: Task<Void, Never>?
     private var isConfiguringQueue: Bool = false
     
@@ -276,6 +277,7 @@ public final class AudioPlayerManager {
         player.play()
         player.rate = playbackRate
         isPlaying = true
+        lastListeningRecordedPosition = currentTime
         updateNowPlayingInfo()
     }
     
@@ -283,6 +285,13 @@ public final class AudioPlayerManager {
     public func pause() {
         queuePlayer?.pause()
         isPlaying = false
+        if let lastRecorded = lastListeningRecordedPosition {
+            let delta = currentTime - lastRecorded
+            if delta > 0 && delta <= 30.0 {
+                ListeningStatsStore.shared.recordListening(seconds: delta)
+            }
+        }
+        lastListeningRecordedPosition = currentTime
         persistCurrentPosition()
         updateNowPlayingInfo()
     }
@@ -317,6 +326,7 @@ public final class AudioPlayerManager {
         let clampedTime = min(max(targetVirtualTime, 0.0), totalDuration)
         
         currentTime = clampedTime
+        lastListeningRecordedPosition = clampedTime
         
         guard let (segment, localOffset) = item.segment(at: clampedTime) else {
             return
@@ -541,6 +551,13 @@ public final class AudioPlayerManager {
         
         // Debounce SwiftData persistence to once every 5 seconds or significant scrub
         if abs(virtualT - lastPersistedPosition) >= 5.0 {
+            if let lastRecorded = lastListeningRecordedPosition, isPlaying {
+                let delta = virtualT - lastRecorded
+                if delta > 0 && delta <= 30.0 {
+                    ListeningStatsStore.shared.recordListening(seconds: delta)
+                }
+            }
+            lastListeningRecordedPosition = virtualT
             persistCurrentPosition()
         }
     }

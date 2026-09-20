@@ -145,7 +145,6 @@ public struct LibraryView: View {
                     .listStyle(.plain)
                 }
             }
-            .navigationTitle(parentFolder?.title ?? "Library")
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
                     Button {

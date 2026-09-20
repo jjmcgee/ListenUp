@@ -133,7 +133,6 @@ public struct SettingsView: View {
                         .listRowBackground(Color.clear)
                 }
             }
-            .navigationTitle("Settings")
             .task {
                 calculateStorageUsage()
             }

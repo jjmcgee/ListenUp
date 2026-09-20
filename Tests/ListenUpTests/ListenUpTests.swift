@@ -313,6 +313,127 @@ struct ListenUpTests {
         #expect(inProgressCount == 1)
     }
     
+    @Test("ListeningStatsStore correctly breaks down total seconds into months, days, hours, and minutes")
+    @MainActor
+    func testTotalListeningBreakdown() {
+        let store = ListeningStatsStore()
+        
+        let book1 = LibraryItem(title: "Book 1", kind: .singleFile, totalDuration: 3600.0)
+        // 1 month (2592000s) + 4 days (345600s) + 12 hours (43200s) + 30 minutes (1800s) = 2982600s
+        book1.currentPosition = 2982600.0
+        
+        let breakdown = store.totalBreakdown(from: [book1])
+        #expect(breakdown.months == 1)
+        #expect(breakdown.days == 4)
+        #expect(breakdown.hours == 12)
+        #expect(breakdown.minutes == 30)
+        #expect(breakdown.formattedSummary == "1m 4d 12h 30m")
+    }
+    
+    @Test("ListeningStatsStore records daily listening and aggregates today and monthly stats")
+    @MainActor
+    func testDailyListeningRecordingAndMonthlyComparison() {
+        let store = ListeningStatsStore()
+        store.resetRecords()
+        
+        let now = Date()
+        let calendar = Calendar.current
+        guard let prevMonthDate = calendar.date(byAdding: .month, value: -1, to: now) else { return }
+        
+        // Record 1.5 hours (5400s) today
+        store.recordListening(seconds: 5400.0, on: now)
+        
+        // Record 3.0 hours (10800s) in previous month
+        store.recordListening(seconds: 10800.0, on: prevMonthDate)
+        
+        let today = store.todayHoursAndMinutes()
+        #expect(today.hours == 1)
+        #expect(today.minutes == 30)
+        
+        let monthly = store.monthlyComparison()
+        #expect(monthly.currentMonthHours == 1.5)
+        #expect(monthly.previousMonthHours == 3.0)
+        #expect(monthly.hoursDelta == -1.5)
+        
+        store.resetRecords()
+    }
+    
+    @Test("Today listening count strictly spans 1 day and resets back to 0 on the next day")
+    @MainActor
+    func testTodayCountResetsOnNextDay() {
+        let store = ListeningStatsStore()
+        store.resetRecords()
+        
+        let calendar = Calendar.current
+        let now = Date()
+        guard let yesterday = calendar.date(byAdding: .day, value: -1, to: now) else { return }
+        
+        // Monday (yesterday): Listen to 30 minutes (1800 seconds)
+        store.recordListening(seconds: 1800.0, on: yesterday)
+        
+        // Tuesday (today at 00:00+): Today count should be strictly back at 0
+        let todayStats = store.todayHoursAndMinutes()
+        #expect(todayStats.hours == 0)
+        #expect(todayStats.minutes == 0)
+        #expect(store.todayListeningSeconds() == 0.0)
+        
+        // Total breakdown should still retain Monday's listening
+        let total = store.totalBreakdown()
+        #expect(total.minutes == 30)
+        
+        // Now listen to 45 minutes on Tuesday (today)
+        store.recordListening(seconds: 2700.0, on: now)
+        let updatedToday = store.todayHoursAndMinutes()
+        #expect(updatedToday.hours == 0)
+        #expect(updatedToday.minutes == 45)
+        #expect(store.todayListeningSeconds() == 2700.0)
+        
+        store.resetRecords()
+    }
+    
+    @Test("Daily Listening Goal progress resets to 0% and unaccomplished on the next day")
+    @MainActor
+    func testDailyGoalProgressResetsOnNextDay() {
+        let store = ListeningStatsStore()
+        store.resetRecords()
+        
+        let calendar = Calendar.current
+        let now = Date()
+        guard let yesterday = calendar.date(byAdding: .day, value: -1, to: now) else { return }
+        
+        // Monday (yesterday): Listen to 30 minutes, meeting a 30-minute daily goal
+        store.recordListening(seconds: 1800.0, on: yesterday)
+        
+        // Tuesday (today): Daily Goal progress must be strictly reset to 0 minutes (0%)
+        let todayGoal = store.dailyGoalProgress(goalMinutes: 30)
+        #expect(todayGoal.listenedMinutes == 0)
+        #expect(todayGoal.goalMinutes == 30)
+        #expect(todayGoal.fraction == 0.0)
+        #expect(todayGoal.isAccomplished == false)
+        #expect(todayGoal.remainingMinutes == 30)
+        #expect(todayGoal.percentageText == "0%")
+        
+        // Listen for 15 minutes today (halfway towards 30-min goal)
+        store.recordListening(seconds: 900.0, on: now)
+        let halfwayGoal = store.dailyGoalProgress(goalMinutes: 30)
+        #expect(halfwayGoal.listenedMinutes == 15)
+        #expect(halfwayGoal.fraction == 0.5)
+        #expect(halfwayGoal.isAccomplished == false)
+        #expect(halfwayGoal.remainingMinutes == 15)
+        #expect(halfwayGoal.percentageText == "50%")
+        
+        // Listen for another 15 minutes today (achieving the goal)
+        store.recordListening(seconds: 900.0, on: now)
+        let accomplishedGoal = store.dailyGoalProgress(goalMinutes: 30)
+        #expect(accomplishedGoal.listenedMinutes == 30)
+        #expect(accomplishedGoal.fraction == 1.0)
+        #expect(accomplishedGoal.isAccomplished == true)
+        #expect(accomplishedGoal.remainingMinutes == 0)
+        #expect(accomplishedGoal.percentageText == "100%")
+        
+        store.resetRecords()
+    }
+    
     // MARK: - Library Filter Tests
     
     @Test("Library FilterOption contains only All and In Progress tabs")

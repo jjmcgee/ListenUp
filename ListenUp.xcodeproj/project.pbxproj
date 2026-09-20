@@ -27,6 +27,7 @@
 		BB09F56C5A37417DB09BE109 /* WatchAudioPlayerManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA09F56C5A37417DB09BE109 /* WatchAudioPlayerManager.swift */; };
 		BB10648F0811493B8BE5CD2B /* ChapterInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10648F0811493B8BE5CD2B /* ChapterInfo.swift */; };
 		BB10F56C5A37417DB09BE110 /* LiquidGlass.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10F56C5A37417DB09BE110 /* LiquidGlass.swift */; };
+		BB11F56C5A37417DB09BE111 /* ListeningStatsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA11F56C5A37417DB09BE111 /* ListeningStatsStore.swift */; };
 		BB50DCAC40AF41AA8DA0A850 /* ChapterExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA50DCAC40AF41AA8DA0A850 /* ChapterExtractor.swift */; };
 		BBE3857B0F7F6446DA97DBDA /* ChaptersSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAE3857B0F7F6446DA97DBDA /* ChaptersSheet.swift */; };
 		C1E97DE5556A418AB82C9AEC /* SleepTimerSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E3857B0F7F6446DA97DBDA0 /* SleepTimerSheet.swift */; };
@@ -102,6 +103,7 @@
 		AA09F56C5A37417DB09BE109 /* WatchAudioPlayerManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = WatchAudioPlayerManager.swift; path = ListenUp/Services/WatchAudioPlayerManager.swift; sourceTree = "<group>"; };
 		AA10648F0811493B8BE5CD2B /* ChapterInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ChapterInfo.swift; path = ListenUp/Models/ChapterInfo.swift; sourceTree = "<group>"; };
 		AA10F56C5A37417DB09BE110 /* LiquidGlass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = LiquidGlass.swift; path = ListenUp/Views/Components/LiquidGlass.swift; sourceTree = "<group>"; };
+		AA11F56C5A37417DB09BE111 /* ListeningStatsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ListeningStatsStore.swift; path = ListenUp/Services/ListeningStatsStore.swift; sourceTree = "<group>"; };
 		AA50DCAC40AF41AA8DA0A850 /* ChapterExtractor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ChapterExtractor.swift; path = ListenUp/Services/ChapterExtractor.swift; sourceTree = "<group>"; };
 		AAE3857B0F7F6446DA97DBDA /* ChaptersSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ChaptersSheet.swift; path = ListenUp/Views/Player/ChaptersSheet.swift; sourceTree = "<group>"; };
 		B27B95033304496F9B146AD3 /* MiniPlayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MiniPlayerView.swift; path = ListenUp/Views/Player/MiniPlayerView.swift; sourceTree = "<group>"; };
@@ -164,6 +166,7 @@
 				AAE3857B0F7F6446DA97DBDA /* ChaptersSheet.swift */,
 				AA01F56C5A37417DB09BE101 /* FloatingNavBar.swift */,
 				AA10F56C5A37417DB09BE110 /* LiquidGlass.swift */,
+				AA11F56C5A37417DB09BE111 /* ListeningStatsStore.swift */,
 				AA02F56C5A37417DB09BE102 /* MainTabView.swift */,
 				AA03F56C5A37417DB09BE103 /* ProfileView.swift */,
 				AA04F56C5A37417DB09BE104 /* SettingsView.swift */,
@@ -314,6 +317,7 @@
 				BBE3857B0F7F6446DA97DBDA /* ChaptersSheet.swift in Sources */,
 				BB01F56C5A37417DB09BE101 /* FloatingNavBar.swift in Sources */,
 				BB10F56C5A37417DB09BE110 /* LiquidGlass.swift in Sources */,
+				BB11F56C5A37417DB09BE111 /* ListeningStatsStore.swift in Sources */,
 				BB02F56C5A37417DB09BE102 /* MainTabView.swift in Sources */,
 				BB03F56C5A37417DB09BE103 /* ProfileView.swift in Sources */,
 				BB04F56C5A37417DB09BE104 /* SettingsView.swift in Sources */,
