@@ -11,6 +11,7 @@ struct ListenUpApp: App {
     // Playback and sync managers
     private let player = AudioPlayerManager.shared
     private let watchSync = WatchSyncManager.shared
+    private let navigationCoordinator = NavigationCoordinator.shared
     
     // User interface theme setting
     @AppStorage("appTheme") private var appTheme: AppTheme = .system
@@ -18,6 +19,7 @@ struct ListenUpApp: App {
     @MainActor
     init() {
         setupSyncWiring()
+        setupDarwinNotificationObserver()
     }
     
     var body: some Scene {
@@ -25,8 +27,12 @@ struct ListenUpApp: App {
             MainTabView()
                 .environment(player)
                 .environment(watchSync)
+                .environment(navigationCoordinator)
                 .modelContainer(container)
                 .preferredColorScheme(appTheme.colorScheme)
+                .onOpenURL { url in
+                    navigationCoordinator.handleURL(url, in: container.mainContext, player: player)
+                }
         }
     }
     
@@ -34,11 +40,36 @@ struct ListenUpApp: App {
     private func setupSyncWiring() {
         let context = container.mainContext
         
-        // 1. Wire audio engine position updates to WatchSync
-        player.onPositionUpdated = { [weak watchSync] item, _ in
+        // 1. Wire audio engine position updates to WatchSync and Widgets
+        player.onPositionUpdated = { [weak watchSync, weak player] item, _ in
             try? context.save()
             watchSync?.syncPlaybackState(for: item)
             broadcastPlaybackStateToWatch()
+            if let p = player {
+                WidgetDataStore.shared.syncPlayback(
+                    item: item,
+                    isPlaying: p.isPlaying,
+                    currentTime: p.currentTime,
+                    totalDuration: p.totalDuration
+                )
+            }
+        }
+        
+        // Wire playback state changes (play, pause, next track) to Widgets
+        NotificationCenter.default.addObserver(
+            forName: AudioPlayerManager.playbackStateDidChangeNotification,
+            object: nil,
+            queue: .main
+        ) { [weak player] _ in
+            Task { @MainActor in
+                guard let player = player else { return }
+                WidgetDataStore.shared.syncPlayback(
+                    item: player.currentItem,
+                    isPlaying: player.isPlaying,
+                    currentTime: player.currentTime,
+                    totalDuration: player.totalDuration
+                )
+            }
         }
         
         // 2. Wire incoming watchOS sync updates to SwiftData
@@ -153,5 +184,44 @@ struct ListenUpApp: App {
         }
         
         watchSync.broadcastLibraryCatalog(summaries)
+        
+        // Sync recent books and listening stats to WidgetDataStore
+        WidgetDataStore.shared.syncRecentBooks(items: items)
+        ListeningStatsStore.shared.syncToWidgets(items: items)
+        
+        // Restore last in-progress audiobook into player & sync to widgets if player has no current item
+        if player.currentItem == nil {
+            let activeOrRecent = items
+                .filter { !$0.isCompleted }
+                .sorted { $0.lastUpdated > $1.lastUpdated }
+                .first ?? items.first
+            
+            if let item = activeOrRecent {
+                player.prepare(item: item)
+                WidgetDataStore.shared.syncPlayback(
+                    item: item,
+                    isPlaying: false,
+                    currentTime: item.currentPosition,
+                    totalDuration: item.totalDuration
+                )
+            }
+        }
+    }
+    
+    private func setupDarwinNotificationObserver() {
+        let center = CFNotificationCenterGetDarwinNotifyCenter()
+        let name = "scot.mcg.ListenUp.togglePlayback" as CFString
+        CFNotificationCenterAddObserver(
+            center,
+            nil,
+            { _, _, _, _, _ in
+                Task { @MainActor in
+                    AudioPlayerManager.shared.togglePlayPause()
+                }
+            },
+            name,
+            nil,
+            .deliverImmediately
+        )
     }
 }

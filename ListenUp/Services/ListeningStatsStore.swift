@@ -54,6 +54,7 @@ public final class ListeningStatsStore {
         loadRecords()
         setupDayRolloverObservers()
         scheduleMidnightTimer()
+        syncToWidgets()
     }
     
     /// Stops the midnight timer and removes notification observers.
@@ -113,6 +114,7 @@ public final class ListeningStatsStore {
         monthDisplayFormatter.timeZone = .autoupdatingCurrent
         currentDayKey = dayDateFormatter.string(from: Date())
         scheduleMidnightTimer()
+        syncToWidgets()
     }
     
     private func scheduleMidnightTimer() {
@@ -159,6 +161,20 @@ public final class ListeningStatsStore {
         dailyRecords[key] = existing + seconds
         currentDayKey = dayDateFormatter.string(from: Date())
         saveRecords()
+        syncToWidgets()
+    }
+    
+    /// Pushes current listening statistics to WidgetDataStore for WidgetKit display.
+    public func syncToWidgets(dailyGoalMinutes: Int = 30, items: [LibraryItem] = []) {
+        let todaySecs = todayListeningSeconds(from: items)
+        let monthly = monthlyComparison(from: items)
+        let total = totalBreakdown(from: items)
+        WidgetDataStore.shared.syncStats(
+            todaySeconds: todaySecs,
+            dailyGoalMinutes: dailyGoalMinutes,
+            monthly: monthly,
+            total: total
+        )
     }
     
     /// Resets all recorded listening history (useful for tests and debug).
@@ -166,6 +182,7 @@ public final class ListeningStatsStore {
         dailyRecords.removeAll()
         UserDefaults.standard.removeObject(forKey: userDefaultsKey)
         currentDayKey = dayDateFormatter.string(from: Date())
+        syncToWidgets()
     }
     
     // MARK: - Today Stats

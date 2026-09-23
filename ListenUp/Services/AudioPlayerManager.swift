@@ -255,11 +255,25 @@ public final class AudioPlayerManager {
         resume()
     }
     
+    /// Prepares an item for playback at its saved position without starting playback.
+    public func prepare(item: LibraryItem) {
+        guard !item.isFileOffloaded else { return }
+        if currentItem?.id == item.id && queuePlayer != nil {
+            return
+        }
+        loadItem(item, startAtPosition: item.currentPosition)
+        isPlaying = false
+        updateNowPlayingInfo()
+    }
+    
     /// Toggles between play and pause.
     public func togglePlayPause() {
         if isPlaying {
             pause()
         } else {
+            if queuePlayer == nil, let item = currentItem {
+                loadItem(item, startAtPosition: item.currentPosition)
+            }
             resume()
         }
     }

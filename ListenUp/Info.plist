@@ -64,5 +64,16 @@
 			</array>
 		</dict>
 	</dict>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>scot.mcg.ListenUp</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>listenup</string>
+			</array>
+		</dict>
+	</array>
 </dict>
 </plist>

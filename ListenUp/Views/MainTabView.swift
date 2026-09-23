@@ -6,11 +6,38 @@ import SwiftData
 public struct MainTabView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(AudioPlayerManager.self) private var player
+    @Environment(NavigationCoordinator.self) private var navCoordinator: NavigationCoordinator?
     
-    @State private var selectedTab: NavTab = .library
+    @State private var internalSelectedTab: NavTab = .library
     @State private var isSearchActive: Bool = false
     @State private var searchText: String = ""
-    @State private var isShowingFullPlayer: Bool = false
+    @State private var internalShowingFullPlayer: Bool = false
+    
+    private var selectedTabBinding: Binding<NavTab> {
+        Binding(
+            get: { navCoordinator?.selectedTab ?? internalSelectedTab },
+            set: {
+                if let nav = navCoordinator {
+                    nav.selectedTab = $0
+                } else {
+                    internalSelectedTab = $0
+                }
+            }
+        )
+    }
+    
+    private var isShowingFullPlayerBinding: Binding<Bool> {
+        Binding(
+            get: { navCoordinator?.isShowingFullPlayer ?? internalShowingFullPlayer },
+            set: {
+                if let nav = navCoordinator {
+                    nav.isShowingFullPlayer = $0
+                } else {
+                    internalShowingFullPlayer = $0
+                }
+            }
+        )
+    }
     
     public init() {}
     
@@ -21,7 +48,7 @@ public struct MainTabView: View {
                 if isSearchActive {
                     SearchView(searchText: searchText)
                 } else {
-                    switch selectedTab {
+                    switch selectedTabBinding.wrappedValue {
                     case .library:
                         LibraryView()
                     case .profile:
@@ -39,13 +66,13 @@ public struct MainTabView: View {
             VStack(spacing: 8) {
                 if player.currentItem != nil && !isSearchActive {
                     MiniPlayerView(player: player) {
-                        isShowingFullPlayer = true
+                        isShowingFullPlayerBinding.wrappedValue = true
                     }
                     .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
                 
                 FloatingNavBar(
-                    selectedTab: $selectedTab,
+                    selectedTab: selectedTabBinding,
                     isSearchActive: $isSearchActive,
                     searchText: $searchText
                 )
@@ -55,7 +82,7 @@ public struct MainTabView: View {
             .animation(.spring(response: 0.35, dampingFraction: 0.8), value: player.currentItem != nil)
             .animation(.spring(response: 0.38, dampingFraction: 0.82), value: isSearchActive)
         }
-        .sheet(isPresented: $isShowingFullPlayer) {
+        .sheet(isPresented: isShowingFullPlayerBinding) {
             FullPlayerView(player: player)
         }
         .alert(

@@ -55,6 +55,17 @@
 		WBAA10648F0811493B8BE5CD /* ChapterInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10648F0811493B8BE5CD2B /* ChapterInfo.swift */; };
 		WBD28E065589C944358621E4 /* WatchSyncManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D28E065589C944358621E4D0 /* WatchSyncManager.swift */; };
 		WBE01E00012DC24155864ECE /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = E01E00022DC24155864ECE02 /* Assets.xcassets */; };
+		WGB01F56C5A37417DB09BE101 /* WidgetModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = WGA01F56C5A37417DB09BE101 /* WidgetModels.swift */; };
+		WGB02F56C5A37417DB09BE102 /* WidgetDataStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = WGA02F56C5A37417DB09BE102 /* WidgetDataStore.swift */; };
+		WGB03F56C5A37417DB09BE103 /* WidgetIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = WGA03F56C5A37417DB09BE103 /* WidgetIntents.swift */; };
+		WGB04F56C5A37417DB09BE104 /* NavigationCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = WGA04F56C5A37417DB09BE104 /* NavigationCoordinator.swift */; };
+		WGB6139F0DE69004A37BE709 /* ListenUpWidgets.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = WG6139F0DE69004A37BE70910F /* ListenUpWidgets.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		WGC01F56C5A37417DB09BE101 /* WidgetModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = WGA01F56C5A37417DB09BE101 /* WidgetModels.swift */; };
+		WGC02F56C5A37417DB09BE102 /* WidgetDataStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = WGA02F56C5A37417DB09BE102 /* WidgetDataStore.swift */; };
+		WGC03F56C5A37417DB09BE103 /* WidgetIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = WGA03F56C5A37417DB09BE103 /* WidgetIntents.swift */; };
+		WGC05F56C5A37417DB09BE105 /* ListenUpWidgetsBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = WGA05F56C5A37417DB09BE105 /* ListenUpWidgetsBundle.swift */; };
+		WGC06F56C5A37417DB09BE106 /* PlayerWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = WGA06F56C5A37417DB09BE106 /* PlayerWidget.swift */; };
+		WGC07F56C5A37417DB09BE107 /* TimeListenedWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = WGA07F56C5A37417DB09BE107 /* TimeListenedWidget.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -64,6 +75,13 @@
 			proxyType = 1;
 			remoteGlobalIDString = WTA640A0AB6135472FA365FE;
 			remoteInfo = ListenUpWatch;
+		};
+		WGPRX1F56C5A37417DB09BE10 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D0DAFF0D033744C688735580 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = WGA640A0AB6135472FA365FE;
+			remoteInfo = ListenUpWidgets;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -77,6 +95,17 @@
 				EB6139F0DE69004A37BE70910F /* ListenUpWatch.app in Embed Watch Content */,
 			);
 			name = "Embed Watch Content";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		WG01F56C5A37417DB09BE100 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				WGB6139F0DE69004A37BE709 /* ListenUpWidgets.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXCopyFilesBuildPhase section */
@@ -123,6 +152,17 @@
 		WA04F56C5A37417DB09BE104 /* WatchLibraryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = WatchLibraryView.swift; path = ListenUpWatch/Views/WatchLibraryView.swift; sourceTree = "<group>"; };
 		WA05F56C5A37417DB09BE105 /* WatchBookDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = WatchBookDetailView.swift; path = ListenUpWatch/Views/WatchBookDetailView.swift; sourceTree = "<group>"; };
 		WA06F56C5A37417DB09BE106 /* WatchDownloadsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = WatchDownloadsView.swift; path = ListenUpWatch/Views/WatchDownloadsView.swift; sourceTree = "<group>"; };
+		WGA01F56C5A37417DB09BE101 /* WidgetModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = WidgetModels.swift; path = ListenUp/Shared/WidgetModels.swift; sourceTree = "<group>"; };
+		WGA02F56C5A37417DB09BE102 /* WidgetDataStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = WidgetDataStore.swift; path = ListenUp/Shared/WidgetDataStore.swift; sourceTree = "<group>"; };
+		WGA03F56C5A37417DB09BE103 /* WidgetIntents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = WidgetIntents.swift; path = ListenUp/Shared/WidgetIntents.swift; sourceTree = "<group>"; };
+		WGA04F56C5A37417DB09BE104 /* NavigationCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = NavigationCoordinator.swift; path = ListenUp/Services/NavigationCoordinator.swift; sourceTree = "<group>"; };
+		WGA05F56C5A37417DB09BE105 /* ListenUpWidgetsBundle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ListenUpWidgetsBundle.swift; path = ListenUpWidgets/ListenUpWidgetsBundle.swift; sourceTree = "<group>"; };
+		WGA06F56C5A37417DB09BE106 /* PlayerWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PlayerWidget.swift; path = ListenUpWidgets/PlayerWidget.swift; sourceTree = "<group>"; };
+		WGA07F56C5A37417DB09BE107 /* TimeListenedWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TimeListenedWidget.swift; path = ListenUpWidgets/TimeListenedWidget.swift; sourceTree = "<group>"; };
+		WGA08F56C5A37417DB09BE108 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = Info.plist; path = ListenUpWidgets/Info.plist; sourceTree = "<group>"; };
+		ENT01F56C5A37417DB09BE101 /* ListenUp.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = ListenUp.entitlements; path = ListenUp/ListenUp.entitlements; sourceTree = "<group>"; };
+		ENT02F56C5A37417DB09BE102 /* ListenUpWidgets.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = ListenUpWidgets.entitlements; path = ListenUpWidgets/ListenUpWidgets.entitlements; sourceTree = "<group>"; };
+		WG6139F0DE69004A37BE70910F /* ListenUpWidgets.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = ListenUpWidgets.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -134,6 +174,13 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		WFA787B77043FB24B41B9095 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		WGFA787B77043FB24B41B909 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -185,6 +232,16 @@
 				CA01F56C5A37417DB09BE101 /* AppDatabase.swift */,
 				CA02F56C5A37417DB09BE102 /* CarPlaySceneDelegate.swift */,
 				CA03F56C5A37417DB09BE103 /* CarPlayTemplateManager.swift */,
+				WGA01F56C5A37417DB09BE101 /* WidgetModels.swift */,
+				WGA02F56C5A37417DB09BE102 /* WidgetDataStore.swift */,
+				WGA03F56C5A37417DB09BE103 /* WidgetIntents.swift */,
+				WGA04F56C5A37417DB09BE104 /* NavigationCoordinator.swift */,
+				WGA05F56C5A37417DB09BE105 /* ListenUpWidgetsBundle.swift */,
+				WGA06F56C5A37417DB09BE106 /* PlayerWidget.swift */,
+				WGA07F56C5A37417DB09BE107 /* TimeListenedWidget.swift */,
+				WGA08F56C5A37417DB09BE108 /* Info.plist */,
+				ENT01F56C5A37417DB09BE101 /* ListenUp.entitlements */,
+				ENT02F56C5A37417DB09BE102 /* ListenUpWidgets.entitlements */,
 				EF8AB5528B0B46AE86E26C6D /* Products */,
 			);
 			sourceTree = "<group>";
@@ -194,6 +251,7 @@
 			children = (
 				6139F0DE69004A37BE70910F /* ListenUp.app */,
 				W6139F0DE69004A37BE70910F /* ListenUpWatch.app */,
+				WG6139F0DE69004A37BE70910F /* ListenUpWidgets.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -209,11 +267,13 @@
 				787B77043FB24B41B90958A4 /* Frameworks */,
 				2AD2BF34B9F64047A63A5BD5 /* Resources */,
 				EB01F56C5A37417DB09BE100 /* Embed Watch Content */,
+				WG01F56C5A37417DB09BE100 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 				DEP01F56C5A37417DB09BE100 /* PBXTargetDependency */,
+				WGDEP1F6C5A37417DB09BE100 /* PBXTargetDependency */,
 			);
 			name = ListenUp;
 			productName = ListenUp;
@@ -237,6 +297,23 @@
 			productReference = W6139F0DE69004A37BE70910F /* ListenUpWatch.app */;
 			productType = "com.apple.product-type.application";
 		};
+		WGA640A0AB6135472FA365FE /* ListenUpWidgets */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = WGCA00E46D0AA2041D08D4FE /* Build configuration list for PBXNativeTarget "ListenUpWidgets" */;
+			buildPhases = (
+				WGSA4F57192156845579E6AC /* Sources */,
+				WGFA787B77043FB24B41B909 /* Frameworks */,
+				WGRA2AD2BF34B9F64047A63A /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = ListenUpWidgets;
+			productName = ListenUpWidgets;
+			productReference = WG6139F0DE69004A37BE70910F /* ListenUpWidgets.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -250,6 +327,9 @@
 						CreatedOnToolsVersion = 16.0;
 					};
 					WTA640A0AB6135472FA365FE = {
+						CreatedOnToolsVersion = 16.0;
+					};
+					WGA640A0AB6135472FA365FE = {
 						CreatedOnToolsVersion = 16.0;
 					};
 				};
@@ -269,6 +349,7 @@
 			targets = (
 				A640A0AB6135472FA365FE71 /* ListenUp */,
 				WTA640A0AB6135472FA365FE /* ListenUpWatch */,
+				WGA640A0AB6135472FA365FE /* ListenUpWidgets */,
 			);
 		};
 /* End PBXProject section */
@@ -287,6 +368,13 @@
 			buildActionMask = 2147483647;
 			files = (
 				WBE01E00012DC24155864ECE /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		WGRA2AD2BF34B9F64047A63A /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -329,6 +417,10 @@
 				CP01F56C5A37417DB09BE101 /* AppDatabase.swift in Sources */,
 				CP02F56C5A37417DB09BE102 /* CarPlaySceneDelegate.swift in Sources */,
 				CP03F56C5A37417DB09BE103 /* CarPlayTemplateManager.swift in Sources */,
+				WGB01F56C5A37417DB09BE101 /* WidgetModels.swift in Sources */,
+				WGB02F56C5A37417DB09BE102 /* WidgetDataStore.swift in Sources */,
+				WGB03F56C5A37417DB09BE103 /* WidgetIntents.swift in Sources */,
+				WGB04F56C5A37417DB09BE104 /* NavigationCoordinator.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -352,6 +444,19 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		WGSA4F57192156845579E6AC /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				WGC01F56C5A37417DB09BE101 /* WidgetModels.swift in Sources */,
+				WGC02F56C5A37417DB09BE102 /* WidgetDataStore.swift in Sources */,
+				WGC03F56C5A37417DB09BE103 /* WidgetIntents.swift in Sources */,
+				WGC05F56C5A37417DB09BE105 /* ListenUpWidgetsBundle.swift in Sources */,
+				WGC06F56C5A37417DB09BE106 /* PlayerWidget.swift in Sources */,
+				WGC07F56C5A37417DB09BE107 /* TimeListenedWidget.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -359,6 +464,11 @@
 			isa = PBXTargetDependency;
 			target = WTA640A0AB6135472FA365FE /* ListenUpWatch */;
 			targetProxy = PRX01F56C5A37417DB09BE100 /* PBXContainerItemProxy */;
+		};
+		WGDEP1F6C5A37417DB09BE100 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = WGA640A0AB6135472FA365FE /* ListenUpWidgets */;
+			targetProxy = WGPRX1F56C5A37417DB09BE10 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -370,6 +480,7 @@
 				ASSETCATALOG_COMPILER_GENERATE_ASSET_SYMBOLS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = NO;
 				CLANG_ENABLE_OBJC_WEAK = YES;
+				CODE_SIGN_ENTITLEMENTS = ListenUp/ListenUp.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_PREVIEWS = YES;
@@ -404,6 +515,7 @@
 				ASSETCATALOG_COMPILER_GENERATE_ASSET_SYMBOLS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = NO;
 				CLANG_ENABLE_OBJC_WEAK = YES;
+				CODE_SIGN_ENTITLEMENTS = ListenUp/ListenUp.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_PREVIEWS = YES;
@@ -593,6 +705,68 @@
 			};
 			name = Debug;
 		};
+		WG1767C95A2DC24155864ECE /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CODE_SIGN_ENTITLEMENTS = ListenUpWidgets/ListenUpWidgets.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = ListenUpWidgets/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = scot.mcg.ListenUp.ListenUpWidgets;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = WIDGET_EXTENSION;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		WG84986A3FD51C4D4297D1B1 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CODE_SIGN_ENTITLEMENTS = ListenUpWidgets/ListenUpWidgets.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = ListenUpWidgets/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = scot.mcg.ListenUp.ListenUpWidgets;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG WIDGET_EXTENSION";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -619,6 +793,15 @@
 			buildConfigurations = (
 				W84986A3FD51C4D4297D1B16E /* Debug */,
 				W1767C95A2DC24155864ECE6D /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		WGCA00E46D0AA2041D08D4FE /* Build configuration list for PBXNativeTarget "ListenUpWidgets" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				WG84986A3FD51C4D4297D1B1 /* Debug */,
+				WG1767C95A2DC24155864ECE /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

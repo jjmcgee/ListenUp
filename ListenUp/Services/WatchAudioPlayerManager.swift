@@ -39,7 +39,8 @@ public final class WatchAudioPlayerManager {
     private var queuePlayer: AVQueuePlayer?
     private var timeObserverToken: Any?
     private var itemDidPlayToEndObserver: NSObjectProtocol?
-    private var interruptionObserver: NSObjectProtocol?
+    private var didBecomeInactiveObserver: NSObjectProtocol?
+    private var resumptionRecommendationObserver: NSObjectProtocol?
     private var lastPersistedPosition: Double = 0.0
     
     public var onPositionUpdated: ((_ bookID: UUID, _ position: Double, _ isCompleted: Bool) -> Void)?
@@ -68,24 +69,26 @@ public final class WatchAudioPlayerManager {
     
     private func setupNotifications() {
         #if os(watchOS) || os(iOS)
-        interruptionObserver = NotificationCenter.default.addObserver(
-            forName: AVAudioSession.interruptionNotification,
+        didBecomeInactiveObserver = NotificationCenter.default.addObserver(
+            forName: AVAudioSession.didBecomeInactiveNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor [weak self] in
+                self?.pause()
+            }
+        }
+        
+        resumptionRecommendationObserver = NotificationCenter.default.addObserver(
+            forName: AVAudioSession.resumptionRecommendationNotification,
             object: nil,
             queue: .main
         ) { [weak self] notification in
-            guard let userInfo = notification.userInfo,
-                  let typeVal = userInfo[AVAudioSessionInterruptionTypeKey] as? UInt,
-                  let type = AVAudioSession.InterruptionType(rawValue: typeVal) else { return }
-            let optionsVal = userInfo[AVAudioSessionInterruptionOptionKey] as? UInt
-            
+            let context = notification.userInfo?[AVAudioSession.resumptionContextKey] as? AVAudioSession.ResumptionContext
+            let shouldResume = context?.recommendation == .shouldResume
             Task { @MainActor [weak self] in
-                if type == .began {
-                    self?.pause()
-                } else if type == .ended {
-                    if let optVal = optionsVal,
-                       AVAudioSession.InterruptionOptions(rawValue: optVal).contains(.shouldResume) {
-                        self?.resume()
-                    }
+                if shouldResume {
+                    self?.resume()
                 }
             }
         }
@@ -317,7 +320,7 @@ public final class WatchAudioPlayerManager {
     
     private func setupItemEndObserver() {
         itemDidPlayToEndObserver = NotificationCenter.default.addObserver(
-            forName: .AVPlayerItemDidPlayToEndTime,
+            forName: AVPlayerItem.didPlayToEndTimeNotification,
             object: nil,
             queue: .main
         ) { [weak self] _ in
@@ -354,6 +357,14 @@ public final class WatchAudioPlayerManager {
         if let observer = itemDidPlayToEndObserver {
             NotificationCenter.default.removeObserver(observer)
             itemDidPlayToEndObserver = nil
+        }
+        if let observer = didBecomeInactiveObserver {
+            NotificationCenter.default.removeObserver(observer)
+            didBecomeInactiveObserver = nil
+        }
+        if let observer = resumptionRecommendationObserver {
+            NotificationCenter.default.removeObserver(observer)
+            resumptionRecommendationObserver = nil
         }
         queuePlayer?.pause()
         queuePlayer?.removeAllItems()
