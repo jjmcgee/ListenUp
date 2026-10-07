@@ -29,7 +29,8 @@ public struct TimeListenedTimelineProvider: TimelineProvider {
         // Refresh every 30 minutes, or at midnight
         let calendar = Calendar.current
         let nextUpdate: Date
-        if let tomorrowMidnight = calendar.date(bySettingHour: 0, minute: 0, second: 0, of: calendar.date(byAdding: .day, value: 1, to: Date())!) {
+        if let tomorrow = calendar.date(byAdding: .day, value: 1, to: Date()),
+           let tomorrowMidnight = calendar.date(bySettingHour: 0, minute: 0, second: 0, of: tomorrow) {
             let halfHour = Date().addingTimeInterval(1800)
             nextUpdate = min(tomorrowMidnight, halfHour)
         } else {

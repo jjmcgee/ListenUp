@@ -41,6 +41,8 @@ public final class WatchAudioPlayerManager {
     private var itemDidPlayToEndObserver: NSObjectProtocol?
     private var didBecomeInactiveObserver: NSObjectProtocol?
     private var resumptionRecommendationObserver: NSObjectProtocol?
+    private var interruptionObserver: NSObjectProtocol?
+    private var wasPlayingBeforeInterruption: Bool = false
     private var lastPersistedPosition: Double = 0.0
     
     public var onPositionUpdated: ((_ bookID: UUID, _ position: Double, _ isCompleted: Bool) -> Void)?
@@ -59,7 +61,6 @@ public final class WatchAudioPlayerManager {
             do {
                 let session = AVAudioSession.sharedInstance()
                 try session.setCategory(.playback, mode: .spokenAudio)
-                try session.setActive(true)
             } catch {
                 print("[WatchAudioPlayerManager] AVAudioSession config failed: \(error.localizedDescription)")
             }
@@ -79,6 +80,20 @@ public final class WatchAudioPlayerManager {
             }
         }
         
+        interruptionObserver = NotificationCenter.default.addObserver(
+            forName: AVAudioSession.interruptionNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] notification in
+            guard let userInfo = notification.userInfo,
+                  let typeValue = userInfo[AVAudioSessionInterruptionTypeKey] as? UInt else { return }
+            let optionsValue = userInfo[AVAudioSessionInterruptionOptionKey] as? UInt ?? 0
+            
+            Task { @MainActor [weak self] in
+                self?.handleAudioInterruption(typeValue: typeValue, optionsValue: optionsValue)
+            }
+        }
+        
         resumptionRecommendationObserver = NotificationCenter.default.addObserver(
             forName: AVAudioSession.resumptionRecommendationNotification,
             object: nil,
@@ -94,6 +109,27 @@ public final class WatchAudioPlayerManager {
         }
         #endif
     }
+    
+    #if os(watchOS) || os(iOS)
+    private func handleAudioInterruption(typeValue: UInt, optionsValue: UInt) {
+        guard let type = AVAudioSession.InterruptionType(rawValue: typeValue) else { return }
+        switch type {
+        case .began:
+            wasPlayingBeforeInterruption = isPlaying
+            if isPlaying {
+                pause()
+            }
+        case .ended:
+            let options = AVAudioSession.InterruptionOptions(rawValue: optionsValue)
+            if options.contains(.shouldResume) && wasPlayingBeforeInterruption {
+                resume()
+            }
+            wasPlayingBeforeInterruption = false
+        @unknown default:
+            break
+        }
+    }
+    #endif
     
     // MARK: - Playback Control API
     
@@ -237,6 +273,11 @@ public final class WatchAudioPlayerManager {
         currentTime = 0.0
         totalDuration = 0.0
         updateNowPlayingInfo()
+        #if os(watchOS) || os(iOS)
+        Task.detached(priority: .utility) {
+            try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
+        }
+        #endif
     }
     
     public func skipForward(by seconds: Double = 30.0) {
@@ -365,6 +406,10 @@ public final class WatchAudioPlayerManager {
         if let observer = resumptionRecommendationObserver {
             NotificationCenter.default.removeObserver(observer)
             resumptionRecommendationObserver = nil
+        }
+        if let observer = interruptionObserver {
+            NotificationCenter.default.removeObserver(observer)
+            interruptionObserver = nil
         }
         queuePlayer?.pause()
         queuePlayer?.removeAllItems()

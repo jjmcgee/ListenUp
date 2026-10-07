@@ -39,6 +39,7 @@
 		CP03F56C5A37417DB09BE103 /* CarPlayTemplateManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA03F56C5A37417DB09BE103 /* CarPlayTemplateManager.swift */; };
 		D038539DF3B4461DAD88B71E /* ItemKind.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1410648F0811493B8BE5CD2B /* ItemKind.swift */; };
 		D779B81BA0134A7987C823CC /* FullPlayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D14C52A963544626A0115DE6 /* FullPlayerView.swift */; };
+		PRIV01F56C5A37417DB09BE101 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = PRIV02F56C5A37417DB09BE102 /* PrivacyInfo.xcprivacy */; };
 		E01E00012DC24155864ECE01 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = E01E00022DC24155864ECE02 /* Assets.xcassets */; };
 		EB6139F0DE69004A37BE70910F /* ListenUpWatch.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = W6139F0DE69004A37BE70910F /* ListenUpWatch.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		F794CFBB2A4545BB8D03192A /* AudioPlayerManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1065A44E1A1141238F2D7C55 /* AudioPlayerManager.swift */; };
@@ -169,6 +170,7 @@
 		WGA07F56C5A37417DB09BE107 /* TimeListenedWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TimeListenedWidget.swift; path = ListenUpWidgets/TimeListenedWidget.swift; sourceTree = "<group>"; };
 		WGA08F56C5A37417DB09BE108 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = Info.plist; path = ListenUpWidgets/Info.plist; sourceTree = "<group>"; };
 		ENT01F56C5A37417DB09BE101 /* ListenUp.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = ListenUp.entitlements; path = ListenUp/ListenUp.entitlements; sourceTree = "<group>"; };
+		PRIV02F56C5A37417DB09BE102 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; name = PrivacyInfo.xcprivacy; path = ListenUp/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		ENT02F56C5A37417DB09BE102 /* ListenUpWidgets.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = ListenUpWidgets.entitlements; path = ListenUpWidgets/ListenUpWidgets.entitlements; sourceTree = "<group>"; };
 		WG6139F0DE69004A37BE70910F /* ListenUpWidgets.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = ListenUpWidgets.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		TT01F56C5A37417DB09BE101 /* ListenUpTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ListenUpTests.swift; path = Tests/ListenUpTests/ListenUpTests.swift; sourceTree = "<group>"; };
@@ -258,6 +260,7 @@
 				WGA07F56C5A37417DB09BE107 /* TimeListenedWidget.swift */,
 				WGA08F56C5A37417DB09BE108 /* Info.plist */,
 				ENT01F56C5A37417DB09BE101 /* ListenUp.entitlements */,
+				PRIV02F56C5A37417DB09BE102 /* PrivacyInfo.xcprivacy */,
 				ENT02F56C5A37417DB09BE102 /* ListenUpWidgets.entitlements */,
 				TT01F56C5A37417DB09BE101 /* ListenUpTests.swift */,
 				EF8AB5528B0B46AE86E26C6D /* Products */,
@@ -402,6 +405,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				E01E00012DC24155864ECE01 /* Assets.xcassets in Resources */,
+				PRIV01F56C5A37417DB09BE101 /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -717,6 +721,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = ListenUp;
+				INFOPLIST_KEY_WKBackgroundModes = "audio";
 				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = scot.mcg.ListenUp;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -748,6 +753,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = ListenUp;
+				INFOPLIST_KEY_WKBackgroundModes = "audio";
 				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = scot.mcg.ListenUp;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",

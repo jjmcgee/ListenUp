@@ -21,10 +21,10 @@ public final class AppDatabase: Sendable {
     
     /// Private initializer for production container setup with automatic CloudKit sync.
     private init() {
+        let schema = Schema([
+            LibraryItem.self
+        ])
         do {
-            let schema = Schema([
-                LibraryItem.self
-            ])
             let configuration = ModelConfiguration(
                 schema: schema,
                 isStoredInMemoryOnly: false,
@@ -32,7 +32,17 @@ public final class AppDatabase: Sendable {
             )
             self.container = try ModelContainer(for: schema, configurations: [configuration])
         } catch {
-            fatalError("Failed to initialize SwiftData ModelContainer: \(error.localizedDescription)")
+            print("[AppDatabase] Warning: CloudKit ModelContainer initialization failed: \(error.localizedDescription). Falling back to local store.")
+            do {
+                let fallbackConfig = ModelConfiguration(
+                    schema: schema,
+                    isStoredInMemoryOnly: false,
+                    cloudKitDatabase: .none
+                )
+                self.container = try ModelContainer(for: schema, configurations: [fallbackConfig])
+            } catch {
+                fatalError("Failed to initialize SwiftData ModelContainer: \(error.localizedDescription)")
+            }
         }
     }
     
