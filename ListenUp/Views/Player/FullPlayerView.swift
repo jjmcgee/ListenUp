@@ -43,16 +43,7 @@ public struct FullPlayerView: View {
     }
     
     public var body: some View {
-        guard let item = player.currentItem else {
-            return AnyView(
-                VStack {
-                    Text("No Audiobook Loaded")
-                        .foregroundStyle(Color.secondary)
-                }
-            )
-        }
-        
-        return AnyView(
+        if let item = player.currentItem {
             NavigationStack {
                 ZStack {
                     LiquidGlassMeshBackground(
@@ -429,10 +420,15 @@ public struct FullPlayerView: View {
                     ChaptersSheet(player: player)
                 }
                 .sheet(isPresented: $showingWatchSyncSheet) {
-                    WatchSyncSheet(item: player.currentItem)
+                    WatchSyncSheet(item: item)
                 }
             }
-        )
+        } else {
+            VStack {
+                Text("No Audiobook Loaded")
+                    .foregroundStyle(Color.secondary)
+            }
+        }
     }
 }
 

@@ -66,6 +66,7 @@
 		WGC05F56C5A37417DB09BE105 /* ListenUpWidgetsBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = WGA05F56C5A37417DB09BE105 /* ListenUpWidgetsBundle.swift */; };
 		WGC06F56C5A37417DB09BE106 /* PlayerWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = WGA06F56C5A37417DB09BE106 /* PlayerWidget.swift */; };
 		WGC07F56C5A37417DB09BE107 /* TimeListenedWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = WGA07F56C5A37417DB09BE107 /* TimeListenedWidget.swift */; };
+		TT03F56C5A37417DB09BE103 /* ListenUpTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TT01F56C5A37417DB09BE101 /* ListenUpTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -82,6 +83,13 @@
 			proxyType = 1;
 			remoteGlobalIDString = WGA640A0AB6135472FA365FE;
 			remoteInfo = ListenUpWidgets;
+		};
+		TT07F56C5A37417DB09BE107 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D0DAFF0D033744C688735580 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A640A0AB6135472FA365FE71;
+			remoteInfo = ListenUp;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -163,6 +171,8 @@
 		ENT01F56C5A37417DB09BE101 /* ListenUp.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = ListenUp.entitlements; path = ListenUp/ListenUp.entitlements; sourceTree = "<group>"; };
 		ENT02F56C5A37417DB09BE102 /* ListenUpWidgets.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = ListenUpWidgets.entitlements; path = ListenUpWidgets/ListenUpWidgets.entitlements; sourceTree = "<group>"; };
 		WG6139F0DE69004A37BE70910F /* ListenUpWidgets.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = ListenUpWidgets.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		TT01F56C5A37417DB09BE101 /* ListenUpTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ListenUpTests.swift; path = Tests/ListenUpTests/ListenUpTests.swift; sourceTree = "<group>"; };
+		TT02F56C5A37417DB09BE102 /* ListenUpTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ListenUpTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -181,6 +191,13 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		WGFA787B77043FB24B41B909 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		TT05F56C5A37417DB09BE105 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -242,6 +259,7 @@
 				WGA08F56C5A37417DB09BE108 /* Info.plist */,
 				ENT01F56C5A37417DB09BE101 /* ListenUp.entitlements */,
 				ENT02F56C5A37417DB09BE102 /* ListenUpWidgets.entitlements */,
+				TT01F56C5A37417DB09BE101 /* ListenUpTests.swift */,
 				EF8AB5528B0B46AE86E26C6D /* Products */,
 			);
 			sourceTree = "<group>";
@@ -252,6 +270,7 @@
 				6139F0DE69004A37BE70910F /* ListenUp.app */,
 				W6139F0DE69004A37BE70910F /* ListenUpWatch.app */,
 				WG6139F0DE69004A37BE70910F /* ListenUpWidgets.appex */,
+				TT02F56C5A37417DB09BE102 /* ListenUpTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -314,6 +333,24 @@
 			productReference = WG6139F0DE69004A37BE70910F /* ListenUpWidgets.appex */;
 			productType = "com.apple.product-type.app-extension";
 		};
+		TT09F56C5A37417DB09BE109 /* ListenUpTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = TT12F56C5A37417DB09BE112 /* Build configuration list for PBXNativeTarget "ListenUpTests" */;
+			buildPhases = (
+				TT04F56C5A37417DB09BE104 /* Sources */,
+				TT05F56C5A37417DB09BE105 /* Frameworks */,
+				TT06F56C5A37417DB09BE106 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				TT08F56C5A37417DB09BE108 /* PBXTargetDependency */,
+			);
+			name = ListenUpTests;
+			productName = ListenUpTests;
+			productReference = TT02F56C5A37417DB09BE102 /* ListenUpTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -331,6 +368,10 @@
 					};
 					WGA640A0AB6135472FA365FE = {
 						CreatedOnToolsVersion = 16.0;
+					};
+					TT09F56C5A37417DB09BE109 = {
+						CreatedOnToolsVersion = 16.0;
+						TestTargetID = A640A0AB6135472FA365FE71;
 					};
 				};
 			};
@@ -350,6 +391,7 @@
 				A640A0AB6135472FA365FE71 /* ListenUp */,
 				WTA640A0AB6135472FA365FE /* ListenUpWatch */,
 				WGA640A0AB6135472FA365FE /* ListenUpWidgets */,
+				TT09F56C5A37417DB09BE109 /* ListenUpTests */,
 			);
 		};
 /* End PBXProject section */
@@ -372,6 +414,13 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		WGRA2AD2BF34B9F64047A63A /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		TT06F56C5A37417DB09BE106 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -457,6 +506,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		TT04F56C5A37417DB09BE104 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				TT03F56C5A37417DB09BE103 /* ListenUpTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -469,6 +526,11 @@
 			isa = PBXTargetDependency;
 			target = WGA640A0AB6135472FA365FE /* ListenUpWidgets */;
 			targetProxy = WGPRX1F56C5A37417DB09BE10 /* PBXContainerItemProxy */;
+		};
+		TT08F56C5A37417DB09BE108 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A640A0AB6135472FA365FE71 /* ListenUp */;
+			targetProxy = TT07F56C5A37417DB09BE107 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -767,6 +829,49 @@
 			};
 			name = Debug;
 		};
+		TT10F56C5A37417DB09BE110 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = scot.mcg.ListenUpTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/ListenUp.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/ListenUp";
+			};
+			name = Debug;
+		};
+		TT11F56C5A37417DB09BE111 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = scot.mcg.ListenUpTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/ListenUp.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/ListenUp";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -802,6 +907,15 @@
 			buildConfigurations = (
 				WG84986A3FD51C4D4297D1B1 /* Debug */,
 				WG1767C95A2DC24155864ECE /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		TT12F56C5A37417DB09BE112 /* Build configuration list for PBXNativeTarget "ListenUpTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				TT10F56C5A37417DB09BE110 /* Debug */,
+				TT11F56C5A37417DB09BE111 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

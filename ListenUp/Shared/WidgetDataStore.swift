@@ -174,3 +174,120 @@ public final class WidgetDataStore: @unchecked Sendable {
         return destinationData as Data
     }
 }
+
+#if !WIDGET_EXTENSION
+// MARK: - Main App Synchronization Extensions
+
+extension WidgetDataStore {
+    
+    /// Syncs playback state from SwiftData `LibraryItem` and `AudioPlayerManager` to the widget cache.
+    public func syncPlayback(
+        item: LibraryItem?,
+        isPlaying: Bool,
+        currentTime: Double,
+        totalDuration: Double
+    ) {
+        if let item = item {
+            let thumb = item.artworkData.flatMap { downsampleImage(data: $0, maxDimension: 160) }
+            let snapshot = WidgetPlaybackSnapshot(
+                bookID: item.id,
+                title: item.title,
+                author: item.author ?? "Unknown Author",
+                currentTime: currentTime,
+                totalDuration: totalDuration > 0 ? totalDuration : item.totalDuration,
+                progress: totalDuration > 0 ? currentTime / totalDuration : item.progress,
+                isPlaying: isPlaying,
+                artworkData: thumb,
+                lastUpdated: Date()
+            )
+            updatePlaybackSnapshot(snapshot, immediateReload: true)
+        } else {
+            // Keep existing book details, only set isPlaying = false
+            let current = loadSnapshot()
+            if let existing = current.nowPlaying {
+                let updated = WidgetPlaybackSnapshot(
+                    bookID: existing.bookID,
+                    title: existing.title,
+                    author: existing.author,
+                    currentTime: existing.currentTime,
+                    totalDuration: existing.totalDuration,
+                    progress: existing.progress,
+                    isPlaying: false,
+                    artworkData: existing.artworkData,
+                    lastUpdated: Date()
+                )
+                updatePlaybackSnapshot(updated, immediateReload: true)
+            }
+        }
+    }
+    
+    /// Syncs recent books from SwiftData `LibraryItem` to the widget cache.
+    public func syncRecentBooks(items: [LibraryItem]) {
+        let topRecent = items
+            .filter { $0.parent == nil && !$0.isDeletedFromLibrary }
+            .sorted { $0.lastUpdated > $1.lastUpdated }
+            .prefix(4)
+            .map { item in
+                let thumb = item.artworkData.flatMap { downsampleImage(data: $0, maxDimension: 120) }
+                return WidgetRecentBook(
+                    id: item.id,
+                    title: item.title,
+                    author: item.author ?? "Unknown Author",
+                    progress: item.progress,
+                    totalDuration: item.totalDuration,
+                    artworkData: thumb,
+                    lastUpdated: item.lastUpdated
+                )
+            }
+        updateRecentBooksList(Array(topRecent))
+    }
+    
+    /// Syncs aggregated stats from `ListeningStatsStore` to the widget cache.
+    public func syncStats(
+        todaySeconds: Double,
+        dailyGoalMinutes: Int,
+        monthly: ListeningStatsStore.MonthlyComparison,
+        total: ListeningStatsStore.TotalListeningBreakdown,
+        streakDays: Int = 1
+    ) {
+        let todaySecs = Int(todaySeconds)
+        let totalMins = todaySecs / 60
+        let todayHours = totalMins / 60
+        let todayMinutes = totalMins % 60
+        
+        let todayFormatted: String
+        if todayHours > 0 {
+            todayFormatted = "\(todayHours)h \(todayMinutes)m"
+        } else {
+            todayFormatted = "\(todayMinutes)m"
+        }
+        
+        let goal = max(1, dailyGoalMinutes)
+        let goalFraction = min(1.0, max(0.0, Double(totalMins) / Double(goal)))
+        let remainingMinutes = max(0, goal - totalMins)
+        
+        let statsSnapshot = WidgetStatsSnapshot(
+            todaySeconds: todaySeconds,
+            todayHours: todayHours,
+            todayMinutes: todayMinutes,
+            todayFormatted: todayFormatted,
+            goalMinutes: goal,
+            goalProgressFraction: goalFraction,
+            goalPercentageText: "\(Int(goalFraction * 100))%",
+            isGoalAccomplished: goalFraction >= 1.0,
+            remainingMinutes: remainingMinutes,
+            currentMonthName: monthly.currentMonthName,
+            currentMonthHours: monthly.currentMonthHours,
+            previousMonthName: monthly.previousMonthName,
+            previousMonthHours: monthly.previousMonthHours,
+            monthDeltaHours: monthly.hoursDelta,
+            monthPercentageChange: monthly.percentageChange,
+            totalSummaryFormatted: total.formattedSummary,
+            totalHours: total.totalHours,
+            streakDays: streakDays,
+            lastUpdated: Date()
+        )
+        updateStatsSnapshot(statsSnapshot)
+    }
+}
+#endif

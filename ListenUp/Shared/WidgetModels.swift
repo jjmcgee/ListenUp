@@ -192,6 +192,14 @@ public struct WidgetDataSnapshot: Codable, Sendable, Equatable {
         self.stats = stats
         self.lastUpdated = lastUpdated
     }
+    
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.nowPlaying = try container.decodeIfPresent(WidgetPlaybackSnapshot.self, forKey: .nowPlaying)
+        self.recentBooks = (try? container.decode([WidgetRecentBook].self, forKey: .recentBooks)) ?? []
+        self.stats = (try? container.decode(WidgetStatsSnapshot.self, forKey: .stats)) ?? WidgetStatsSnapshot()
+        self.lastUpdated = (try? container.decode(Date.self, forKey: .lastUpdated)) ?? Date()
+    }
 }
 
 // MARK: - Preview Mock Data

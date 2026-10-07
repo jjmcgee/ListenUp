@@ -86,53 +86,65 @@ public final class WatchLibraryStore {
     
     // MARK: - File Management & Download Status
     
-    /// Scans the watch app's `Documents/Audiobooks/` sandbox to detect downloaded tracks.
+    /// Scans the watch app's `Documents/Audiobooks/` sandbox in a background task to detect downloaded tracks
+    /// without blocking the watchOS main thread.
     public func refreshDownloadedFiles() {
-        let fileManager = FileManager.default
-        guard let documentsURL = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first else { return }
-        
-        let audiobooksDir = documentsURL.appendingPathComponent("Audiobooks", isDirectory: true)
-        guard fileManager.fileExists(atPath: audiobooksDir.path) else { return }
-        
-        var newDownloadedIDs = Set<UUID>()
-        var newLocalURLs: [UUID: [URL]] = [:]
-        
-        guard let bookDirectories = try? fileManager.contentsOfDirectory(at: audiobooksDir, includingPropertiesForKeys: nil) else {
-            return
-        }
-        
-        for dir in bookDirectories {
-            guard let bookID = UUID(uuidString: dir.lastPathComponent) else { continue }
+        let currentBooks = self.books
+        Task.detached(priority: .utility) {
+            let fileManager = FileManager.default
+            guard let documentsURL = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first else { return }
             
-            if let files = try? fileManager.contentsOfDirectory(at: dir, includingPropertiesForKeys: nil) {
-                let audioFiles = files.filter {
-                    let ext = $0.pathExtension.lowercased()
-                    return ext == "m4b" || ext == "m4a" || ext == "mp3" || ext == "aac" || ext == "wav"
-                }.sorted { $0.lastPathComponent.localizedStandardCompare($1.lastPathComponent) == .orderedAscending }
+            let audiobooksDir = documentsURL.appendingPathComponent("Audiobooks", isDirectory: true)
+            guard fileManager.fileExists(atPath: audiobooksDir.path) else { return }
+            
+            guard let bookDirectories = try? fileManager.contentsOfDirectory(at: audiobooksDir, includingPropertiesForKeys: nil) else {
+                return
+            }
+            
+            var newDownloadedIDs = Set<UUID>()
+            var newLocalURLs: [UUID: [URL]] = [:]
+            var newProgress: [UUID: Double] = [:]
+            
+            for dir in bookDirectories {
+                guard let bookID = UUID(uuidString: dir.lastPathComponent) else { continue }
                 
-                if !audioFiles.isEmpty {
-                    newLocalURLs[bookID] = audioFiles
+                if let files = try? fileManager.contentsOfDirectory(at: dir, includingPropertiesForKeys: nil) {
+                    let audioFiles = files.filter {
+                        let ext = $0.pathExtension.lowercased()
+                        return ext == "m4b" || ext == "m4a" || ext == "mp3" || ext == "aac" || ext == "wav"
+                    }.sorted { $0.lastPathComponent.localizedStandardCompare($1.lastPathComponent) == .orderedAscending }
                     
-                    // If we know the expected track count from the catalog, check completeness
-                    if let summary = books.first(where: { $0.id == bookID }) {
-                        if audioFiles.count >= summary.trackCount {
-                            newDownloadedIDs.insert(bookID)
-                            downloadProgress.removeValue(forKey: bookID)
+                    if !audioFiles.isEmpty {
+                        newLocalURLs[bookID] = audioFiles
+                        
+                        // If we know the expected track count from the catalog, check completeness
+                        if let summary = currentBooks.first(where: { $0.id == bookID }) {
+                            if audioFiles.count >= summary.trackCount {
+                                newDownloadedIDs.insert(bookID)
+                            } else {
+                                let prog = Double(audioFiles.count) / Double(max(summary.trackCount, 1))
+                                newProgress[bookID] = prog
+                            }
                         } else {
-                            let prog = Double(audioFiles.count) / Double(max(summary.trackCount, 1))
-                            downloadProgress[bookID] = prog
+                            // Fallback: at least one file exists
+                            newDownloadedIDs.insert(bookID)
                         }
-                    } else {
-                        // Fallback: at least one file exists
-                        newDownloadedIDs.insert(bookID)
-                        downloadProgress.removeValue(forKey: bookID)
                     }
                 }
             }
+            
+            await MainActor.run { [weak self] in
+                guard let self = self else { return }
+                self.downloadedBookIDs = newDownloadedIDs
+                self.localAudioURLs = newLocalURLs
+                for bookID in newDownloadedIDs {
+                    self.downloadProgress.removeValue(forKey: bookID)
+                }
+                for (bookID, prog) in newProgress {
+                    self.downloadProgress[bookID] = prog
+                }
+            }
         }
-        
-        self.downloadedBookIDs = newDownloadedIDs
-        self.localAudioURLs = newLocalURLs
     }
     
     /// Called when an incoming audio file has been delivered to Apple Watch.

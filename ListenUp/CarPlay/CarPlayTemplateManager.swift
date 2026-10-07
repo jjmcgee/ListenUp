@@ -24,7 +24,11 @@ public final class CarPlayTemplateManager: NSObject {
     
     private var playbackObserver: NSObjectProtocol?
     private var contextSaveObserver: NSObjectProtocol?
-    private var artworkThumbnailCache: [UUID: UIImage] = [:]
+    private let artworkThumbnailCache: NSCache<NSUUID, UIImage> = {
+        let cache = NSCache<NSUUID, UIImage>()
+        cache.countLimit = 100
+        return cache
+    }()
     
     // MARK: - Initialization
     
@@ -58,7 +62,7 @@ public final class CarPlayTemplateManager: NSObject {
             contextSaveObserver = nil
         }
         CPNowPlayingTemplate.shared.remove(self)
-        artworkThumbnailCache.removeAll()
+        artworkThumbnailCache.removeAllObjects()
     }
     
     // MARK: - Root Template Setup
@@ -397,7 +401,8 @@ extension CarPlayTemplateManager {
     // MARK: - Artwork Thumbnail Generation & Caching
     
     private func thumbnailImage(for item: LibraryItem) -> UIImage {
-        if let cached = artworkThumbnailCache[item.id] {
+        let key = item.id as NSUUID
+        if let cached = artworkThumbnailCache.object(forKey: key) {
             return cached
         }
         
@@ -410,12 +415,12 @@ extension CarPlayTemplateManager {
                 path.addClip()
                 sourceImage.draw(in: CGRect(origin: .zero, size: size))
             }
-            artworkThumbnailCache[item.id] = thumbnail
+            artworkThumbnailCache.setObject(thumbnail, forKey: key)
             return thumbnail
         }
         
         let fallback = UIImage(systemName: "book.fill") ?? UIImage()
-        artworkThumbnailCache[item.id] = fallback
+        artworkThumbnailCache.setObject(fallback, forKey: key)
         return fallback
     }
 }

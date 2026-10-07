@@ -3,6 +3,9 @@ import AVFoundation
 #if canImport(MediaPlayer)
 import MediaPlayer
 #endif
+#if canImport(CoreMotion)
+import CoreMotion
+#endif
 
 /// Sleep timer configuration presets.
 public enum SleepTimerOption: Hashable, Sendable, Identifiable {
@@ -33,6 +36,10 @@ public enum SleepTimerOption: Hashable, Sendable, Identifiable {
         case .endOfChapter: return nil
         }
     }
+}
+
+extension Notification.Name {
+    public static let deviceDidShake = Notification.Name("ListenUpDeviceDidShake")
 }
 
 /// Robust, Swift 6 compliant audio playback engine for ListenUp.
@@ -190,6 +197,20 @@ public final class AudioPlayerManager {
         return UserDefaults.standard.bool(forKey: "continuousPlayback")
     }
     
+    /// Indicates whether shake-to-extend sleep timer is enabled. Defaults to false.
+    public var isShakeToExtendSleepTimerEnabled: Bool {
+        UserDefaults.standard.bool(forKey: "shakeToExtendSleepTimer")
+    }
+    
+    /// Indicates whether the player is currently in the grace period waiting for a shake to extend.
+    public private(set) var isWaitingForShakeToExtend: Bool = false
+    
+    #if (os(iOS) || os(watchOS)) && canImport(CoreMotion)
+    @ObservationIgnored private var motionManager: CMMotionManager?
+    #endif
+    private var shakeDetectionTask: Task<Void, Never>?
+    private var shakeNotificationObserver: NSObjectProtocol?
+    
     // MARK: - Initialization & Lifecycle
     
     public init() {
@@ -224,6 +245,11 @@ public final class AudioPlayerManager {
             NotificationCenter.default.removeObserver(observer)
             interruptionObserver = nil
         }
+        if let observer = shakeNotificationObserver {
+            NotificationCenter.default.removeObserver(observer)
+            shakeNotificationObserver = nil
+        }
+        stopShakeToExtendDetection()
     }
 
     
@@ -293,6 +319,19 @@ public final class AudioPlayerManager {
             }
         }
         #endif
+        
+        shakeNotificationObserver = NotificationCenter.default.addObserver(
+            forName: .deviceDidShake,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor [weak self] in
+                guard let self = self, self.isShakeToExtendSleepTimerEnabled else { return }
+                if self.isWaitingForShakeToExtend || self.sleepTimerRemaining != nil {
+                    self.extendSleepTimer(by: 300.0)
+                }
+            }
+        }
     }
     
     // MARK: - Playback Control API
@@ -641,6 +680,9 @@ public final class AudioPlayerManager {
             if currentTime >= chapter.endTime - 0.5 {
                 pause()
                 setSleepTimer(.off)
+                if isShakeToExtendSleepTimerEnabled {
+                    startShakeToExtendDetection(duration: 60.0)
+                }
                 return
             }
         }
@@ -773,6 +815,74 @@ public final class AudioPlayerManager {
             self?.pause()
             self?.activeSleepTimerOption = .off
             self?.sleepTimerRemaining = nil
+            
+            // If shake to extend is enabled, start listening for shake gestures
+            if self?.isShakeToExtendSleepTimerEnabled == true {
+                self?.startShakeToExtendDetection(duration: 60.0)
+            }
+        }
+    }
+    
+    // MARK: - Shake to Extend Sleep Timer
+    
+    /// Starts monitoring accelerometer and device motion for shake gestures to extend sleep timer.
+    public func startShakeToExtendDetection(duration: TimeInterval = 60.0) {
+        guard isShakeToExtendSleepTimerEnabled else { return }
+        isWaitingForShakeToExtend = true
+        shakeDetectionTask?.cancel()
+        
+        #if (os(iOS) || os(watchOS)) && canImport(CoreMotion)
+        let manager = motionManager ?? CMMotionManager()
+        motionManager = manager
+        
+        if manager.isAccelerometerAvailable {
+            manager.accelerometerUpdateInterval = 0.1
+            manager.startAccelerometerUpdates()
+        }
+        #endif
+        
+        shakeDetectionTask = Task { @MainActor [weak self] in
+            let startTime = Date()
+            while Date().timeIntervalSince(startTime) < duration {
+                if Task.isCancelled { break }
+                try? await Task.sleep(nanoseconds: 100_000_000) // 100ms
+                
+                #if (os(iOS) || os(watchOS)) && canImport(CoreMotion)
+                if let data = self?.motionManager?.accelerometerData {
+                    let acc = data.acceleration
+                    let magnitude = sqrt(acc.x * acc.x + acc.y * acc.y + acc.z * acc.z)
+                    if magnitude > 2.0 {
+                        self?.extendSleepTimer(by: 300.0)
+                        return
+                    }
+                }
+                #endif
+            }
+            self?.stopShakeToExtendDetection()
+        }
+    }
+    
+    /// Stops accelerometer monitoring for shake events.
+    public func stopShakeToExtendDetection() {
+        isWaitingForShakeToExtend = false
+        shakeDetectionTask?.cancel()
+        shakeDetectionTask = nil
+        #if (os(iOS) || os(watchOS)) && canImport(CoreMotion)
+        motionManager?.stopAccelerometerUpdates()
+        #endif
+    }
+    
+    /// Extends playback and sleep timer by the specified number of seconds (default: 300s / 5 minutes).
+    public func extendSleepTimer(by additionalSeconds: TimeInterval = 300.0) {
+        stopShakeToExtendDetection()
+        
+        if let current = sleepTimerRemaining, current > 0 {
+            let total = current + additionalSeconds
+            let mins = max(1, Int(round(total / 60.0)))
+            setSleepTimer(.minutes(mins))
+        } else {
+            setSleepTimer(.minutes(5))
+            resume()
         }
     }
     

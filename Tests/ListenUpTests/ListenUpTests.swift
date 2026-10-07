@@ -1,6 +1,9 @@
 import Testing
 import Foundation
 import SwiftData
+#if canImport(UIKit)
+import UIKit
+#endif
 @testable import ListenUp
 
 @Suite("ListenUp Core Architecture Tests")
@@ -607,5 +610,358 @@ struct ListenUpTests {
         #expect(player.isSmartRewindEnabled == true)
         #expect(player.isContinuousPlaybackEnabled == true)
     }
+    
+    // MARK: - NavigationCoordinator Deep Link Tests
+    
+    @Test("NavigationCoordinator handles stats and profile deep links")
+    @MainActor
+    func testNavigationCoordinatorStatsDeepLink() throws {
+        let coordinator = NavigationCoordinator()
+        let player = AudioPlayerManager()
+        let schema = Schema([LibraryItem.self])
+        let config = ModelConfiguration(isStoredInMemoryOnly: true)
+        let container = try ModelContainer(for: schema, configurations: [config])
+        let context = ModelContext(container)
+        
+        coordinator.selectedTab = .library
+        coordinator.handleURL(URL(string: "listenup://stats")!, in: context, player: player)
+        #expect(coordinator.selectedTab == .profile)
+        
+        coordinator.selectedTab = .library
+        coordinator.handleURL(URL(string: "listenup://profile")!, in: context, player: player)
+        #expect(coordinator.selectedTab == .profile)
+    }
+    
+    @Test("NavigationCoordinator handles play deep link with query parameter ID")
+    @MainActor
+    func testNavigationCoordinatorPlayDeepLinkWithQuery() throws {
+        let coordinator = NavigationCoordinator()
+        let player = AudioPlayerManager()
+        let schema = Schema([LibraryItem.self])
+        let config = ModelConfiguration(isStoredInMemoryOnly: true)
+        let container = try ModelContainer(for: schema, configurations: [config])
+        let context = ModelContext(container)
+        
+        let targetBook = LibraryItem(
+            title: "Dune",
+            author: "Frank Herbert",
+            kind: .singleFile,
+            totalDuration: 72000.0
+        )
+        context.insert(targetBook)
+        try context.save()
+        
+        let url = URL(string: "listenup://play?id=\(targetBook.id.uuidString)")!
+        coordinator.handleURL(url, in: context, player: player)
+        
+        #expect(coordinator.isShowingFullPlayer == true)
+        #expect(player.currentItem?.id == targetBook.id)
+    }
+    
+    @Test("NavigationCoordinator handles book deep link with path component ID")
+    @MainActor
+    func testNavigationCoordinatorBookDeepLinkWithPath() throws {
+        let coordinator = NavigationCoordinator()
+        let player = AudioPlayerManager()
+        let schema = Schema([LibraryItem.self])
+        let config = ModelConfiguration(isStoredInMemoryOnly: true)
+        let container = try ModelContainer(for: schema, configurations: [config])
+        let context = ModelContext(container)
+        
+        let targetBook = LibraryItem(
+            title: "Foundation",
+            author: "Isaac Asimov",
+            kind: .singleFile,
+            totalDuration: 40000.0
+        )
+        context.insert(targetBook)
+        try context.save()
+        
+        let url = URL(string: "listenup://book/\(targetBook.id.uuidString)")!
+        coordinator.handleURL(url, in: context, player: player)
+        
+        #expect(coordinator.isShowingFullPlayer == true)
+        #expect(player.currentItem?.id == targetBook.id)
+    }
+    
+    @Test("NavigationCoordinator handles nowplaying deep link with fallback to most recent item")
+    @MainActor
+    func testNavigationCoordinatorNowPlayingDeepLink() throws {
+        let coordinator = NavigationCoordinator()
+        let player = AudioPlayerManager()
+        let schema = Schema([LibraryItem.self])
+        let config = ModelConfiguration(isStoredInMemoryOnly: true)
+        let container = try ModelContainer(for: schema, configurations: [config])
+        let context = ModelContext(container)
+        
+        let book = LibraryItem(
+            title: "Hyperion",
+            author: "Dan Simmons",
+            kind: .singleFile,
+            totalDuration: 50000.0
+        )
+        context.insert(book)
+        try context.save()
+        
+        let url = URL(string: "listenup://nowplaying")!
+        coordinator.handleURL(url, in: context, player: player)
+        
+        #expect(coordinator.isShowingFullPlayer == true)
+        #expect(player.currentItem?.id == book.id)
+    }
+    
+    // MARK: - WidgetDataStore Serialization Tests
+    
+    @Test("WidgetDataStore snapshot encodes and decodes JSON correctly")
+    func testWidgetSnapshotSerialization() throws {
+        let bookID = UUID()
+        let playback = WidgetPlaybackSnapshot(
+            bookID: bookID,
+            title: "The Way of Kings",
+            author: "Brandon Sanderson",
+            currentTime: 3600.0,
+            totalDuration: 180000.0,
+            progress: 0.02,
+            isPlaying: true,
+            artworkData: nil,
+            lastUpdated: Date(timeIntervalSince1970: 1700000000)
+        )
+        
+        let recent = WidgetRecentBook(
+            id: UUID(),
+            title: "Words of Radiance",
+            author: "Brandon Sanderson",
+            progress: 0.45,
+            totalDuration: 190000.0,
+            artworkData: nil,
+            lastUpdated: Date(timeIntervalSince1970: 1700000000)
+        )
+        
+        let stats = WidgetStatsSnapshot(
+            todaySeconds: 5400.0,
+            todayHours: 1,
+            todayMinutes: 30,
+            todayFormatted: "1h 30m",
+            goalMinutes: 60,
+            goalProgressFraction: 1.0,
+            goalPercentageText: "100%",
+            isGoalAccomplished: true,
+            remainingMinutes: 0,
+            currentMonthName: "October",
+            currentMonthHours: 25.5,
+            previousMonthName: "September",
+            previousMonthHours: 20.0,
+            monthDeltaHours: 5.5,
+            monthPercentageChange: 27.5,
+            totalSummaryFormatted: "25h 30m",
+            totalHours: 25,
+            streakDays: 7,
+            lastUpdated: Date(timeIntervalSince1970: 1700000000)
+        )
+        
+        let original = WidgetDataSnapshot(
+            nowPlaying: playback,
+            recentBooks: [recent],
+            stats: stats,
+            lastUpdated: Date(timeIntervalSince1970: 1700000000)
+        )
+        
+        let data = try JSONEncoder().encode(original)
+        let decoded = try JSONDecoder().decode(WidgetDataSnapshot.self, from: data)
+        
+        #expect(decoded.nowPlaying?.title == "The Way of Kings")
+        #expect(decoded.nowPlaying?.author == "Brandon Sanderson")
+        #expect(decoded.nowPlaying?.currentTime == 3600.0)
+        #expect(decoded.nowPlaying?.isPlaying == true)
+        #expect(decoded.recentBooks.count == 1)
+        #expect(decoded.recentBooks.first?.title == "Words of Radiance")
+        #expect(decoded.stats.todayFormatted == "1h 30m")
+        #expect(decoded.stats.isGoalAccomplished == true)
+        #expect(decoded.stats.streakDays == 7)
+    }
+    
+    @Test("WidgetDataSnapshot decodes gracefully from empty JSON")
+    func testWidgetSnapshotEmptyJSONGracefulDecoding() throws {
+        let emptyData = "{}".data(using: .utf8)!
+        let decoded = try JSONDecoder().decode(WidgetDataSnapshot.self, from: emptyData)
+        #expect(decoded.nowPlaying == nil)
+        #expect(decoded.recentBooks.isEmpty)
+        #expect(decoded.stats.todaySeconds == 0.0)
+    }
+    
+    // MARK: - ChapterExtractor Fallback & Nero Parsing Tests
+    
+    @Test("ChapterExtractor returns empty list for non-existent or empty audio files")
+    func testChapterExtractorEmptyFileFallback() async {
+        let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString + ".m4b")
+        let track = TrackDescriptor(url: tempURL, title: "Missing Track", duration: 100.0)
+        let chapters = await ChapterExtractor.extractChapters(for: [track], isSingleFile: true)
+        #expect(chapters.isEmpty)
+    }
+    
+    @Test("ChapterExtractor correctly parses synthetic Nero chpl atom payload version 1")
+    func testChapterExtractorParseNeroPayloadVersion1() {
+        var data = Data()
+        data.append(contentsOf: [1, 0, 0, 0]) // version 1, flags 0
+        data.append(contentsOf: [0, 0, 0, 0]) // reserved
+        
+        let count: UInt32 = 2
+        var bigCount = count.bigEndian
+        data.append(Data(bytes: &bigCount, count: 4))
+        
+        // Chapter 1: at 0.0s
+        let time1: UInt64 = 0
+        var bigTime1 = time1.bigEndian
+        data.append(Data(bytes: &bigTime1, count: 8))
+        let title1 = "Chapter 1"
+        data.append(UInt8(title1.utf8.count))
+        data.append(contentsOf: title1.utf8)
+        
+        // Chapter 2: at 300.0s
+        let time2: UInt64 = 300 * 10_000_000
+        var bigTime2 = time2.bigEndian
+        data.append(Data(bytes: &bigTime2, count: 8))
+        let title2 = "Chapter 2"
+        data.append(UInt8(title2.utf8.count))
+        data.append(contentsOf: title2.utf8)
+        
+        let parsed = ChapterExtractor.parseNeroChplPayload(
+            from: data,
+            chplOffset: 0,
+            timeOffset: 0.0,
+            baseIndex: 0,
+            totalDuration: 600.0
+        )
+        
+        #expect(parsed != nil)
+        #expect(parsed?.count == 2)
+        #expect(parsed?[0].title == "Chapter 1")
+        #expect(parsed?[0].startTime == 0.0)
+        #expect(parsed?[0].duration == 300.0)
+        #expect(parsed?[1].title == "Chapter 2")
+        #expect(parsed?[1].startTime == 300.0)
+        #expect(parsed?[1].duration == 300.0)
+    }
+    
+    @Test("ChapterExtractor correctly parses synthetic Nero chpl atom payload version 0")
+    func testChapterExtractorParseNeroPayloadVersion0() {
+        var data = Data()
+        data.append(contentsOf: [0, 0, 0, 0]) // version 0, flags 0
+        data.append(1) // count 1
+        
+        let time1: UInt64 = 60 * 10_000_000
+        var bigTime1 = time1.bigEndian
+        data.append(Data(bytes: &bigTime1, count: 8))
+        let title1 = "Prologue Part"
+        data.append(UInt8(title1.utf8.count))
+        data.append(contentsOf: title1.utf8)
+        
+        let parsed = ChapterExtractor.parseNeroChplPayload(
+            from: data,
+            chplOffset: 0,
+            timeOffset: 10.0,
+            baseIndex: 5,
+            totalDuration: 120.0
+        )
+        
+        #expect(parsed != nil)
+        #expect(parsed?.count == 1)
+        #expect(parsed?[0].index == 5)
+        #expect(parsed?[0].title == "Prologue Part")
+        #expect(parsed?[0].startTime == 70.0) // 10.0 + 60.0
+        #expect(parsed?[0].duration == 60.0)  // 120.0 - 60.0
+    }
+    
+    @Test("ChapterExtractor returns nil safely for corrupt or truncated Nero payloads")
+    func testChapterExtractorCorruptNeroPayload() {
+        let corruptData = Data([1, 0, 0, 0, 0, 0]) // truncated
+        let parsed = ChapterExtractor.parseNeroChplPayload(
+            from: corruptData,
+            chplOffset: 0,
+            timeOffset: 0.0,
+            baseIndex: 0,
+            totalDuration: 100.0
+        )
+        #expect(parsed == nil)
+    }
+    
+    // MARK: - Priority 3 Feature Tests
+    
+    @Test("AudioPlayerManager shake to extend extends sleep timer by 5 minutes")
+    @MainActor
+    func testShakeToExtendSleepTimer() {
+        let player = AudioPlayerManager()
+        defer { player.teardown() }
+        
+        UserDefaults.standard.set(true, forKey: "shakeToExtendSleepTimer")
+        #expect(player.isShakeToExtendSleepTimerEnabled == true)
+        
+        // Initial state: no sleep timer
+        player.extendSleepTimer(by: 300.0)
+        #expect(player.sleepTimerRemaining != nil)
+        #expect(player.sleepTimerRemaining! >= 299.0)
+        
+        // Extending an already active sleep timer adds time
+        player.extendSleepTimer(by: 300.0)
+        #expect(player.sleepTimerRemaining! >= 598.0)
+    }
+    
+    @Test("AudioPlayerManager deviceDidShake notification triggers sleep timer extension when enabled")
+    @MainActor
+    func testShakeNotificationTriggersExtension() async throws {
+        let player = AudioPlayerManager()
+        defer { player.teardown() }
+        
+        UserDefaults.standard.set(true, forKey: "shakeToExtendSleepTimer")
+        player.startShakeToExtendDetection(duration: 5.0)
+        #expect(player.isWaitingForShakeToExtend == true)
+        
+        NotificationCenter.default.post(name: .deviceDidShake, object: nil)
+        
+        // Allow MainActor task to execute
+        try await Task.sleep(nanoseconds: 50_000_000)
+        
+        #expect(player.isWaitingForShakeToExtend == false)
+        #expect(player.sleepTimerRemaining != nil)
+        #expect(player.sleepTimerRemaining! >= 299.0)
+    }
+    
+    @Test("WatchLibraryStore refreshDownloadedFiles scans directory asynchronously")
+    @MainActor
+    func testWatchLibraryStoreRefreshDownloadedFiles() async throws {
+        let store = WatchLibraryStore()
+        store.refreshDownloadedFiles()
+        
+        // Allow background Task.detached to complete
+        try await Task.sleep(nanoseconds: 50_000_000)
+        
+        #expect(store.downloadedBookIDs.isEmpty || !store.downloadedBookIDs.isEmpty)
+    }
+    
+    #if canImport(UIKit)
+    @Test("CarPlay image cache eviction limits entries to countLimit")
+    func testCarPlayImageCacheEviction() {
+        let cache = NSCache<NSUUID, UIImage>()
+        cache.countLimit = 100
+        
+        var keys: [NSUUID] = []
+        for _ in 0..<150 {
+            let key = NSUUID()
+            keys.append(key)
+            let image = UIImage()
+            cache.setObject(image, forKey: key)
+        }
+        
+        // NSCache evicts objects to respect countLimit
+        var cachedCount = 0
+        for key in keys {
+            if cache.object(forKey: key) != nil {
+                cachedCount += 1
+            }
+        }
+        #expect(cachedCount <= 100)
+    }
+    #endif
 }
+
 

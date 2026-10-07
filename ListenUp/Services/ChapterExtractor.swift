@@ -247,62 +247,144 @@ public enum ChapterExtractor: Sendable {
     
     // MARK: - Nero chpl Atom Parser
     
-    private static func parseNeroChapters(
+    static func parseNeroChapters(
         from url: URL,
         timeOffset: Double,
         baseIndex: Int,
         totalDuration: Double
     ) -> [ChapterInfo]? {
-        guard let data = try? Data(contentsOf: url, options: .mappedIfSafe) else {
+        guard let handle = try? FileHandle(forReadingFrom: url) else {
+            return nil
+        }
+        defer { try? handle.close() }
+        
+        let fileSize: UInt64
+        do {
+            fileSize = try handle.seekToEnd()
+            try handle.seek(toOffset: 0)
+        } catch {
             return nil
         }
         
-        guard let chplRange = data.range(of: Data("chpl".utf8)) else {
-            return nil
+        var currentOffset: UInt64 = 0
+        while currentOffset + 8 <= fileSize {
+            do {
+                try handle.seek(toOffset: currentOffset)
+                guard let headerData = try handle.read(upToCount: 8), headerData.count == 8 else {
+                    break
+                }
+                
+                let boxSize32 = headerData.prefix(4).withUnsafeBytes { $0.loadUnaligned(as: UInt32.self).bigEndian }
+                let boxType = String(decoding: headerData.suffix(4), as: UTF8.self)
+                
+                var boxSize: UInt64 = UInt64(boxSize32)
+                var headerSize: UInt64 = 8
+                
+                if boxSize32 == 1 {
+                    // Extended 64-bit size
+                    guard let extData = try handle.read(upToCount: 8), extData.count == 8 else {
+                        break
+                    }
+                    boxSize = extData.withUnsafeBytes { $0.loadUnaligned(as: UInt64.self).bigEndian }
+                    headerSize = 16
+                } else if boxSize32 == 0 {
+                    // Extends to end of file
+                    boxSize = fileSize - currentOffset
+                }
+                
+                guard boxSize >= headerSize else {
+                    break
+                }
+                
+                // moov or udta contain metadata boxes including nero chpl
+                if boxType == "moov" || boxType == "udta" {
+                    let payloadSize = Int(min(boxSize - headerSize, 50 * 1024 * 1024))
+                    try handle.seek(toOffset: currentOffset + headerSize)
+                    if let payloadData = try handle.read(upToCount: payloadSize),
+                       let chplRange = payloadData.range(of: Data("chpl".utf8)) {
+                        return parseNeroChplPayload(
+                            from: payloadData,
+                            chplOffset: chplRange.upperBound,
+                            timeOffset: timeOffset,
+                            baseIndex: baseIndex,
+                            totalDuration: totalDuration
+                        )
+                    }
+                }
+                
+                // Advance past this atom (efficiently skipping mdat media payload)
+                currentOffset += boxSize
+            } catch {
+                break
+            }
         }
         
-        var offset = chplRange.upperBound
-        guard offset + 4 <= data.count else { return nil }
+        // Fallback for non-standard atom structures on smaller files (<= 15MB)
+        if fileSize <= 15 * 1024 * 1024,
+           let smallData = try? Data(contentsOf: url, options: .mappedIfSafe),
+           let chplRange = smallData.range(of: Data("chpl".utf8)) {
+            return parseNeroChplPayload(
+                from: smallData,
+                chplOffset: chplRange.upperBound,
+                timeOffset: timeOffset,
+                baseIndex: baseIndex,
+                totalDuration: totalDuration
+            )
+        }
         
-        let version = data[offset]
-        offset += 4 // skip version (1 byte) + flags (3 bytes)
+        return nil
+    }
+    
+    static func parseNeroChplPayload(
+        from data: Data,
+        chplOffset: Int,
+        timeOffset: Double,
+        baseIndex: Int,
+        totalDuration: Double
+    ) -> [ChapterInfo]? {
+        guard chplOffset <= data.count else { return nil }
+        let payload = Data(data[chplOffset...])
+        guard payload.count >= 4 else { return nil }
+        
+        let version = payload[0]
+        var offset = 4 // skip version (1 byte) + flags (3 bytes)
         
         var parsed: [(title: String, startTime: Double)] = []
         
         if version == 1 {
-            guard offset + 8 <= data.count else { return nil }
+            guard offset + 8 <= payload.count else { return nil }
             offset += 4 // skip 4 bytes reserved
-            let count = data[offset..<offset+4].withUnsafeBytes { $0.load(as: UInt32.self).bigEndian }
+            let count = payload[offset..<offset+4].withUnsafeBytes { $0.loadUnaligned(as: UInt32.self).bigEndian }
             offset += 4
             
             for _ in 0..<count {
-                guard offset + 9 <= data.count else { break }
-                let rawTime = data[offset..<offset+8].withUnsafeBytes { $0.load(as: UInt64.self).bigEndian }
+                guard offset + 9 <= payload.count else { break }
+                let rawTime = payload[offset..<offset+8].withUnsafeBytes { $0.loadUnaligned(as: UInt64.self).bigEndian }
                 offset += 8
                 let secs = Double(rawTime) / 10_000_000.0
                 
-                let titleLen = Int(data[offset])
+                let titleLen = Int(payload[offset])
                 offset += 1
-                guard offset + titleLen <= data.count else { break }
-                let str = String(data: data[offset..<offset+titleLen], encoding: .utf8) ?? ""
+                guard offset + titleLen <= payload.count else { break }
+                let str = String(data: payload[offset..<offset+titleLen], encoding: .utf8) ?? ""
                 offset += titleLen
                 parsed.append((title: str, startTime: secs))
             }
         } else if version == 0 {
-            guard offset + 1 <= data.count else { return nil }
-            let count = Int(data[offset])
+            guard offset + 1 <= payload.count else { return nil }
+            let count = Int(payload[offset])
             offset += 1
             
             for _ in 0..<count {
-                guard offset + 9 <= data.count else { break }
-                let rawTime = data[offset..<offset+8].withUnsafeBytes { $0.load(as: UInt64.self).bigEndian }
+                guard offset + 9 <= payload.count else { break }
+                let rawTime = payload[offset..<offset+8].withUnsafeBytes { $0.loadUnaligned(as: UInt64.self).bigEndian }
                 offset += 8
                 let secs = Double(rawTime) / 10_000_000.0
                 
-                let titleLen = Int(data[offset])
+                let titleLen = Int(payload[offset])
                 offset += 1
-                guard offset + titleLen <= data.count else { break }
-                let str = String(data: data[offset..<offset+titleLen], encoding: .utf8) ?? ""
+                guard offset + titleLen <= payload.count else { break }
+                let str = String(data: payload[offset..<offset+titleLen], encoding: .utf8) ?? ""
                 offset += titleLen
                 parsed.append((title: str, startTime: secs))
             }
