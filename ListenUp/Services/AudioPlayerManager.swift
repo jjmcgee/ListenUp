@@ -151,10 +151,44 @@ public final class AudioPlayerManager {
     private var didBecomeInactiveObserver: NSObjectProtocol?
     private var resumptionRecommendationObserver: NSObjectProtocol?
     private var routeChangeObserver: NSObjectProtocol?
+    private var interruptionObserver: NSObjectProtocol?
+    private var wasPlayingBeforeInterruption: Bool = false
+    private var lastPausedTimestamp: Date?
+    private var didPauseAtBoundary: Bool = false
     private var lastPersistedPosition: Double = 0.0
     private var lastListeningRecordedPosition: Double?
     private var sleepTimerTask: Task<Void, Never>?
     private var isConfiguringQueue: Bool = false
+    
+    // MARK: - User Settings Preferences
+    
+    /// Interval in seconds for skipping forward. Defaults to 30s.
+    public var skipForwardInterval: Double {
+        let val = UserDefaults.standard.double(forKey: "skipForwardInterval")
+        return val > 0 ? val : 30.0
+    }
+    
+    /// Interval in seconds for skipping backward. Defaults to 15s.
+    public var skipBackwardInterval: Double {
+        let val = UserDefaults.standard.double(forKey: "skipBackwardInterval")
+        return val > 0 ? val : 15.0
+    }
+    
+    /// Indicates whether smart rewind (2 seconds upon resume) is enabled. Defaults to true.
+    public var isSmartRewindEnabled: Bool {
+        if UserDefaults.standard.object(forKey: "smartRewindEnabled") == nil {
+            return true
+        }
+        return UserDefaults.standard.bool(forKey: "smartRewindEnabled")
+    }
+    
+    /// Indicates whether playback auto-advances to the next chapter or track. Defaults to true.
+    public var isContinuousPlaybackEnabled: Bool {
+        if UserDefaults.standard.object(forKey: "continuousPlayback") == nil {
+            return true
+        }
+        return UserDefaults.standard.bool(forKey: "continuousPlayback")
+    }
     
     // MARK: - Initialization & Lifecycle
     
@@ -169,6 +203,11 @@ public final class AudioPlayerManager {
         sleepTimerTask?.cancel()
         sleepTimerTask = nil
         teardownPlayer()
+        #if os(iOS) || os(watchOS) || os(tvOS) || os(visionOS)
+        Task.detached(priority: .utility) {
+            try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
+        }
+        #endif
         if let observer = didBecomeInactiveObserver {
             NotificationCenter.default.removeObserver(observer)
             didBecomeInactiveObserver = nil
@@ -181,6 +220,10 @@ public final class AudioPlayerManager {
             NotificationCenter.default.removeObserver(observer)
             routeChangeObserver = nil
         }
+        if let observer = interruptionObserver {
+            NotificationCenter.default.removeObserver(observer)
+            interruptionObserver = nil
+        }
     }
 
     
@@ -192,7 +235,6 @@ public final class AudioPlayerManager {
             do {
                 let session = AVAudioSession.sharedInstance()
                 try session.setCategory(.playback, mode: .spokenAudio)
-                try session.setActive(true)
             } catch {
                 print("[AudioPlayerManager] Failed to configure AVAudioSession: \(error.localizedDescription)")
             }
@@ -202,6 +244,19 @@ public final class AudioPlayerManager {
     
     private func setupNotifications() {
         #if os(iOS) || os(watchOS) || os(tvOS) || os(visionOS)
+        interruptionObserver = NotificationCenter.default.addObserver(
+            forName: AVAudioSession.interruptionNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] notification in
+            guard let userInfo = notification.userInfo,
+                  let typeValue = userInfo[AVAudioSessionInterruptionTypeKey] as? UInt else { return }
+            let optionsValue = userInfo[AVAudioSessionInterruptionOptionKey] as? UInt ?? 0
+            Task { @MainActor [weak self] in
+                self?.handleAudioInterruption(typeValue: typeValue, optionsValue: optionsValue)
+            }
+        }
+        
         didBecomeInactiveObserver = NotificationCenter.default.addObserver(
             forName: AVAudioSession.didBecomeInactiveNotification,
             object: nil,
@@ -283,10 +338,23 @@ public final class AudioPlayerManager {
         guard let player = queuePlayer else { return }
         
         #if os(iOS) || os(watchOS) || os(tvOS) || os(visionOS)
-        Task.detached(priority: .userInitiated) {
-            try? AVAudioSession.sharedInstance().setActive(true)
+        do {
+            try AVAudioSession.sharedInstance().setActive(true)
+        } catch {
+            print("[AudioPlayerManager] Failed to activate AVAudioSession: \(error.localizedDescription)")
         }
         #endif
+        
+        // Smart Rewind: rewind 2s when resuming after being paused for more than 3 seconds
+        if isSmartRewindEnabled && !didPauseAtBoundary,
+           let pausedAt = lastPausedTimestamp,
+           Date().timeIntervalSince(pausedAt) >= 3.0,
+           currentTime > 0 {
+            let rewindTime = max(0.0, currentTime - 2.0)
+            seek(to: rewindTime)
+        }
+        lastPausedTimestamp = nil
+        didPauseAtBoundary = false
         
         player.play()
         player.rate = playbackRate
@@ -299,6 +367,7 @@ public final class AudioPlayerManager {
     public func pause() {
         queuePlayer?.pause()
         isPlaying = false
+        lastPausedTimestamp = Date()
         if let lastRecorded = lastListeningRecordedPosition {
             let delta = currentTime - lastRecorded
             if delta > 0 && delta <= 30.0 {
@@ -314,6 +383,13 @@ public final class AudioPlayerManager {
     public func stop() {
         pause()
         teardownPlayer()
+        #if os(iOS) || os(watchOS) || os(tvOS) || os(visionOS)
+        Task.detached(priority: .utility) {
+            try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
+        }
+        #endif
+        lastPausedTimestamp = nil
+        didPauseAtBoundary = false
         currentItem = nil
         currentTrack = nil
         currentTrackIndex = 0
@@ -324,18 +400,22 @@ public final class AudioPlayerManager {
         updateNowPlayingInfo()
     }
     
-    /// Skips forward by a given number of seconds (default 30s).
-    public func skipForward(by seconds: Double = 30.0) {
-        seek(to: currentTime + seconds)
+    /// Skips forward by a given number of seconds (defaults to skipForwardInterval preference).
+    public func skipForward(by seconds: Double? = nil) {
+        let interval = seconds ?? skipForwardInterval
+        seek(to: currentTime + interval)
     }
     
-    /// Skips backward by a given number of seconds (default 15s).
-    public func skipBackward(by seconds: Double = 15.0) {
-        seek(to: currentTime - seconds)
+    /// Skips backward by a given number of seconds (defaults to skipBackwardInterval preference).
+    public func skipBackward(by seconds: Double? = nil) {
+        let interval = seconds ?? skipBackwardInterval
+        seek(to: currentTime - interval)
     }
     
     /// Seeks to a specific timestamp on the virtual continuous timeline.
     public func seek(to targetVirtualTime: Double) {
+        lastPausedTimestamp = nil
+        didPauseAtBoundary = false
         guard let item = currentItem else { return }
         let clampedTime = min(max(targetVirtualTime, 0.0), totalDuration)
         
@@ -478,6 +558,8 @@ public final class AudioPlayerManager {
     private func loadItem(_ item: LibraryItem, startAtPosition: Double) {
         currentItem = item
         totalDuration = item.totalDuration
+        lastPausedTimestamp = startAtPosition > 0 ? Date.distantPast : nil
+        didPauseAtBoundary = false
         
         let initialVirtualTime = min(max(startAtPosition, 0.0), totalDuration)
         currentTime = initialVirtualTime
@@ -563,6 +645,18 @@ public final class AudioPlayerManager {
             }
         }
         
+        // Handle continuous playback toggle for embedded chapters
+        if !isContinuousPlaybackEnabled, let chapter = currentChapter, chapter.index < (chapters.last?.index ?? 0) {
+            if currentTime >= chapter.endTime - 0.3 {
+                if let nextChapter = chapters.first(where: { $0.index == chapter.index + 1 }) {
+                    seek(to: nextChapter.startTime)
+                }
+                didPauseAtBoundary = true
+                pause()
+                return
+            }
+        }
+        
         // Debounce SwiftData persistence to once every 5 seconds or significant scrub
         if abs(virtualT - lastPersistedPosition) >= 5.0 {
             if let lastRecorded = lastListeningRecordedPosition, isPlaying {
@@ -601,6 +695,17 @@ public final class AudioPlayerManager {
         let nextIndex = currentTrackIndex + 1
         
         if nextIndex < tracks.count {
+            if !isContinuousPlaybackEnabled {
+                currentTrackIndex = nextIndex
+                currentTrack = tracks[nextIndex]
+                currentTime = item.virtualPosition(trackIndex: nextIndex, localOffset: 0.0)
+                updateNowPlayingInfo()
+                persistCurrentPosition()
+                didPauseAtBoundary = true
+                pause()
+                return
+            }
+            
             currentTrackIndex = nextIndex
             currentTrack = tracks[nextIndex]
             updateNowPlayingInfo()
@@ -708,9 +813,9 @@ public final class AudioPlayerManager {
             return .success
         }
         
-        // Skip Forward (+30s)
+        // Skip Forward
         commandCenter.skipForwardCommand.isEnabled = true
-        commandCenter.skipForwardCommand.preferredIntervals = [30]
+        commandCenter.skipForwardCommand.preferredIntervals = [NSNumber(value: skipForwardInterval)]
         commandCenter.skipForwardCommand.addTarget { [weak self] event in
             guard let skipEvent = event as? MPSkipIntervalCommandEvent else { return .commandFailed }
             Task { @MainActor [weak self] in
@@ -719,9 +824,9 @@ public final class AudioPlayerManager {
             return .success
         }
         
-        // Skip Backward (-15s)
+        // Skip Backward
         commandCenter.skipBackwardCommand.isEnabled = true
-        commandCenter.skipBackwardCommand.preferredIntervals = [15]
+        commandCenter.skipBackwardCommand.preferredIntervals = [NSNumber(value: skipBackwardInterval)]
         commandCenter.skipBackwardCommand.addTarget { [weak self] event in
             guard let skipEvent = event as? MPSkipIntervalCommandEvent else { return .commandFailed }
             Task { @MainActor [weak self] in
@@ -780,6 +885,12 @@ public final class AudioPlayerManager {
             return
         }
         
+        // Refresh skip command intervals from preferences
+        let fwd = skipForwardInterval
+        let bwd = skipBackwardInterval
+        MPRemoteCommandCenter.shared().skipForwardCommand.preferredIntervals = [NSNumber(value: fwd)]
+        MPRemoteCommandCenter.shared().skipBackwardCommand.preferredIntervals = [NSNumber(value: bwd)]
+        
         var info: [String: Any] = [:]
         
         // Title: Priority: Chapter title > Multi-part Track title > Book title
@@ -824,6 +935,28 @@ public final class AudioPlayerManager {
     // MARK: - System Notifications
     
     #if os(iOS) || os(watchOS) || os(tvOS) || os(visionOS)
+    private func handleAudioInterruption(typeValue: UInt, optionsValue: UInt) {
+        guard let type = AVAudioSession.InterruptionType(rawValue: typeValue) else {
+            return
+        }
+        
+        switch type {
+        case .began:
+            wasPlayingBeforeInterruption = isPlaying
+            if isPlaying {
+                pause()
+            }
+        case .ended:
+            let options = AVAudioSession.InterruptionOptions(rawValue: optionsValue)
+            if options.contains(.shouldResume) && wasPlayingBeforeInterruption {
+                resume()
+            }
+            wasPlayingBeforeInterruption = false
+        @unknown default:
+            break
+        }
+    }
+    
     private func handleRouteChange(reasonValue: UInt) {
         guard let reason = AVAudioSession.RouteChangeReason(rawValue: reasonValue) else {
             return

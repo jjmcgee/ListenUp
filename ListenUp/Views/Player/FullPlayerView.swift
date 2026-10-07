@@ -7,6 +7,9 @@ public struct FullPlayerView: View {
     @Environment(\.dismiss) private var dismiss
     var player: AudioPlayerManager
     
+    @AppStorage("skipForwardInterval") private var skipForwardInterval: Double = 30.0
+    @AppStorage("skipBackwardInterval") private var skipBackwardInterval: Double = 15.0
+    
     @State private var sliderValue: Double = 0.0
     @State private var isDraggingSlider: Bool = false
     @State private var isShowingBookScrubber: Bool = false
@@ -14,6 +17,26 @@ public struct FullPlayerView: View {
     @State private var showingSleepTimerSheet: Bool = false
     @State private var showingChaptersSheet: Bool = false
     @State private var showingWatchSyncSheet: Bool = false
+    
+    private var skipBackwardIcon: String {
+        let seconds = Int(skipBackwardInterval)
+        switch seconds {
+        case 5, 10, 15, 30, 45, 60, 75, 90:
+            return "gobackward.\(seconds)"
+        default:
+            return "gobackward"
+        }
+    }
+    
+    private var skipForwardIcon: String {
+        let seconds = Int(skipForwardInterval)
+        switch seconds {
+        case 5, 10, 15, 30, 45, 60, 75, 90:
+            return "goforward.\(seconds)"
+        default:
+            return "goforward"
+        }
+    }
     
     public init(player: AudioPlayerManager) {
         self.player = player
@@ -320,11 +343,11 @@ public struct FullPlayerView: View {
                         
                         // Primary Playback Controls
                         HStack(spacing: 32) {
-                            // Skip Backward 15s
+                            // Skip Backward
                             Button {
-                                player.skipBackward(by: 15)
+                                player.skipBackward(by: skipBackwardInterval)
                             } label: {
-                                Image(systemName: "gobackward.15")
+                                Image(systemName: skipBackwardIcon)
                                     .font(.system(size: 24, weight: .semibold))
                                     .foregroundStyle(Color.primary)
                                     .frame(width: 56, height: 56)
@@ -341,11 +364,11 @@ public struct FullPlayerView: View {
                                     .shadow(color: Color.accentColor.opacity(0.35), radius: 14, x: 0, y: 6)
                             }
                             
-                            // Skip Forward 30s
+                            // Skip Forward
                             Button {
-                                player.skipForward(by: 30)
+                                player.skipForward(by: skipForwardInterval)
                             } label: {
-                                Image(systemName: "goforward.30")
+                                Image(systemName: skipForwardIcon)
                                     .font(.system(size: 24, weight: .semibold))
                                     .foregroundStyle(Color.primary)
                                     .frame(width: 56, height: 56)

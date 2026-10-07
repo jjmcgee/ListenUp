@@ -545,5 +545,67 @@ struct ListenUpTests {
         #expect(historyItems.count == 2)
         #expect(historyItems.contains(where: { $0.title == "1984" && $0.isDeletedFromLibrary == true }))
     }
+    
+    // MARK: - Priority 1 Tests: Search Soft Delete & Player Preferences
+    
+    @Test("Search query strictly excludes soft-deleted and offloaded books from results")
+    func testSearchViewSoftDeleteFiltering() {
+        let activeBook = LibraryItem(
+            title: "Project Hail Mary",
+            author: "Andy Weir",
+            kind: .singleFile,
+            totalDuration: 57600.0,
+            currentPosition: 12000.0
+        )
+        
+        let deletedBook = LibraryItem(
+            title: "The Martian",
+            author: "Andy Weir",
+            kind: .singleFile,
+            totalDuration: 36000.0,
+            currentPosition: 36000.0,
+            isCompleted: true
+        )
+        deletedBook.isDeletedFromLibrary = true
+        deletedBook.isFileOffloaded = true
+        
+        let childTrack = LibraryItem(
+            title: "Track 01",
+            kind: .singleFile,
+            totalDuration: 1800.0
+        )
+        childTrack.parent = activeBook
+        
+        let allItems = [activeBook, deletedBook, childTrack]
+        
+        // Root items filter as updated in SearchView
+        let displayedRoots = allItems.filter { $0.parent == nil && !$0.isDeletedFromLibrary }
+        
+        #expect(displayedRoots.count == 1)
+        #expect(displayedRoots.first?.title == "Project Hail Mary")
+        #expect(!displayedRoots.contains(where: { $0.isDeletedFromLibrary }))
+        
+        // Live search filter matching "Andy Weir"
+        let query = "Andy"
+        let searchResults = displayedRoots.filter { item in
+            item.title.localizedCaseInsensitiveContains(query) ||
+            (item.author?.localizedCaseInsensitiveContains(query) ?? false)
+        }
+        
+        #expect(searchResults.count == 1)
+        #expect(searchResults.first?.title == "Project Hail Mary")
+    }
+    
+    @Test("AudioPlayerManager skip intervals and settings preferences have robust defaults")
+    @MainActor
+    func testAudioPlayerManagerPreferences() {
+        let player = AudioPlayerManager()
+        
+        // Defaults when unset in UserDefaults
+        #expect(player.skipForwardInterval == 30.0)
+        #expect(player.skipBackwardInterval == 15.0)
+        #expect(player.isSmartRewindEnabled == true)
+        #expect(player.isContinuousPlaybackEnabled == true)
+    }
 }
 

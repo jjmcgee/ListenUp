@@ -6,6 +6,18 @@ public struct MiniPlayerView: View {
     var player: AudioPlayerManager
     public var onExpand: () -> Void
     
+    @AppStorage("skipBackwardInterval") private var skipBackwardInterval: Double = 15.0
+    
+    private var skipBackwardIcon: String {
+        let seconds = Int(skipBackwardInterval)
+        switch seconds {
+        case 5, 10, 15, 30, 45, 60, 75, 90:
+            return "gobackward.\(seconds)"
+        default:
+            return "gobackward"
+        }
+    }
+    
     public init(player: AudioPlayerManager, onExpand: @escaping () -> Void) {
         self.player = player
         self.onExpand = onExpand
@@ -60,11 +72,11 @@ public struct MiniPlayerView: View {
                     
                     Spacer()
                     
-                    // Controls: Skip Backward (15s)
+                    // Controls: Skip Backward
                     Button {
-                        player.skipBackward(by: 15)
+                        player.skipBackward(by: skipBackwardInterval)
                     } label: {
-                        Image(systemName: "gobackward.15")
+                        Image(systemName: skipBackwardIcon)
                             .font(.system(size: 20))
                             .foregroundStyle(Color.primary)
                     }

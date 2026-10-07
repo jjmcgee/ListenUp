@@ -155,7 +155,7 @@ public final class ListeningStatsStore {
     
     /// Records elapsed listening seconds for today (or a specific date).
     public func recordListening(seconds: Double, on date: Date = Date()) {
-        guard seconds > 0, !seconds.isNaN, !seconds.isInfinite, seconds < 3600 else { return }
+        guard seconds > 0, !seconds.isNaN, !seconds.isInfinite, seconds <= 86400 else { return }
         let key = dayDateFormatter.string(from: date)
         let existing = dailyRecords[key] ?? 0.0
         dailyRecords[key] = existing + seconds

@@ -898,7 +898,9 @@ public struct DailyGoalEditorSheet: View {
                                 
                                 HStack(spacing: 4) {
                                     TextField("Minutes", text: $customText)
+                                        #if os(iOS) || os(tvOS)
                                         .keyboardType(.numberPad)
+                                        #endif
                                         .focused($isTextFieldFocused)
                                         .multilineTextAlignment(.center)
                                         .font(.system(size: 24, weight: .bold, design: .rounded))
@@ -935,7 +937,9 @@ public struct DailyGoalEditorSheet: View {
                 .padding(.bottom, 20)
             }
             .navigationTitle("Daily Goal")
+            #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
+            #endif
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") {

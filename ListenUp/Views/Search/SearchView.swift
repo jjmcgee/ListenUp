@@ -131,7 +131,7 @@ public struct SearchView: View {
     }
     
     private var displayedItems: [LibraryItem] {
-        let rootItems = allItems.filter { $0.parent == nil }
+        let rootItems = allItems.filter { $0.parent == nil && !$0.isDeletedFromLibrary }
         let trimmed = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
         
         if trimmed.isEmpty {

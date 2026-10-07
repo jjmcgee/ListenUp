@@ -103,9 +103,9 @@ struct ListenUpApp: App {
             case .togglePlayPause:
                 player.togglePlayPause()
             case .skipForward:
-                player.skipForward(by: command.value ?? 30.0)
+                player.skipForward(by: command.value ?? player.skipForwardInterval)
             case .skipBackward:
-                player.skipBackward(by: command.value ?? 15.0)
+                player.skipBackward(by: command.value ?? player.skipBackwardInterval)
             case .seek:
                 if let target = command.value {
                     player.seek(to: target)

@@ -15,7 +15,7 @@ let package = Package(
         .target(
             name: "ListenUp",
             path: "ListenUp",
-            exclude: ["ListenUpApp.swift", "Info.plist", "Assets.xcassets"]
+            exclude: ["ListenUpApp.swift", "Info.plist", "Assets.xcassets", "ListenUp.entitlements"]
         ),
         .testTarget(
             name: "ListenUpTests",
