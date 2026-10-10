@@ -139,14 +139,6 @@ public final class AudioPlayerManager {
         return min(max(0.0, chapter.endTime - currentTime), chapter.duration)
     }
     
-    /// Playback completion fraction within the active chapter (`0.0 ... 1.0`).
-    public var currentChapterProgress: Double {
-        guard let chapter = currentChapter, chapter.duration > 0 else {
-            return totalDuration > 0 ? min(max(currentTime / totalDuration, 0.0), 1.0) : 0.0
-        }
-        return min(max(currentChapterElapsed / chapter.duration, 0.0), 1.0)
-    }
-    
     /// Closure invoked whenever progress updates should be persisted to SwiftData.
     public var onPositionUpdated: ((_ item: LibraryItem, _ position: Double) -> Void)?
     
@@ -158,7 +150,6 @@ public final class AudioPlayerManager {
     private var didBecomeInactiveObserver: NSObjectProtocol?
     private var resumptionRecommendationObserver: NSObjectProtocol?
     private var routeChangeObserver: NSObjectProtocol?
-    private var interruptionObserver: NSObjectProtocol?
     private var wasPlayingBeforeInterruption: Bool = false
     private var lastPausedTimestamp: Date?
     private var didPauseAtBoundary: Bool = false
@@ -241,10 +232,6 @@ public final class AudioPlayerManager {
             NotificationCenter.default.removeObserver(observer)
             routeChangeObserver = nil
         }
-        if let observer = interruptionObserver {
-            NotificationCenter.default.removeObserver(observer)
-            interruptionObserver = nil
-        }
         if let observer = shakeNotificationObserver {
             NotificationCenter.default.removeObserver(observer)
             shakeNotificationObserver = nil
@@ -270,26 +257,17 @@ public final class AudioPlayerManager {
     
     private func setupNotifications() {
         #if os(iOS) || os(watchOS) || os(tvOS) || os(visionOS)
-        interruptionObserver = NotificationCenter.default.addObserver(
-            forName: AVAudioSession.interruptionNotification,
-            object: nil,
-            queue: .main
-        ) { [weak self] notification in
-            guard let userInfo = notification.userInfo,
-                  let typeValue = userInfo[AVAudioSessionInterruptionTypeKey] as? UInt else { return }
-            let optionsValue = userInfo[AVAudioSessionInterruptionOptionKey] as? UInt ?? 0
-            Task { @MainActor [weak self] in
-                self?.handleAudioInterruption(typeValue: typeValue, optionsValue: optionsValue)
-            }
-        }
-        
         didBecomeInactiveObserver = NotificationCenter.default.addObserver(
             forName: AVAudioSession.didBecomeInactiveNotification,
             object: nil,
             queue: .main
         ) { [weak self] _ in
             Task { @MainActor [weak self] in
-                self?.pause()
+                guard let self else { return }
+                self.wasPlayingBeforeInterruption = self.isPlaying
+                if self.isPlaying {
+                    self.pause()
+                }
             }
         }
         
@@ -301,9 +279,11 @@ public final class AudioPlayerManager {
             let context = notification.userInfo?[AVAudioSession.resumptionContextKey] as? AVAudioSession.ResumptionContext
             let shouldResume = context?.recommendation == .shouldResume
             Task { @MainActor [weak self] in
-                if shouldResume {
-                    self?.resume()
+                guard let self else { return }
+                if shouldResume && self.wasPlayingBeforeInterruption {
+                    self.resume()
                 }
+                self.wasPlayingBeforeInterruption = false
             }
         }
         
@@ -1045,28 +1025,6 @@ public final class AudioPlayerManager {
     // MARK: - System Notifications
     
     #if os(iOS) || os(watchOS) || os(tvOS) || os(visionOS)
-    private func handleAudioInterruption(typeValue: UInt, optionsValue: UInt) {
-        guard let type = AVAudioSession.InterruptionType(rawValue: typeValue) else {
-            return
-        }
-        
-        switch type {
-        case .began:
-            wasPlayingBeforeInterruption = isPlaying
-            if isPlaying {
-                pause()
-            }
-        case .ended:
-            let options = AVAudioSession.InterruptionOptions(rawValue: optionsValue)
-            if options.contains(.shouldResume) && wasPlayingBeforeInterruption {
-                resume()
-            }
-            wasPlayingBeforeInterruption = false
-        @unknown default:
-            break
-        }
-    }
-    
     private func handleRouteChange(reasonValue: UInt) {
         guard let reason = AVAudioSession.RouteChangeReason(rawValue: reasonValue) else {
             return

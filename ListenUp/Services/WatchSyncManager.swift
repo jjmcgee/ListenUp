@@ -109,7 +109,6 @@ public struct WatchRemotePlaybackState: Sendable {
     public let playbackRate: Float
     public let isCompleted: Bool
     public let lastUpdated: Date
-    public let artworkThumbnailData: Data?
     
     public init(
         bookID: UUID?,
@@ -121,8 +120,7 @@ public struct WatchRemotePlaybackState: Sendable {
         isPlaying: Bool,
         playbackRate: Float = 1.0,
         isCompleted: Bool = false,
-        lastUpdated: Date = Date(),
-        artworkThumbnailData: Data? = nil
+        lastUpdated: Date = Date()
     ) {
         self.bookID = bookID
         self.title = title
@@ -134,7 +132,6 @@ public struct WatchRemotePlaybackState: Sendable {
         self.playbackRate = playbackRate
         self.isCompleted = isCompleted
         self.lastUpdated = lastUpdated
-        self.artworkThumbnailData = artworkThumbnailData
     }
     
     public func toDictionary() -> [String: Any] {
@@ -151,7 +148,6 @@ public struct WatchRemotePlaybackState: Sendable {
         if let bookID = bookID { dict["bookID"] = bookID.uuidString }
         if let author = author { dict["author"] = author }
         if let chapterTitle = chapterTitle { dict["chapterTitle"] = chapterTitle }
-        if let artworkThumbnailData = artworkThumbnailData { dict["artworkThumbnailData"] = artworkThumbnailData }
         return dict
     }
     
@@ -170,7 +166,6 @@ public struct WatchRemotePlaybackState: Sendable {
         let bookID: UUID? = (dictionary["bookID"] as? String).flatMap(UUID.init(uuidString:))
         let author = dictionary["author"] as? String
         let chapterTitle = dictionary["chapterTitle"] as? String
-        let artworkData = dictionary["artworkThumbnailData"] as? Data
         
         return WatchRemotePlaybackState(
             bookID: bookID,
@@ -182,8 +177,7 @@ public struct WatchRemotePlaybackState: Sendable {
             isPlaying: isPlaying,
             playbackRate: Float(rateVal),
             isCompleted: isCompleted,
-            lastUpdated: Date(timeIntervalSince1970: timeInterval),
-            artworkThumbnailData: artworkData
+            lastUpdated: Date(timeIntervalSince1970: timeInterval)
         )
     }
 }
@@ -353,9 +347,6 @@ public final class WatchSyncManager: NSObject {
     /// Latest remote playback state received from the paired device (for watchOS player display).
     public private(set) var remotePlaybackState: WatchRemotePlaybackState?
     
-    /// Synced library catalog from the phone (available on Apple Watch).
-    public private(set) var librarySummaries: [WatchLibraryItemSummary] = []
-    
     /// Tracks progress for active outgoing file transfers to Apple Watch.
     public private(set) var activeTransfers: [WatchFileTransferStatus] = []
     
@@ -366,9 +357,6 @@ public final class WatchSyncManager: NSObject {
     
     /// Callback triggered when a remote control command is received from watchOS (handled by iOS audio player).
     public var onRemoteCommandReceived: ((WatchRemoteCommand) -> Void)?
-    
-    /// Callback triggered when remote playback state is updated.
-    public var onRemotePlaybackStateReceived: ((WatchRemotePlaybackState) -> Void)?
     
     /// Callback triggered when Apple Watch requests the full library catalog from iOS.
     public var onLibraryCatalogRequested: (() -> Void)?
@@ -442,7 +430,6 @@ public final class WatchSyncManager: NSObject {
     
     /// Broadcasts the current library catalog summaries to Apple Watch.
     public func broadcastLibraryCatalog(_ items: [WatchLibraryItemSummary]) {
-        self.librarySummaries = items
         #if canImport(WatchConnectivity)
         guard let session = session, session.activationState == .activated else { return }
         
@@ -671,7 +658,6 @@ extension WatchSyncManager: WCSessionDelegate {
         if msgType == "remotePlaybackState", let state = WatchRemotePlaybackState.from(dictionary: dict) {
             Task { @MainActor [weak self] in
                 self?.remotePlaybackState = state
-                self?.onRemotePlaybackStateReceived?(state)
             }
             return
         }
@@ -688,7 +674,6 @@ extension WatchSyncManager: WCSessionDelegate {
         if msgType == "libraryCatalog", let itemsRaw = dict["items"] as? [[String: Any]] {
             let summaries = itemsRaw.compactMap { WatchLibraryItemSummary.from(dictionary: $0) }
             Task { @MainActor [weak self] in
-                self?.librarySummaries = summaries
                 self?.onLibraryCatalogReceived?(summaries)
             }
             return

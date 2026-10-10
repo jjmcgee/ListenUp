@@ -30,18 +30,6 @@ public final class WidgetDataStore: @unchecked Sendable {
     
     // MARK: - Snapshot Read & Write
     
-    public func saveSnapshot(_ snapshot: WidgetDataSnapshot) {
-        queue.async { [weak self] in
-            guard let self = self else { return }
-            do {
-                let data = try JSONEncoder().encode(snapshot)
-                self.userDefaults.set(data, forKey: Self.snapshotKey)
-            } catch {
-                print("[WidgetDataStore] Failed to encode snapshot: \(error.localizedDescription)")
-            }
-        }
-    }
-    
     private var sharedFileURL: URL? {
         FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: Self.appGroupID)?
             .appendingPathComponent("widget_data_snapshot.json")

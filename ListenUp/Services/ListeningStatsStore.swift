@@ -57,16 +57,6 @@ public final class ListeningStatsStore {
         syncToWidgets()
     }
     
-    /// Stops the midnight timer and removes notification observers.
-    public func stopMonitoring() {
-        midnightTimer?.invalidate()
-        midnightTimer = nil
-        for observer in notificationObservers {
-            NotificationCenter.default.removeObserver(observer)
-        }
-        notificationObservers.removeAll()
-    }
-    
     // MARK: - Day Rollover Engine
     
     private func setupDayRolloverObservers() {

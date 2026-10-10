@@ -8,14 +8,6 @@ public enum AppTheme: String, CaseIterable, Identifiable, Sendable {
     
     public var id: String { rawValue }
     
-    public var title: String {
-        switch self {
-        case .system: return "Follow System"
-        case .light: return "Light (Day)"
-        case .dark: return "Dark"
-        }
-    }
-    
     public var iconName: String {
         switch self {
         case .system: return "circle.righthalf.filled"

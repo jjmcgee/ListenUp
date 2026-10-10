@@ -12,15 +12,6 @@ public enum ItemKind: String, Codable, Sendable, CaseIterable {
     /// A structural directory or container (e.g. "Pimsleur" -> "Level 1").
     case folder
     
-    /// User-facing descriptive title.
-    public var displayName: String {
-        switch self {
-        case .singleFile: return "Audiobook"
-        case .multiPart: return "Multi-Part Audiobook"
-        case .folder: return "Folder"
-        }
-    }
-    
     /// SF Symbol icon name.
     public var systemIconName: String {
         switch self {

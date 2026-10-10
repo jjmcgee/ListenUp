@@ -263,53 +263,6 @@ public struct LiquidGlassCard<Content: View>: View {
     }
 }
 
-// MARK: - Liquid Glass Pill Button
-
-/// Tactile interactive pill button encased in liquid glass.
-public struct LiquidGlassPillButton: View {
-    public let title: String?
-    public let systemImage: String?
-    public let tint: Color?
-    public let action: () -> Void
-    
-    public init(
-        title: String? = nil,
-        systemImage: String? = nil,
-        tint: Color? = nil,
-        action: @escaping () -> Void
-    ) {
-        self.title = title
-        self.systemImage = systemImage
-        self.tint = tint
-        self.action = action
-    }
-    
-    public var body: some View {
-        Button {
-            #if canImport(UIKit)
-            UIImpactFeedbackGenerator(style: .light).impactOccurred()
-            #endif
-            action()
-        } label: {
-            HStack(spacing: 6) {
-                if let systemImage = systemImage {
-                    Image(systemName: systemImage)
-                        .font(.system(size: 14, weight: .semibold))
-                }
-                if let title = title {
-                    Text(title)
-                        .font(.system(size: 13, weight: .semibold, design: .rounded))
-                }
-            }
-            .foregroundStyle(tint ?? Color.primary)
-            .padding(.horizontal, 14)
-            .padding(.vertical, 8)
-            .liquidGlassCapsule(tint: tint, isInteractive: true)
-        }
-        .buttonStyle(.plain)
-    }
-}
-
 // MARK: - Liquid Glass Ambient Mesh Background
 
 /// Ambient dynamic mesh gradient backdrop providing fluid refraction colors behind glass surfaces.
@@ -386,8 +339,25 @@ public struct LiquidGlassMeshBackground: View {
             .padding(.horizontal, 20)
             
             HStack(spacing: 12) {
-                LiquidGlassPillButton(title: "Capsule Pill", systemImage: "play.fill", tint: .blue) {}
-                LiquidGlassPillButton(title: "Bookmark", systemImage: "bookmark.fill") {}
+                Button {} label: {
+                    Label("Capsule Pill", systemImage: "play.fill")
+                        .font(.system(size: 13, weight: .semibold, design: .rounded))
+                        .foregroundStyle(Color.blue)
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 8)
+                        .liquidGlassCapsule(tint: .blue, isInteractive: true)
+                }
+                .buttonStyle(.plain)
+                
+                Button {} label: {
+                    Label("Bookmark", systemImage: "bookmark.fill")
+                        .font(.system(size: 13, weight: .semibold, design: .rounded))
+                        .foregroundStyle(Color.primary)
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 8)
+                        .liquidGlassCapsule(isInteractive: true)
+                }
+                .buttonStyle(.plain)
             }
         }
     }

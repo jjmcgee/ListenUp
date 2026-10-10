@@ -443,31 +443,6 @@ public struct LibraryView: View {
             deleteItem(item)
         }
     }
-    
-    // MARK: - Toolbar Item Label
-    
-    @ViewBuilder
-    private var addBookLabel: some View {
-        #if canImport(UIKit)
-        if UIImage(systemName: "book.badge.plus") != nil {
-            Label("Add Book", systemImage: "book.badge.plus")
-        } else {
-            Label {
-                Text("Add Book")
-            } icon: {
-                ZStack(alignment: .bottomTrailing) {
-                    Image(systemName: "book.closed")
-                        .font(.system(size: 19))
-                    Image(systemName: "plus.circle.fill")
-                        .font(.system(size: 10))
-                        .offset(x: 5, y: 4)
-                }
-            }
-        }
-        #else
-        Label("Add Book", systemImage: "book.badge.plus")
-        #endif
-    }
 }
 
 #Preview {

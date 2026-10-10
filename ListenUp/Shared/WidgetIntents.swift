@@ -84,25 +84,3 @@ public struct TogglePlaybackIntent: AppIntent, AudioPlaybackIntent {
         return .result()
     }
 }
-
-/// App Intent for playing a specific audiobook from the recent books list.
-public struct PlayBookIntent: AppIntent {
-    public static let title: LocalizedStringResource = "Play Audiobook"
-    public static let description = IntentDescription("Plays the selected audiobook in ListenUp.")
-    
-    public static let openAppWhenRun: Bool = true
-    
-    @Parameter(title: "Book ID")
-    public var bookID: String
-    
-    public init() {}
-    
-    public init(bookID: String) {
-        self.bookID = bookID
-    }
-    
-    public func perform() async throws -> some IntentResult {
-        // App will open and handle URL scheme or book launch
-        return .result()
-    }
-}

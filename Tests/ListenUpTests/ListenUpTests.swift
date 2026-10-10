@@ -4,6 +4,9 @@ import SwiftData
 #if canImport(UIKit)
 import UIKit
 #endif
+#if canImport(AVFoundation)
+import AVFoundation
+#endif
 @testable import ListenUp
 
 @Suite("ListenUp Core Architecture Tests")
@@ -960,6 +963,20 @@ struct ListenUpTests {
             }
         }
         #expect(cachedCount <= 100)
+    }
+    #endif
+    
+    #if os(iOS) || os(watchOS) || os(tvOS) || os(visionOS)
+    @Test("AudioPlayerManager handles didBecomeInactiveNotification by pausing")
+    @MainActor
+    func testAudioSessionDidBecomeInactivePauses() async throws {
+        let player = AudioPlayerManager()
+        defer { player.teardown() }
+        
+        NotificationCenter.default.post(name: AVAudioSession.didBecomeInactiveNotification, object: nil)
+        try await Task.sleep(nanoseconds: 50_000_000)
+        
+        #expect(player.isPlaying == false)
     }
     #endif
 }

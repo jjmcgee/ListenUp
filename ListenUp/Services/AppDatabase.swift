@@ -45,16 +45,4 @@ public final class AppDatabase: Sendable {
             }
         }
     }
-    
-    /// In-memory database instance for SwiftUI previews and unit testing.
-    public static func preview() -> AppDatabase {
-        let schema = Schema([LibraryItem.self])
-        let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
-        let container = try! ModelContainer(for: schema, configurations: [config])
-        return AppDatabase(container: container)
-    }
-    
-    private init(container: ModelContainer) {
-        self.container = container
-    }
 }

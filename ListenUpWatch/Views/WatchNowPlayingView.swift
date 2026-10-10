@@ -25,7 +25,6 @@ public struct WatchNowPlayingView: View {
     public var onNavigateToLibrary: (() -> Void)?
     
     @State private var playerMode: WatchPlayerMode = .phoneRemote
-    @State private var crownScrubOffset: Double = 0.0
     
     private let playbackRates: [Float] = [0.75, 1.0, 1.25, 1.5, 1.75, 2.0]
     

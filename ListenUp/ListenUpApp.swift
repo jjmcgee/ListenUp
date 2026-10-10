@@ -19,7 +19,6 @@ struct ListenUpApp: App {
     @MainActor
     init() {
         setupSyncWiring()
-        setupDarwinNotificationObserver()
     }
     
     var body: some Scene {
@@ -206,23 +205,6 @@ struct ListenUpApp: App {
                 )
             }
         }
-    }
-    
-    private func setupDarwinNotificationObserver() {
-        let center = CFNotificationCenterGetDarwinNotifyCenter()
-        let name = "scot.mcg.ListenUp.togglePlayback" as CFString
-        CFNotificationCenterAddObserver(
-            center,
-            nil,
-            { _, _, _, _, _ in
-                Task { @MainActor in
-                    AudioPlayerManager.shared.togglePlayPause()
-                }
-            },
-            name,
-            nil,
-            .deliverImmediately
-        )
     }
 }
 

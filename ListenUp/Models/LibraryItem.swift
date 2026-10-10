@@ -136,19 +136,9 @@ extension LibraryItem {
         return min(max(currentPosition / totalDuration, 0.0), 1.0)
     }
     
-    /// Formatted current position timestamp (e.g. "12:34" or "1:02:15").
-    public var formattedCurrentPosition: String {
-        TimeFormatting.formatTimestamp(currentPosition)
-    }
-    
     /// Formatted total duration (e.g. "1 hr 45 min" or "42 min").
     public var formattedTotalDuration: String {
         TimeFormatting.formatVerbalDuration(totalDuration)
-    }
-    
-    /// Formatted remaining duration timestamp (e.g. "-15:20").
-    public var formattedRemainingDuration: String {
-        TimeFormatting.formatRemainingTimestamp(current: currentPosition, total: totalDuration)
     }
     
     /// Whether this item has local audio files physically present on disk.

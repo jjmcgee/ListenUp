@@ -771,25 +771,12 @@ public struct ProfileView: View {
         }
     }
     
-    private var formattedTotalListeningHours: String {
-        let hours = totalListeningSeconds / 3600.0
-        if hours < 1.0 {
-            let minutes = Int(totalListeningSeconds / 60.0)
-            return "\(minutes)m"
-        }
-        return String(format: "%.1fh", hours)
-    }
-    
     private var completedBooksCount: Int {
         allItems.filter { $0.kind != .folder && $0.parent?.kind != .multiPart && $0.isCompleted }.count
     }
     
     private var inProgressBooksCount: Int {
         allItems.filter { $0.kind != .folder && $0.parent?.kind != .multiPart && !$0.isCompleted && $0.currentPosition > 0 && !$0.isDeletedFromLibrary }.count
-    }
-    
-    private var todayListenedMinutes: Int {
-        statsStore.dailyGoalProgress(goalMinutes: dailyGoalMinutes, from: allItems).listenedMinutes
     }
 }
 
