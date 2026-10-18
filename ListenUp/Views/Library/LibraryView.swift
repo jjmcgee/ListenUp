@@ -17,7 +17,8 @@ public struct LibraryView: View {
     /// Search query passed from the bottom floating navigation bar or internal state.
     public let searchText: String
     
-    @Query private var allItems: [LibraryItem]
+    @Query(filter: #Predicate<LibraryItem> { !$0.isDeletedFromLibrary }, sort: \LibraryItem.lastUpdated, order: .reverse)
+    private var allItems: [LibraryItem]
     
     @State private var filterSelection: FilterOption = .all
     @State private var isShowingFileImporter: Bool = false

@@ -6,19 +6,61 @@ import UIKit
 import AppKit
 #endif
 
+/// In-memory cache for decoded artwork images to eliminate repeated decoding during scrolling.
+public final class ArtworkImageCache: @unchecked Sendable {
+    public static let shared = ArtworkImageCache()
+    
+    private let cache = NSCache<NSString, PlatformImage>()
+    
+    public init() {
+        cache.countLimit = 150
+        cache.totalCostLimit = 50 * 1024 * 1024 // 50 MB
+    }
+    
+    public func image(for data: Data, id: UUID? = nil, fallbackKey: String = "") -> PlatformImage? {
+        let key: NSString
+        if let id = id {
+            key = "\(id.uuidString)_\(data.count)" as NSString
+        } else {
+            var hasher = Hasher()
+            hasher.combine(fallbackKey)
+            hasher.combine(data.count)
+            key = "\(hasher.finalize())" as NSString
+        }
+        
+        if let cached = cache.object(forKey: key) {
+            return cached
+        }
+        
+        guard let image = PlatformImage(data: data) else {
+            return nil
+        }
+        
+        cache.setObject(image, forKey: key, cost: data.count)
+        return image
+    }
+    
+    public func removeAll() {
+        cache.removeAllObjects()
+    }
+}
+
 /// Renders cover art from raw data or displays an aesthetic fallback banner.
 public struct ArtworkImageView: View {
+    public let itemID: UUID?
     public let artworkData: Data?
     public let title: String
     public let kind: ItemKind
     public var cornerRadius: CGFloat = 8.0
     
     public init(
+        itemID: UUID? = nil,
         artworkData: Data?,
         title: String,
         kind: ItemKind = .singleFile,
         cornerRadius: CGFloat = 8.0
     ) {
+        self.itemID = itemID
         self.artworkData = artworkData
         self.title = title
         self.kind = kind
@@ -27,7 +69,8 @@ public struct ArtworkImageView: View {
     
     public var body: some View {
         Group {
-            if let data = artworkData, let platformImage = PlatformImage(data: data) {
+            if let data = artworkData,
+               let platformImage = ArtworkImageCache.shared.image(for: data, id: itemID, fallbackKey: title) {
                 #if canImport(UIKit)
                 Image(uiImage: platformImage)
                     .resizable()

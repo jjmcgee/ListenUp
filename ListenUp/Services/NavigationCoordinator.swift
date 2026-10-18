@@ -35,6 +35,10 @@ public final class NavigationCoordinator {
         let host = url.host?.lowercased() ?? ""
         
         switch host {
+        case "library":
+            selectedTab = .library
+            isShowingFullPlayer = false
+            
         case "stats", "profile":
             selectedTab = .profile
             

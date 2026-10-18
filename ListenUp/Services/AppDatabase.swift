@@ -13,6 +13,9 @@ public final class AppDatabase: Sendable {
     /// The application's core SwiftData container.
     public let container: ModelContainer
     
+    /// Indicates whether CloudKit SwiftData synchronization is actively initialized.
+    public let isCloudKitActive: Bool
+    
     /// Convenient accessor for the main-thread context.
     @MainActor
     public var mainContext: ModelContext {
@@ -31,6 +34,7 @@ public final class AppDatabase: Sendable {
                 cloudKitDatabase: .automatic
             )
             self.container = try ModelContainer(for: schema, configurations: [configuration])
+            self.isCloudKitActive = true
         } catch {
             print("[AppDatabase] Warning: CloudKit ModelContainer initialization failed: \(error.localizedDescription). Falling back to local store.")
             do {
@@ -40,6 +44,7 @@ public final class AppDatabase: Sendable {
                     cloudKitDatabase: .none
                 )
                 self.container = try ModelContainer(for: schema, configurations: [fallbackConfig])
+                self.isCloudKitActive = false
             } catch {
                 fatalError("Failed to initialize SwiftData ModelContainer: \(error.localizedDescription)")
             }

@@ -10,7 +10,8 @@ import UIKit
 public struct ProfileView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.scenePhase) private var scenePhase
-    @Query private var allItems: [LibraryItem]
+    @Query(filter: #Predicate<LibraryItem> { $0.parent == nil }, sort: \LibraryItem.lastUpdated, order: .reverse)
+    private var allItems: [LibraryItem]
     
     @AppStorage("dailyGoalMinutes") private var dailyGoalMinutes: Int = 30
     
@@ -27,6 +28,8 @@ public struct ProfileView: View {
     @State private var isShowingGoalEditor: Bool = false
     @State private var isShowingBackupSheet: Bool = false
     @State private var statsStore = ListeningStatsStore.shared
+    @AppStorage("hasUsedSleepTimer") private var hasUsedSleepTimer: Bool = false
+    @AppStorage("sleepTimersCompletedCount") private var sleepTimersCompletedCount: Int = 0
     
     public init() {}
     
@@ -180,6 +183,21 @@ public struct ProfileView: View {
                 }
                 
                 Spacer()
+                
+                if statsStore.currentStreakDays > 0 {
+                    HStack(spacing: 4) {
+                        Image(systemName: "flame.fill")
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundStyle(Color.orange)
+                        Text("\(statsStore.currentStreakDays)d")
+                            .font(.system(size: 13, weight: .bold, design: .rounded))
+                            .foregroundStyle(Color.orange)
+                    }
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 5)
+                    .background(Color.orange.opacity(0.14))
+                    .clipShape(Capsule())
+                }
                 
                 // Mini Goal Percentage Chip
                 Button {
@@ -537,7 +555,7 @@ public struct ProfileView: View {
                     description: "Complete a listening session with a sleep timer.",
                     icon: "moon.stars.fill",
                     tint: .indigo,
-                    isUnlocked: true
+                    isUnlocked: hasUsedSleepTimer || sleepTimersCompletedCount > 0
                 )
             }
         }
@@ -656,6 +674,7 @@ public struct ProfileView: View {
             HStack(spacing: 12) {
                 // Cover Artwork
                 ArtworkImageView(
+                    itemID: item.id,
                     artworkData: item.artworkData,
                     title: item.title,
                     kind: item.kind,
@@ -819,7 +838,11 @@ public struct ProfileView: View {
     // MARK: - Computed Properties
     
     private var totalListeningSeconds: Double {
-        allItems.reduce(0.0) { sum, item in
+        let historical = statsStore.totalHistoricalSeconds
+        if historical > 0 {
+            return historical
+        }
+        return allItems.filter { $0.parent == nil && $0.kind != .folder }.reduce(0.0) { sum, item in
             sum + max(0.0, item.currentPosition)
         }
     }

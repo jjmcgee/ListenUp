@@ -38,6 +38,9 @@ public final class WatchLibraryStore {
     /// Maps book ID to locally downloaded physical audio file URLs.
     public private(set) var localAudioURLs: [UUID: [URL]] = [:]
     
+    /// Cached bytes consumed by downloaded audiobooks in the watch sandbox.
+    public private(set) var cachedStorageUsedBytes: Int64 = 0
+    
     public init() {
         refreshDownloadedFiles()
     }
@@ -95,9 +98,27 @@ public final class WatchLibraryStore {
             guard let documentsURL = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first else { return }
             
             let audiobooksDir = documentsURL.appendingPathComponent("Audiobooks", isDirectory: true)
-            guard fileManager.fileExists(atPath: audiobooksDir.path) else { return }
+            guard fileManager.fileExists(atPath: audiobooksDir.path) else {
+                await MainActor.run { [weak self] in
+                    self?.cachedStorageUsedBytes = 0
+                }
+                return
+            }
+            
+            var totalSize: Int64 = 0
+            if let enumerator = fileManager.enumerator(at: audiobooksDir, includingPropertiesForKeys: [.fileSizeKey]) {
+                while let fileURL = enumerator.nextObject() as? URL {
+                    if let resourceValues = try? fileURL.resourceValues(forKeys: [.fileSizeKey]),
+                       let size = resourceValues.fileSize {
+                        totalSize += Int64(size)
+                    }
+                }
+            }
             
             guard let bookDirectories = try? fileManager.contentsOfDirectory(at: audiobooksDir, includingPropertiesForKeys: nil) else {
+                await MainActor.run { [weak self] in
+                    self?.cachedStorageUsedBytes = totalSize
+                }
                 return
             }
             
@@ -135,6 +156,7 @@ public final class WatchLibraryStore {
             
             await MainActor.run { [weak self] in
                 guard let self = self else { return }
+                self.cachedStorageUsedBytes = totalSize
                 self.downloadedBookIDs = newDownloadedIDs
                 self.localAudioURLs = newLocalURLs
                 for bookID in newDownloadedIDs {
@@ -164,6 +186,7 @@ public final class WatchLibraryStore {
         if receivedParts >= totalParts {
             downloadProgress.removeValue(forKey: bookID)
             downloadedBookIDs.insert(bookID)
+            refreshDownloadedFiles()
         } else {
             downloadProgress[bookID] = Double(receivedParts) / Double(totalParts)
         }
@@ -188,33 +211,20 @@ public final class WatchLibraryStore {
         downloadedBookIDs.remove(bookID)
         downloadProgress.removeValue(forKey: bookID)
         localAudioURLs.removeValue(forKey: bookID)
+        
+        refreshDownloadedFiles()
     }
     
     // MARK: - Storage Information
     
-    /// Total bytes consumed by downloaded audiobooks in the watch sandbox.
+    /// Total bytes consumed by downloaded audiobooks in the watch sandbox (read from memory cache).
     public func totalStorageUsedBytes() -> Int64 {
-        let fileManager = FileManager.default
-        guard let documentsURL = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first else { return 0 }
-        
-        let audiobooksDir = documentsURL.appendingPathComponent("Audiobooks", isDirectory: true)
-        guard let enumerator = fileManager.enumerator(at: audiobooksDir, includingPropertiesForKeys: [.fileSizeKey]) else {
-            return 0
-        }
-        
-        var totalSize: Int64 = 0
-        for case let fileURL as URL in enumerator {
-            if let resourceValues = try? fileURL.resourceValues(forKeys: [.fileSizeKey]),
-               let size = resourceValues.fileSize {
-                totalSize += Int64(size)
-            }
-        }
-        return totalSize
+        return cachedStorageUsedBytes
     }
     
     /// Formatted string representing watch storage used (e.g. "124 MB").
     public func formattedStorageUsed() -> String {
-        let bytes = totalStorageUsedBytes()
+        let bytes = cachedStorageUsedBytes
         let formatter = ByteCountFormatter()
         formatter.allowedUnits = [.useMB, .useGB]
         formatter.countStyle = .file

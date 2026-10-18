@@ -154,6 +154,47 @@ public final class ListeningStatsStore {
         syncToWidgets()
     }
     
+    /// Current consecutive days streak of listening (walking backward from today or yesterday).
+    public var currentStreakDays: Int {
+        let calendar = Calendar.current
+        let now = Date()
+        
+        let todayKey = dayDateFormatter.string(from: now)
+        let hasListenedToday = (dailyRecords[todayKey] ?? 0.0) > 0.0
+        
+        var streak = 0
+        var checkDate: Date
+        
+        if hasListenedToday {
+            streak = 1
+            guard let yesterday = calendar.date(byAdding: .day, value: -1, to: now) else { return streak }
+            checkDate = yesterday
+        } else {
+            guard let yesterday = calendar.date(byAdding: .day, value: -1, to: now) else { return 0 }
+            let yesterdayKey = dayDateFormatter.string(from: yesterday)
+            if (dailyRecords[yesterdayKey] ?? 0.0) > 0.0 {
+                streak = 1
+                guard let dayBefore = calendar.date(byAdding: .day, value: -2, to: now) else { return streak }
+                checkDate = dayBefore
+            } else {
+                return 0
+            }
+        }
+        
+        while true {
+            let key = dayDateFormatter.string(from: checkDate)
+            if (dailyRecords[key] ?? 0.0) > 0.0 {
+                streak += 1
+                guard let prevDate = calendar.date(byAdding: .day, value: -1, to: checkDate) else { break }
+                checkDate = prevDate
+            } else {
+                break
+            }
+        }
+        
+        return streak
+    }
+    
     /// Pushes current listening statistics to WidgetDataStore for WidgetKit display.
     public func syncToWidgets(dailyGoalMinutes: Int = 30, items: [LibraryItem] = []) {
         let todaySecs = todayListeningSeconds(from: items)
@@ -163,7 +204,8 @@ public final class ListeningStatsStore {
             todaySeconds: todaySecs,
             dailyGoalMinutes: dailyGoalMinutes,
             monthly: monthly,
-            total: total
+            total: total,
+            streakDays: currentStreakDays
         )
     }
     
@@ -340,13 +382,19 @@ public final class ListeningStatsStore {
         }
     }
     
+    /// Total lifetime listening seconds recorded across all calendar days in dailyRecords.
+    public var totalHistoricalSeconds: Double {
+        dailyRecords.values.reduce(0.0, +)
+    }
+    
     /// Computes lifetime listening partitioned into Months (30 days), Days, Hours, and Minutes.
     public func totalBreakdown(from items: [LibraryItem] = []) -> TotalListeningBreakdown {
-        let itemsTotal = items.reduce(0.0) { sum, item in
+        let rootItems = items.filter { $0.parent == nil && $0.kind != .folder }
+        let itemsTotal = rootItems.reduce(0.0) { sum, item in
             sum + max(0.0, item.currentPosition)
         }
-        let recordsTotal = dailyRecords.values.reduce(0.0, +)
-        let totalSeconds = max(itemsTotal, recordsTotal)
+        let recordsTotal = totalHistoricalSeconds
+        let totalSeconds = recordsTotal > 0 ? recordsTotal : itemsTotal
         
         let totalSecs = Int(totalSeconds)
         let secondsInDay = 86400

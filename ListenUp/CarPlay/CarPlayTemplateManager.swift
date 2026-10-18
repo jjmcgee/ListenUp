@@ -24,6 +24,8 @@ public final class CarPlayTemplateManager: NSObject {
     
     private var playbackObserver: NSObjectProtocol?
     private var contextSaveObserver: NSObjectProtocol?
+    private var lastObservedBookID: UUID?
+    private var debounceTask: Task<Void, Never>?
     private let artworkThumbnailCache: NSCache<NSUUID, UIImage> = {
         let cache = NSCache<NSUUID, UIImage>()
         cache.countLimit = 100
@@ -47,12 +49,15 @@ public final class CarPlayTemplateManager: NSObject {
     public func start() {
         configureRootTemplates()
         setupNowPlayingTemplate()
+        lastObservedBookID = player.currentItem?.id
         registerObservers()
         refreshAllTemplates()
     }
     
     /// Stops the manager and unregisters all active observers.
     public func stop() {
+        debounceTask?.cancel()
+        debounceTask = nil
         if let observer = playbackObserver {
             NotificationCenter.default.removeObserver(observer)
             playbackObserver = nil
@@ -110,7 +115,14 @@ public final class CarPlayTemplateManager: NSObject {
             queue: .main
         ) { [weak self] _ in
             Task { @MainActor [weak self] in
-                self?.refreshAllTemplates()
+                guard let self = self else { return }
+                let currentID = self.player.currentItem?.id
+                if currentID == self.lastObservedBookID {
+                    self.updatePlaybackIndicators()
+                } else {
+                    self.lastObservedBookID = currentID
+                    self.scheduleDebouncedRefresh()
+                }
             }
         }
         
@@ -119,9 +131,51 @@ public final class CarPlayTemplateManager: NSObject {
             forName: ModelContext.didSave,
             object: nil,
             queue: .main
-        ) { [weak self] _ in
+        ) { [weak self] notification in
+            let userInfo = notification.userInfo
+            let inserted = (userInfo?[ModelContext.NotificationKey.insertedIdentifiers] as? Set<PersistentIdentifier>)
+                ?? (userInfo?[ModelContext.NotificationKey.insertedIdentifiers.rawValue] as? Set<PersistentIdentifier>)
+            let deleted = (userInfo?[ModelContext.NotificationKey.deletedIdentifiers] as? Set<PersistentIdentifier>)
+                ?? (userInfo?[ModelContext.NotificationKey.deletedIdentifiers.rawValue] as? Set<PersistentIdentifier>)
+            let hasStructuralChange = (inserted?.isEmpty == false) || (deleted?.isEmpty == false)
+            
             Task { @MainActor [weak self] in
-                self?.refreshAllTemplates()
+                guard let self = self else { return }
+                // Ignore didSave notifications triggered solely by 5-second position ticks during playback
+                if !hasStructuralChange && self.player.isPlaying {
+                    return
+                }
+                self.scheduleDebouncedRefresh()
+            }
+        }
+    }
+    
+    @MainActor
+    public func scheduleDebouncedRefresh(delay: TimeInterval = 0.5) {
+        debounceTask?.cancel()
+        debounceTask = Task { @MainActor [weak self] in
+            try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
+            guard !Task.isCancelled else { return }
+            self?.refreshAllTemplates()
+        }
+    }
+    
+    @MainActor
+    public func updatePlaybackIndicators() {
+        let currentID = player.currentItem?.id
+        let isPlaying = player.isPlaying
+        
+        let templates: [CPListTemplate] = [listenNowTemplate, libraryTemplate].compactMap { $0 }
+        for template in templates {
+            for section in template.sections {
+                for item in section.items {
+                    if let listItem = item as? CPListItem, let itemID = listItem.userInfo as? UUID {
+                        let shouldBePlaying = (itemID == currentID) && isPlaying
+                        if listItem.isPlaying != shouldBePlaying {
+                            listItem.isPlaying = shouldBePlaying
+                        }
+                    }
+                }
             }
         }
     }
@@ -304,6 +358,7 @@ public final class CarPlayTemplateManager: NSObject {
             detailText: detailString,
             image: thumbnailImage(for: item)
         )
+        listItem.userInfo = item.id
         
         // Native CarPlay equalizer icon and progress bar
         listItem.isPlaying = isCurrentTrack && player.isPlaying

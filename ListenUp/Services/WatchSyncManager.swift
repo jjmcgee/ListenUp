@@ -586,7 +586,7 @@ public final class WatchSyncManager: NSObject {
                 "totalParts": tracks.count,
                 "title": track.title,
                 "totalDuration": track.totalDuration,
-                "fileName": url.lastPathComponent
+                "fileName": String(format: "%04d_%@", index, url.lastPathComponent)
             ]
             
             let transfer = session.transferFile(url, metadata: metadata)
@@ -765,7 +765,18 @@ extension WatchSyncManager: WCSessionDelegate {
         
         try? fileManager.createDirectory(at: bookFolder, withIntermediateDirectories: true)
         
-        let fileName = metadata.fileName ?? temporaryURL.lastPathComponent
+        let rawFileName = metadata.fileName ?? temporaryURL.lastPathComponent
+        let fileName: String
+        if let partIndex = metadata.partIndex {
+            let prefix = String(format: "%04d_", partIndex)
+            if !rawFileName.hasPrefix(prefix) {
+                fileName = prefix + rawFileName
+            } else {
+                fileName = rawFileName
+            }
+        } else {
+            fileName = rawFileName
+        }
         let destinationURL = bookFolder.appendingPathComponent(fileName)
         
         try? fileManager.removeItem(at: destinationURL)

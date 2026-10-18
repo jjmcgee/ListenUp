@@ -46,39 +46,39 @@ High-priority bugs that cause broken user flows, lost listening stats, silent fa
 
 Optimizations to eliminate main-thread blocking, reduce memory footprint, and preserve WidgetKit's daily refresh budget.
 
-- [ ] **2.1 Throttle Widget Reloads and Avoid Re-Downsampling Artwork Every 5 Seconds**
+- [x] **2.1 Throttle Widget Reloads and Avoid Re-Downsampling Artwork Every 5 Seconds**
   - **Location:** `ListenUp/ListenUpApp.swift` (`onPositionUpdated`, line 48; `syncActivePlayerToWidget`, lines 173–196), `ListenUp/Shared/WidgetDataStore.swift` (`syncPlayback`, lines 179, 191)
   - **Issue:** During playback, `onPositionUpdated` fires every 5 seconds on `@MainActor` and calls `WidgetDataStore.shared.syncPlayback(...)` with `immediateReload: true` (the default). This synchronously runs `CGImageSource` thumbnail generation on the main thread and calls `WidgetCenter.shared.reloadAllTimelines()` every 5 seconds, bypassing `reloadWidgetsThrottled()` (60s throttle) and exhausting iOS's daily WidgetKit reload budget.
   - **Fix:**
     1. Pass `immediateReload: false` during periodic 5-second position ticks and only use `immediateReload: true` on play/pause state transitions or book changes.
     2. Cache the downsampled artwork `Data` in memory keyed by `bookID` so `downsampleImage` only runs when `currentItem` changes.
 
-- [ ] **2.2 Eliminate N+1 Full-Table Queries and Redundant Saves During Multi-Part Import**
+- [x] **2.2 Eliminate N+1 Full-Table Queries and Redundant Saves During Multi-Part Import**
   - **Location:** `ListenUp/Services/FileImporterService.swift` (`persist(dto:into:parent:)`, lines 375–428)
   - **Issue:** `persist(dto:into:parent:)` executes `try context.fetch(FetchDescriptor<LibraryItem>())` (fetching every item in the database into memory) and calls `try context.save()` on every recursive call. Importing a 100-track Pimsleur course performs 101 full-table fetches and 101 SQLite commits on `@MainActor`.
   - **Fix:** Perform duplicate detection only for the root item (using a targeted `#Predicate` on `title` and `parent == nil`), insert the entire parent/child hierarchy in memory, and perform a single `try context.save()` at the end of the import operation.
 
-- [ ] **2.3 Add In-Memory Thumbnail Cache (`NSCache`) for `ArtworkImageView`**
+- [x] **2.3 Add In-Memory Thumbnail Cache (`NSCache`) for `ArtworkImageView`**
   - **Location:** `ListenUp/Views/Components/ArtworkImageView.swift` (line 30)
   - **Issue:** `ArtworkImageView` calls `UIImage(data: data)` directly inside `body`. Scrolling through `LibraryView`, `SearchView`, or `ProfileView` repeatedly decodes full-resolution cover art on the main thread.
   - **Fix:** Introduce an `NSCache<NSString, UIImage>` (keyed by item `UUID` + target size bucket) or decode/downsample images asynchronously via `.task(id:)` into a `@State` `UIImage`.
 
-- [ ] **2.4 Optimize SwiftData `@Query` Predicates and Sorting**
+- [x] **2.4 Optimize SwiftData `@Query` Predicates and Sorting**
   - **Location:** `ListenUp/Views/LibraryView.swift` (lines 20–34), `ListenUp/Views/ProfileView.swift` (lines 13–17), `ListenUp/Views/SearchView.swift` (lines 11, 71–78)
   - **Issue:** Views use bare `@Query private var allItems: [LibraryItem]` without predicates or sort descriptors, loading every child track and soft-deleted tombstoned item into memory on every view evaluation, and `LibraryView` does not sort root items deterministically.
   - **Fix:** Add `#Predicate<LibraryItem>` filters (e.g., `$0.isDeleted == false && $0.parent == nil` for root library queries) and explicit `SortDescriptor`s directly on `@Query`.
 
-- [ ] **2.5 Move Synchronous Disk I/O Off the Main Thread**
+- [x] **2.5 Move Synchronous Disk I/O Off the Main Thread**
   - **Location:** `ListenUpWatch/Views/WatchDownloadsView.swift` (line 17), `ListenUp/Services/WatchLibraryStore.swift` (`totalStorageUsedBytes`, lines 196–213), `ListenUp/Models/LibraryItem.swift` (`resolvedURL`, lines 145–175)
   - **Issue:** `WatchDownloadsView` calls `libraryStore.totalStorageUsedBytes()` directly inside `body`, enumerating the filesystem on every render. Similarly, `LibraryItem.resolvedURL()` performs up to 3 `FileManager.default.fileExists` checks synchronously whenever `isFileOffloaded` is read by `LibraryRow`.
   - **Fix:** Compute and cache storage usage asynchronously in `WatchLibraryStore` when books are added/removed, and cache file existence state or update it only on import/offload/foreground events.
 
-- [ ] **2.6 Debounce CarPlay Template Rebuilds**
+- [x] **2.6 Debounce CarPlay Template Rebuilds**
   - **Location:** `ListenUp/CarPlay/CarPlayTemplateManager.swift` (lines 107–126)
   - **Issue:** `CarPlayTemplateManager` observes both `playbackStateDidChangeNotification` and `ModelContext.didSave`. Because playback progress saves `ModelContext` every 5 seconds, CarPlay re-fetches all `LibraryItem`s and rebuilds the `CPTabBarTemplate` hierarchy every 5 seconds while driving.
   - **Fix:** Debounce template updates, separate play/pause indicator updates on existing `CPListItem`s from full hierarchy rebuilds, and ignore `didSave` notifications triggered solely by 5-second `currentPosition` ticks.
 
-- [ ] **2.7 Reuse `DateFormatter` in `LibraryItem.formattedCompletedDate`**
+- [x] **2.7 Reuse `DateFormatter` in `LibraryItem.formattedCompletedDate`**
   - **Location:** `ListenUp/Models/LibraryItem.swift` (lines 150–155)
   - **Issue:** `formattedCompletedDate` allocates a new `DateFormatter()` on every property access inside `LibraryRow` and `ProfileView`.
   - **Fix:** Use a static cached `DateFormatter` or Swift's modern `completedDate.formatted(date: .abbreviated, time: .omitted)`.
@@ -89,49 +89,49 @@ Optimizations to eliminate main-thread blocking, reduce memory footprint, and pr
 
 Features that have UI controls or badges present in the codebase but are currently unhooked or hardcoded.
 
-- [ ] **3.1 Wire Up Default Sleep Timer Setting in `AudioPlayerManager`**
+- [x] **3.1 Wire Up Default Sleep Timer Setting in `AudioPlayerManager`**
   - **Location:** `ListenUp/Views/SettingsView.swift` (lines 15, 61), `ListenUp/Services/AudioPlayerManager.swift` (`loadAndPlay`, `resume`)
   - **Issue:** `SettingsView` persists `@AppStorage("defaultSleepTimerMinutes")`, and `ListenUpTests` tests the UserDefaults key, but `AudioPlayerManager` never reads `defaultSleepTimerMinutes` when starting playback.
   - **Fix:** In `AudioPlayerManager.loadAndPlay` (and optionally `resume` when no timer is active), check `UserDefaults.standard.integer(forKey: "defaultSleepTimerMinutes")` and automatically call `setSleepTimer(minutes:)` if `> 0` and `sleepTimerRemaining == nil`.
 
-- [ ] **3.2 Implement Real Streak Calculation for Widgets and Profile**
+- [x] **3.2 Implement Real Streak Calculation for Widgets and Profile**
   - **Location:** `ListenUp/Services/ListeningStatsStore.swift` (line 162), `ListenUp/Shared/WidgetDataStore.swift` (line 239)
   - **Issue:** `ListeningStatsStore` never computes consecutive listening days and calls `WidgetDataStore.shared.syncStats(...)` relying on the default parameter `streakDays: Int = 1`. The widget always displays a 1-day streak even with 0 listening history or a 30-day streak.
   - **Fix:** Add a `currentStreakDays` computation in `ListeningStatsStore` by walking backward from today/yesterday through `dailyHistory` where `seconds > 0`, and pass it to `WidgetDataStore.shared.syncStats`.
 
-- [ ] **3.3 Implement Smooth Audio Fade-Out and `Date`-Based Sleep Timer**
+- [x] **3.3 Implement Smooth Audio Fade-Out and `Date`-Based Sleep Timer**
   - **Location:** `ListenUp/Services/AudioPlayerManager.swift` (`setSleepTimer`, lines 785–798)
   - **Issue:** The sleep timer decrements `sleepTimerRemaining` by 1 every `Task.sleep(nanoseconds: 1_000_000_000)` (which drifts over long periods) and immediately calls `pause()` despite the comment `// Time expired: smooth fadeout and pause`.
   - **Fix:** Compute remaining time from a target `Date` deadline (`sleepTimerEndDate.timeIntervalSinceNow`), and ramp `queuePlayer.volume` down smoothly over the final 5 seconds before calling `pause()` and restoring `queuePlayer.volume = 1.0`.
 
-- [ ] **3.4 Track "Nighttime Listener" Milestone Dynamically**
+- [x] **3.4 Track "Nighttime Listener" Milestone Dynamically**
   - **Location:** `ListenUp/Views/ProfileView.swift` (line 540), `ListenUp/Services/AudioPlayerManager.swift`
   - **Issue:** The "Nighttime Listener" badge in `ProfileView` has `isUnlocked: true` hardcoded.
   - **Fix:** Persist a boolean or counter in `UserDefaults` (`hasUsedSleepTimer` / `sleepTimersCompletedCount`) when a sleep timer finishes or is activated, and bind the milestone badge to that value.
 
-- [ ] **3.5 Unify and Persist Playback Speed Across App Relaunches, Lock Screen, and Watch**
+- [x] **3.5 Unify and Persist Playback Speed Across App Relaunches, Lock Screen, and Watch**
   - **Location:** `ListenUp/Views/PlaybackSpeedMenu.swift` (line 7), `ListenUp/Services/AudioPlayerManager.swift` (lines 87, 486, 940), `ListenUpWatch/Views/WatchNowPlayingView.swift` (line 206)
   - **Issue:**
     1. `PlaybackSpeedMenu` includes `2.5x`, which is missing from `AudioPlayerManager.cyclePlaybackRate()`, `MPRemoteCommandCenter.changePlaybackRateCommand.supportedPlaybackRates`, and `WatchNowPlayingView`.
     2. `playbackRate` always resets to `1.0x` on app launch instead of remembering the user's preferred speed (or per-book speed).
   - **Fix:** Define a single shared `PlaybackSpeed.supportedRates` array (`[0.75, 1.0, 1.25, 1.5, 1.75, 2.0, 2.5]`), persist the selected rate in `UserDefaults` (or per `LibraryItem`), and restore it when configuring `AudioPlayerManager`.
 
-- [ ] **3.6 Handle `listenup://library` Deep Link in `NavigationCoordinator`**
+- [x] **3.6 Handle `listenup://library` Deep Link in `NavigationCoordinator`**
   - **Location:** `ListenUpWidgets/PlayerWidget.swift` (line 228), `ListenUp/Services/NavigationCoordinator.swift` (`handleURL`, lines 22–62)
   - **Issue:** `SmallPlayerWidgetView.emptyStateView` links to `listenup://library`, which hits `default: break` in `NavigationCoordinator.handleURL`.
   - **Fix:** Add `case "library": selectedTab = .library; isFullPlayerPresented = false` to `NavigationCoordinator.handleURL`.
 
-- [ ] **3.7 Prefix Watch Transferred Multi-Part Track Filenames with `partIndex`**
+- [x] **3.7 Prefix Watch Transferred Multi-Part Track Filenames with `partIndex`**
   - **Location:** `ListenUp/Services/WatchSyncManager.swift` (line 718), `ListenUp/Services/WatchLibraryStore.swift` (lines 115, 157)
   - **Issue:** Multi-part tracks transferred to Apple Watch are saved using `file.url.lastPathComponent` and later reconstructed by sorting filenames alphabetically (`<`). If source files have non-zero-padded names (`Track 2.mp3` vs `Track 10.mp3`) or identical filenames from different subfolders, playback order on Watch will be corrupted or files will overwrite each other.
   - **Fix:** Prefix destination filenames on Watch with a zero-padded `partIndex` (e.g., `String(format: "%04d_%@", partIndex, originalFilename)`).
 
-- [ ] **3.8 Configure CloudKit Entitlements & Dynamic Sync Status in `SettingsView`**
+- [x] **3.8 Configure CloudKit Entitlements & Dynamic Sync Status in `SettingsView`**
   - **Location:** `ListenUp/ListenUp.entitlements`, `ListenUp/Services/AppDatabase.swift` (line 31), `ListenUp/Views/SettingsView.swift` (line 121)
   - **Issue:** `ListenUp.entitlements` only contains the App Group (`group.com.SmartApps.ListenUp`) and lacks `com.apple.developer.icloud-services` / `com.apple.developer.icloud-container-identifiers`. As a result, `AppDatabase` falls back to a local-only `ModelContainer` when CloudKit initialization fails, while `SettingsView` hardcodes `"iCloud SwiftData Sync: Active"`.
   - **Fix:** Add the required iCloud/CloudKit container entitlements, expose a `var isCloudKitActive: Bool` flag on `AppDatabase`, and reflect the actual sync state in `SettingsView`.
 
-- [ ] **3.9 Fix Total Listening Time Fallback Calculation**
+- [x] **3.9 Fix Total Listening Time Fallback Calculation**
   - **Location:** `ListenUp/Views/ProfileView.swift` (`totalListeningSeconds`, lines 821–825), `ListenUp/Services/ListeningStatsStore.swift` (lines 345–349)
   - **Issue:** `ProfileView.totalListeningSeconds` sums `currentPosition` across `allItems` (which includes child tracks if any had non-zero positions) and inflates listening time if a user scrubs to the end of a book without actually listening.
   - **Fix:** Filter by root items (`$0.parent == nil`) when computing book-position fallbacks, and prefer `ListeningStatsStore.totalHistoricalSeconds` as the primary source of truth.

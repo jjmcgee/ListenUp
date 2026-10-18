@@ -21,8 +21,12 @@ public final class WatchAudioPlayerManager {
     public private(set) var isPlaying: Bool = false
     public private(set) var currentTime: Double = 0.0
     public private(set) var totalDuration: Double = 0.0
-    public var playbackRate: Float = 1.0 {
+    public var playbackRate: Float = {
+        let saved = UserDefaults.standard.float(forKey: PlaybackSpeed.userDefaultsKey)
+        return saved > 0 ? saved : PlaybackSpeed.defaultRate
+    }() {
         didSet {
+            UserDefaults.standard.set(playbackRate, forKey: PlaybackSpeed.userDefaultsKey)
             applyPlaybackRate()
         }
     }

@@ -121,6 +121,7 @@ public struct WatchSyncSheet: View {
             VStack(alignment: .leading, spacing: 14) {
                 HStack(spacing: 12) {
                     ArtworkImageView(
+                        itemID: item.id,
                         artworkData: item.artworkData,
                         title: item.title,
                         kind: item.kind,

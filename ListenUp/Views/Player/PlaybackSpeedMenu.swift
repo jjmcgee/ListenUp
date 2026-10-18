@@ -4,7 +4,7 @@ import SwiftUI
 public struct PlaybackSpeedMenu: View {
     var player: AudioPlayerManager
     
-    public static let availableRates: [Float] = [0.75, 1.0, 1.25, 1.5, 1.75, 2.0, 2.5]
+    public static let availableRates: [Float] = PlaybackSpeed.supportedRates
     
     public init(player: AudioPlayerManager) {
         self.player = player

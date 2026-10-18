@@ -56,6 +56,11 @@ public final class LibraryItem {
     @Relationship(deleteRule: .cascade, inverse: \LibraryItem.parent)
     public var children: [LibraryItem]? = []
     
+    // MARK: - In-Memory Transient Caches
+    
+    @Transient private var cachedResolvedURL: URL? = nil
+    @Transient private var cachedURLRelativePath: String? = nil
+    
     // MARK: - Initialization
     
     public init(
@@ -141,6 +146,13 @@ extension LibraryItem {
         TimeFormatting.formatVerbalDuration(totalDuration)
     }
     
+    private static let completedDateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .none
+        return formatter
+    }()
+    
     /// Whether this item has local audio files physically present on disk.
     public var hasLocalAudio: Bool {
         guard !isFileOffloaded, let url = resolvedURL() else { return false }
@@ -150,10 +162,7 @@ extension LibraryItem {
     /// Formatted completion date string (e.g. "Completed Sep 19, 2026").
     public var formattedCompletedDate: String? {
         guard let completedDate = completedDate else { return nil }
-        let formatter = DateFormatter()
-        formatter.dateStyle = .medium
-        formatter.timeStyle = .none
-        return "Completed " + formatter.string(from: completedDate)
+        return "Completed " + Self.completedDateFormatter.string(from: completedDate)
     }
     
     /// Resolves the absolute file URL within the application sandbox documents directory.
@@ -163,15 +172,24 @@ extension LibraryItem {
         guard let relativePath = relativePath, !relativePath.isEmpty else {
             return nil
         }
+        if let cached = cachedResolvedURL, cachedURLRelativePath == relativePath {
+            return cached
+        }
         let directURL = baseDirectory.appendingPathComponent(relativePath)
+        let resolved: URL
         if FileManager.default.fileExists(atPath: directURL.path) {
-            return directURL
+            resolved = directURL
+        } else {
+            let audiobooksURL = baseDirectory.appendingPathComponent("Audiobooks").appendingPathComponent(relativePath)
+            if FileManager.default.fileExists(atPath: audiobooksURL.path) {
+                resolved = audiobooksURL
+            } else {
+                resolved = directURL
+            }
         }
-        let audiobooksURL = baseDirectory.appendingPathComponent("Audiobooks").appendingPathComponent(relativePath)
-        if FileManager.default.fileExists(atPath: audiobooksURL.path) {
-            return audiobooksURL
-        }
-        return directURL
+        cachedResolvedURL = resolved
+        cachedURLRelativePath = relativePath
+        return resolved
     }
     
     /// Recalculates `totalDuration` for `.multiPart` and `.folder` items based on child tracks.

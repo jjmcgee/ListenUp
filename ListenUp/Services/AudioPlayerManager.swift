@@ -84,8 +84,12 @@ public final class AudioPlayerManager {
     public private(set) var totalDuration: Double = 0.0
     
     /// Active playback speed multiplier.
-    public var playbackRate: Float = 1.0 {
+    public var playbackRate: Float = {
+        let saved = UserDefaults.standard.float(forKey: PlaybackSpeed.userDefaultsKey)
+        return saved > 0 ? saved : PlaybackSpeed.defaultRate
+    }() {
         didSet {
+            UserDefaults.standard.set(playbackRate, forKey: PlaybackSpeed.userDefaultsKey)
             applyPlaybackRate()
         }
     }
@@ -98,6 +102,9 @@ public final class AudioPlayerManager {
     
     /// Countdown seconds remaining on the active sleep timer.
     public private(set) var sleepTimerRemaining: TimeInterval? = nil
+    
+    /// Target completion deadline for the active sleep timer.
+    public private(set) var sleepTimerEndDate: Date? = nil
     
     /// Extracted chapter marks for the currently loaded audiobook.
     public private(set) var chapters: [ChapterInfo] = []
@@ -317,9 +324,24 @@ public final class AudioPlayerManager {
     
     // MARK: - Playback Control API
     
+    /// Loads an item and initiates playback at its last saved position (alias for play).
+    public func loadAndPlay(_ item: LibraryItem) {
+        play(item: item)
+    }
+    
+    private func applyDefaultSleepTimerIfNeeded() {
+        guard sleepTimerRemaining == nil || activeSleepTimerOption == .off else { return }
+        let defaultMins = UserDefaults.standard.integer(forKey: "defaultSleepTimerMinutes")
+        if defaultMins > 0 {
+            setSleepTimer(minutes: defaultMins)
+        }
+    }
+    
     /// Loads an item (singleFile or multiPart) and initiates playback at its last saved position.
     public func play(item: LibraryItem) {
         guard !item.isFileOffloaded else { return }
+        
+        applyDefaultSleepTimerIfNeeded()
         
         if currentItem?.id == item.id && queuePlayer != nil {
             resume()
@@ -356,6 +378,8 @@ public final class AudioPlayerManager {
     /// Resumes playback.
     public func resume() {
         guard let player = queuePlayer else { return }
+        
+        applyDefaultSleepTimerIfNeeded()
         
         #if os(iOS) || os(watchOS) || os(tvOS) || os(visionOS)
         do {
@@ -482,14 +506,14 @@ public final class AudioPlayerManager {
         playbackRate = rate
     }
     
-    /// Cycles through standard audiobook playback speeds (1.0x -> 1.25x -> 1.5x -> 1.75x -> 2.0x -> 0.75x -> 1.0x).
+    /// Cycles through standard audiobook playback speeds (1.0x -> 1.25x -> 1.5x -> 1.75x -> 2.0x -> 2.5x -> 0.75x -> 1.0x).
     public func cyclePlaybackRate() {
-        let rates: [Float] = [0.75, 1.0, 1.25, 1.5, 1.75, 2.0]
+        let rates = PlaybackSpeed.supportedRates
         if let currentIndex = rates.firstIndex(where: { abs($0 - playbackRate) < 0.01 }) {
             let nextIndex = (currentIndex + 1) % rates.count
             setPlaybackRate(rates[nextIndex])
         } else {
-            setPlaybackRate(1.0)
+            setPlaybackRate(PlaybackSpeed.defaultRate)
         }
     }
     
@@ -659,9 +683,17 @@ public final class AudioPlayerManager {
         
         // Handle end-of-chapter sleep timer for embedded chapters
         if activeSleepTimerOption == .endOfChapter, let chapter = currentChapter {
+            let remaining = chapter.endTime - currentTime
+            if remaining <= 5.0 && remaining > 0 {
+                player.volume = Float(max(0.0, remaining / 5.0))
+            }
             if currentTime >= chapter.endTime - 0.5 {
+                player.volume = 0.0
                 pause()
+                player.volume = 1.0
                 setSleepTimer(.off)
+                let completed = UserDefaults.standard.integer(forKey: "sleepTimersCompletedCount")
+                UserDefaults.standard.set(completed + 1, forKey: "sleepTimersCompletedCount")
                 if isShakeToExtendSleepTimerEnabled {
                     startShakeToExtendDetection(duration: 60.0)
                 }
@@ -716,8 +748,15 @@ public final class AudioPlayerManager {
         guard let item = currentItem else { return }
         
         if activeSleepTimerOption == .endOfChapter {
+            queuePlayer?.volume = 0.0
             pause()
+            queuePlayer?.volume = 1.0
             setSleepTimer(.off)
+            let completed = UserDefaults.standard.integer(forKey: "sleepTimersCompletedCount")
+            UserDefaults.standard.set(completed + 1, forKey: "sleepTimersCompletedCount")
+            if isShakeToExtendSleepTimerEnabled {
+                startShakeToExtendDetection(duration: 60.0)
+            }
             return
         }
         
@@ -779,35 +818,74 @@ public final class AudioPlayerManager {
     
     // MARK: - Sleep Timer Engine
     
+    /// Sets a sleep timer countdown for a specified number of minutes (0 to turn off).
+    public func setSleepTimer(minutes: Int) {
+        if minutes <= 0 {
+            setSleepTimer(.off)
+        } else {
+            setSleepTimer(.minutes(minutes))
+        }
+    }
+    
     public func setSleepTimer(_ option: SleepTimerOption) {
         activeSleepTimerOption = option
         sleepTimerTask?.cancel()
         sleepTimerTask = nil
         
+        // Restore volume in case a previous fade-out was cancelled
+        if let player = queuePlayer, player.volume < 1.0 {
+            player.volume = 1.0
+        }
+        
         guard let seconds = option.durationInSeconds else {
             sleepTimerRemaining = nil
+            sleepTimerEndDate = nil
             return
         }
         
+        let deadline = Date().addingTimeInterval(seconds)
+        sleepTimerEndDate = deadline
         sleepTimerRemaining = seconds
         
+        // Milestone tracking: Sleep timer activated
+        UserDefaults.standard.set(true, forKey: "hasUsedSleepTimer")
+        
         sleepTimerTask = Task { @MainActor [weak self] in
-            var remaining = seconds
-            while remaining > 0 {
-                try? await Task.sleep(nanoseconds: 1_000_000_000)
+            while true {
+                try? await Task.sleep(nanoseconds: 200_000_000) // 200ms tick for smooth fade and precise countdown
                 if Task.isCancelled { return }
-                remaining -= 1
-                self?.sleepTimerRemaining = remaining
-            }
-            
-            // Time expired: smooth fadeout and pause
-            self?.pause()
-            self?.activeSleepTimerOption = .off
-            self?.sleepTimerRemaining = nil
-            
-            // If shake to extend is enabled, start listening for shake gestures
-            if self?.isShakeToExtendSleepTimerEnabled == true {
-                self?.startShakeToExtendDetection(duration: 60.0)
+                guard let self = self, let deadline = self.sleepTimerEndDate else { return }
+                
+                let remaining = deadline.timeIntervalSinceNow
+                if remaining <= 0 {
+                    // Time expired: smooth fadeout to 0 and pause
+                    self.queuePlayer?.volume = 0.0
+                    self.pause()
+                    self.queuePlayer?.volume = 1.0
+                    self.activeSleepTimerOption = .off
+                    self.sleepTimerRemaining = nil
+                    self.sleepTimerEndDate = nil
+                    
+                    // Increment completed sleep timers count
+                    let completed = UserDefaults.standard.integer(forKey: "sleepTimersCompletedCount")
+                    UserDefaults.standard.set(completed + 1, forKey: "sleepTimersCompletedCount")
+                    
+                    // If shake to extend is enabled, start listening for shake gestures
+                    if self.isShakeToExtendSleepTimerEnabled {
+                        self.startShakeToExtendDetection(duration: 60.0)
+                    }
+                    return
+                }
+                
+                self.sleepTimerRemaining = remaining
+                
+                // Smoothly ramp volume down over the final 5 seconds
+                if remaining <= 5.0 {
+                    let volumeFraction = Float(max(0.0, remaining / 5.0))
+                    self.queuePlayer?.volume = volumeFraction
+                } else if self.queuePlayer?.volume != 1.0 {
+                    self.queuePlayer?.volume = 1.0
+                }
             }
         }
     }
@@ -946,7 +1024,7 @@ public final class AudioPlayerManager {
         
         // Change Playback Rate (CarPlay & Lock Screen speed controls)
         commandCenter.changePlaybackRateCommand.isEnabled = true
-        commandCenter.changePlaybackRateCommand.supportedPlaybackRates = [0.75, 1.0, 1.25, 1.5, 1.75, 2.0]
+        commandCenter.changePlaybackRateCommand.supportedPlaybackRates = PlaybackSpeed.supportedRates as [NSNumber]
         commandCenter.changePlaybackRateCommand.addTarget { [weak self] event in
             guard let rateEvent = event as? MPChangePlaybackRateCommandEvent else { return .commandFailed }
             Task { @MainActor [weak self] in

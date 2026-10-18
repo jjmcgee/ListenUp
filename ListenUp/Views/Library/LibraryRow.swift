@@ -31,6 +31,7 @@ public struct LibraryRow: View {
             // Artwork Thumbnail with Playing Badge
             ZStack(alignment: .bottomTrailing) {
                 ArtworkImageView(
+                    itemID: item.id,
                     artworkData: item.artworkData,
                     title: item.title,
                     kind: item.kind,

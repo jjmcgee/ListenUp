@@ -21,3 +21,10 @@ public enum ItemKind: String, Codable, Sendable, CaseIterable {
         }
     }
 }
+
+/// Supported audio playback rates across iPhone, CarPlay, Lock Screen, and Apple Watch.
+public struct PlaybackSpeed: Sendable {
+    public static let supportedRates: [Float] = [0.75, 1.0, 1.25, 1.5, 1.75, 2.0, 2.5]
+    public static let defaultRate: Float = 1.0
+    public static let userDefaultsKey = "preferredPlaybackRate"
+}

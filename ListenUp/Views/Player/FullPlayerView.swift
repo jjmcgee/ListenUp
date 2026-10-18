@@ -112,6 +112,7 @@ public struct FullPlayerView: View {
                         let artworkHeight = max(0.0, geometry.size.height * 0.34)
                         let artworkSize = max(50.0, min(artworkWidth, artworkHeight))
                         ArtworkImageView(
+                            itemID: item.id,
                             artworkData: item.artworkData,
                             title: item.title,
                             kind: item.kind,

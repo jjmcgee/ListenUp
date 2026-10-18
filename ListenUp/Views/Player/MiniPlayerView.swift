@@ -49,6 +49,7 @@ public struct MiniPlayerView: View {
                 HStack(spacing: 12) {
                     // Artwork Thumbnail
                     ArtworkImageView(
+                        itemID: item.id,
                         artworkData: item.artworkData,
                         title: item.title,
                         kind: item.kind,

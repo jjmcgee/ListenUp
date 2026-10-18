@@ -26,14 +26,14 @@ public struct WatchNowPlayingView: View {
     
     @State private var playerMode: WatchPlayerMode = .phoneRemote
     
-    private let playbackRates: [Float] = [0.75, 1.0, 1.25, 1.5, 1.75, 2.0]
+    private let playbackRates: [Float] = PlaybackSpeed.supportedRates
     
     private func nextPlaybackRate(after current: Float) -> Float {
         if let idx = playbackRates.firstIndex(where: { abs($0 - current) < 0.05 }) {
             let nextIndex = (idx + 1) % playbackRates.count
             return playbackRates[nextIndex]
         }
-        return 1.0
+        return PlaybackSpeed.defaultRate
     }
     
     public init(onNavigateToLibrary: (() -> Void)? = nil) {

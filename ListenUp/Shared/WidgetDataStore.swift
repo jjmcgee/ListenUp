@@ -18,7 +18,8 @@ public final class WidgetDataStore: @unchecked Sendable {
     private let queue = DispatchQueue(label: "scot.mcg.ListenUp.WidgetDataStore", qos: .utility)
     
     private var lastReloadTimestamp: Date = .distantPast
-    private let reloadThrottleInterval: TimeInterval = 10.0 // Avoid exhausting WidgetKit reload budgets
+    private let reloadThrottleInterval: TimeInterval = 60.0 // Avoid exhausting WidgetKit reload budgets (60s throttle)
+    private let artworkThumbnailCache = NSCache<NSUUID, NSData>()
     
     public init(suiteName: String = appGroupID) {
         if let groupDefaults = UserDefaults(suiteName: suiteName) {
@@ -26,6 +27,7 @@ public final class WidgetDataStore: @unchecked Sendable {
         } else {
             self.userDefaults = .standard
         }
+        artworkThumbnailCache.countLimit = 50
     }
     
     // MARK: - Snapshot Read & Write
@@ -161,6 +163,19 @@ public final class WidgetDataStore: @unchecked Sendable {
         
         return destinationData as Data
     }
+    
+    /// Retrieves or computes downsampled thumbnail data cached in memory by book ID.
+    public func downsampledArtwork(for bookID: UUID, originalData: Data, maxDimension: CGFloat) -> Data? {
+        let key = bookID as NSUUID
+        if let cached = artworkThumbnailCache.object(forKey: key) {
+            return cached as Data
+        }
+        guard let downsampled = downsampleImage(data: originalData, maxDimension: maxDimension) else {
+            return nil
+        }
+        artworkThumbnailCache.setObject(downsampled as NSData, forKey: key)
+        return downsampled
+    }
 }
 
 #if !WIDGET_EXTENSION
@@ -173,10 +188,11 @@ extension WidgetDataStore {
         item: LibraryItem?,
         isPlaying: Bool,
         currentTime: Double,
-        totalDuration: Double
+        totalDuration: Double,
+        immediateReload: Bool = false
     ) {
         if let item = item {
-            let thumb = item.artworkData.flatMap { downsampleImage(data: $0, maxDimension: 160) }
+            let thumb = item.artworkData.flatMap { downsampledArtwork(for: item.id, originalData: $0, maxDimension: 160) }
             let snapshot = WidgetPlaybackSnapshot(
                 bookID: item.id,
                 title: item.title,
@@ -188,7 +204,7 @@ extension WidgetDataStore {
                 artworkData: thumb,
                 lastUpdated: Date()
             )
-            updatePlaybackSnapshot(snapshot, immediateReload: true)
+            updatePlaybackSnapshot(snapshot, immediateReload: immediateReload)
         } else {
             // Keep existing book details, only set isPlaying = false
             let current = loadSnapshot()
@@ -204,7 +220,7 @@ extension WidgetDataStore {
                     artworkData: existing.artworkData,
                     lastUpdated: Date()
                 )
-                updatePlaybackSnapshot(updated, immediateReload: true)
+                updatePlaybackSnapshot(updated, immediateReload: immediateReload)
             }
         }
     }
@@ -216,7 +232,7 @@ extension WidgetDataStore {
             .sorted { $0.lastUpdated > $1.lastUpdated }
             .prefix(4)
             .map { item in
-                let thumb = item.artworkData.flatMap { downsampleImage(data: $0, maxDimension: 120) }
+                let thumb = item.artworkData.flatMap { downsampledArtwork(for: item.id, originalData: $0, maxDimension: 120) }
                 return WidgetRecentBook(
                     id: item.id,
                     title: item.title,

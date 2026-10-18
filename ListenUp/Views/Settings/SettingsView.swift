@@ -118,7 +118,7 @@ public struct SettingsView: View {
                     HStack {
                         Label("iCloud SwiftData Sync", systemImage: "icloud.fill")
                         Spacer()
-                        Text("Active")
+                        Text(AppDatabase.shared.isCloudKitActive ? "Active" : "Local Only")
                             .foregroundStyle(Color.secondary)
                     }
                     

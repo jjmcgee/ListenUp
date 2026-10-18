@@ -8,7 +8,7 @@ public struct SearchView: View {
     
     public let searchText: String
     
-    @Query(sort: \LibraryItem.lastUpdated, order: .reverse)
+    @Query(filter: #Predicate<LibraryItem> { !$0.isDeletedFromLibrary && $0.parent == nil }, sort: \LibraryItem.lastUpdated, order: .reverse)
     private var allItems: [LibraryItem]
     
     public init(searchText: String = "") {
@@ -75,6 +75,7 @@ public struct SearchView: View {
             HStack(spacing: 14) {
                 // Artwork Thumbnail
                 ArtworkImageView(
+                    itemID: item.id,
                     artworkData: item.artworkData,
                     title: item.title,
                     kind: item.kind,

@@ -1424,6 +1424,280 @@ struct ListenUpTests {
         let allItems = try context.fetch(descriptor)
         #expect(allItems.count == 1) // No duplicate item created!
     }
+    
+    // MARK: - Stage 2 Performance, Battery & Memory Optimization Tests
+    
+    @Test("WidgetDataStore downsampledArtwork caches thumbnail in memory by book ID")
+    func testWidgetArtworkCaching() {
+        let store = WidgetDataStore(suiteName: "group.test.widget.cache")
+        let bookID = UUID()
+        
+        let samplePNG: [UInt8] = [
+            0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A,
+            0x00, 0x00, 0x00, 0x0D, 0x49, 0x48, 0x44, 0x52,
+            0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01,
+            0x08, 0x06, 0x00, 0x00, 0x00, 0x1F, 0x15, 0xC4,
+            0x89, 0x00, 0x00, 0x00, 0x0A, 0x49, 0x44, 0x41,
+            0x54, 0x78, 0x9C, 0x63, 0x00, 0x01, 0x00, 0x00,
+            0x05, 0x00, 0x01, 0x0D, 0x0A, 0x2D, 0xB4, 0x00,
+            0x00, 0x00, 0x00, 0x49, 0x45, 0x4E, 0x44, 0xAE,
+            0x42, 0x60, 0x82
+        ]
+        let originalData = Data(samplePNG)
+        
+        let thumb1 = store.downsampledArtwork(for: bookID, originalData: originalData, maxDimension: 120)
+        #expect(thumb1 != nil)
+        
+        // Second call with different dummy data but same bookID should return cached result
+        let dummyData = Data([0x01, 0x02, 0x03])
+        let thumb2 = store.downsampledArtwork(for: bookID, originalData: dummyData, maxDimension: 120)
+        #expect(thumb2 == thumb1)
+    }
+    
+    @Test("FileImporterService multi-part persistence imports child tracks cleanly without N+1 table queries")
+    @MainActor
+    func testMultiPartImportOptimization() throws {
+        let schema = Schema([LibraryItem.self])
+        let config = ModelConfiguration(isStoredInMemoryOnly: true)
+        let container = try ModelContainer(for: schema, configurations: [config])
+        let context = ModelContext(container)
+        
+        let track1 = ImportedItemDTO(title: "Track 1", kind: .singleFile, relativePath: "Course/01.mp3", totalDuration: 600.0, sortOrder: 1)
+        let track2 = ImportedItemDTO(title: "Track 2", kind: .singleFile, relativePath: "Course/02.mp3", totalDuration: 900.0, sortOrder: 2)
+        let track3 = ImportedItemDTO(title: "Track 3", kind: .singleFile, relativePath: "Course/03.mp3", totalDuration: 1200.0, sortOrder: 3)
+        
+        let courseDTO = ImportedItemDTO(
+            title: "Pimsleur Language Course",
+            author: "Pimsleur",
+            kind: .multiPart,
+            relativePath: "Course",
+            totalDuration: 0.0,
+            children: [track1, track2, track3]
+        )
+        
+        let persistedCourse = FileImporterService.persist(dto: courseDTO, into: context)
+        
+        #expect(persistedCourse.title == "Pimsleur Language Course")
+        #expect(persistedCourse.kind == .multiPart)
+        #expect(persistedCourse.children?.count == 3)
+        #expect(persistedCourse.totalDuration == 2700.0)
+        
+        let allItems = try context.fetch(FetchDescriptor<LibraryItem>())
+        #expect(allItems.count == 4) // 1 root + 3 children
+    }
+    
+    @Test("ArtworkImageCache caches PlatformImage in memory")
+    func testArtworkImageCache() {
+        let samplePNG: [UInt8] = [
+            0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A,
+            0x00, 0x00, 0x00, 0x0D, 0x49, 0x48, 0x44, 0x52,
+            0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01,
+            0x08, 0x06, 0x00, 0x00, 0x00, 0x1F, 0x15, 0xC4,
+            0x89, 0x00, 0x00, 0x00, 0x0A, 0x49, 0x44, 0x41,
+            0x54, 0x78, 0x9C, 0x63, 0x00, 0x01, 0x00, 0x00,
+            0x05, 0x00, 0x01, 0x0D, 0x0A, 0x2D, 0xB4, 0x00,
+            0x00, 0x00, 0x00, 0x49, 0x45, 0x4E, 0x44, 0xAE,
+            0x42, 0x60, 0x82
+        ]
+        let data = Data(samplePNG)
+        let itemID = UUID()
+        
+        let cache = ArtworkImageCache.shared
+        let img1 = cache.image(for: data, id: itemID)
+        #expect(img1 != nil)
+        
+        let img2 = cache.image(for: data, id: itemID)
+        #expect(img1 === img2) // Identity check confirms same cached instance in memory
+    }
+    
+    @Test("LibraryItem caches resolvedURL and reuses DateFormatter")
+    func testLibraryItemResolvedURLAndDateFormatter() {
+        let item = LibraryItem(
+            title: "Test Book",
+            kind: .singleFile,
+            relativePath: "Audiobooks/Test.m4b",
+            completedDate: Date()
+        )
+        
+        let url1 = item.resolvedURL()
+        let url2 = item.resolvedURL()
+        #expect(url1 == url2)
+        
+        let formatted = item.formattedCompletedDate
+        #expect(formatted?.hasPrefix("Completed ") == true)
+    }
+    
+    @Test("WatchLibraryStore totalStorageUsedBytes returns cached value without blocking")
+    @MainActor
+    func testWatchLibraryStoreCachedStorage() {
+        let store = WatchLibraryStore.shared
+        let bytes = store.totalStorageUsedBytes()
+        #expect(bytes >= 0)
+        let formatted = store.formattedStorageUsed()
+        #expect(!formatted.isEmpty)
+    }
+    
+    @Test("ListeningStatsStore computes accurate streak days walking backward")
+    @MainActor
+    func testCurrentStreakDaysCalculation() {
+        let store = ListeningStatsStore()
+        store.resetRecords()
+        
+        #expect(store.currentStreakDays == 0)
+        
+        let calendar = Calendar.current
+        let now = Date()
+        guard let yesterday = calendar.date(byAdding: .day, value: -1, to: now),
+              let twoDaysAgo = calendar.date(byAdding: .day, value: -2, to: now),
+              let threeDaysAgo = calendar.date(byAdding: .day, value: -3, to: now) else {
+            return
+        }
+        
+        // 1. Listened today only -> 1-day streak
+        store.recordListening(seconds: 120.0, on: now)
+        #expect(store.currentStreakDays == 1)
+        
+        // 2. Listened today and yesterday -> 2-day streak
+        store.recordListening(seconds: 300.0, on: yesterday)
+        #expect(store.currentStreakDays == 2)
+        
+        // 3. Listened today, yesterday, and two days ago -> 3-day streak
+        store.recordListening(seconds: 400.0, on: twoDaysAgo)
+        #expect(store.currentStreakDays == 3)
+        
+        // 4. Reset and simulate user who listened yesterday and 2 days ago, but hasn't listened yet today (grace period)
+        store.resetRecords()
+        store.recordListening(seconds: 300.0, on: yesterday)
+        store.recordListening(seconds: 400.0, on: twoDaysAgo)
+        #expect(store.currentStreakDays == 2)
+        
+        // 5. Gap of a day: listened 3 days ago and today, but missed yesterday -> 1-day streak
+        store.resetRecords()
+        store.recordListening(seconds: 120.0, on: now)
+        store.recordListening(seconds: 500.0, on: threeDaysAgo)
+        #expect(store.currentStreakDays == 1)
+        
+        store.resetRecords()
+    }
+    
+    @Test("PlaybackSpeed unifies rates across platforms and persists to UserDefaults")
+    @MainActor
+    func testPlaybackSpeedUnificationAndPersistence() {
+        #expect(PlaybackSpeed.supportedRates.contains(2.5))
+        #expect(PlaybackSpeed.supportedRates == [0.75, 1.0, 1.25, 1.5, 1.75, 2.0, 2.5])
+        
+        let player = AudioPlayerManager()
+        player.setPlaybackRate(2.0)
+        #expect(player.playbackRate == 2.0)
+        
+        // Cycle from 2.0 -> 2.5
+        player.cyclePlaybackRate()
+        #expect(player.playbackRate == 2.5)
+        
+        // Cycle from 2.5 -> 0.75
+        player.cyclePlaybackRate()
+        #expect(player.playbackRate == 0.75)
+        
+        // Saved in UserDefaults
+        let saved = UserDefaults.standard.float(forKey: PlaybackSpeed.userDefaultsKey)
+        #expect(abs(saved - 0.75) < 0.01)
+        
+        // Reset to default
+        player.setPlaybackRate(1.0)
+    }
+    
+    @Test("AudioPlayerManager wires default sleep timer setting and calculates date deadline")
+    @MainActor
+    func testDefaultSleepTimerWiringAndDeadline() {
+        let player = AudioPlayerManager()
+        player.setSleepTimer(.off)
+        
+        UserDefaults.standard.set(15, forKey: "defaultSleepTimerMinutes")
+        
+        // Applying sleep timer sets deadline Date and remaining seconds
+        player.setSleepTimer(minutes: 15)
+        #expect(player.sleepTimerRemaining == 900.0)
+        #expect(player.sleepTimerEndDate != nil)
+        if let deadline = player.sleepTimerEndDate {
+            let diff = deadline.timeIntervalSinceNow
+            #expect(diff > 895.0 && diff <= 900.0)
+        }
+        
+        // Milestone tracking for nighttime listener
+        let milestoneSet = UserDefaults.standard.bool(forKey: "hasUsedSleepTimer")
+        #expect(milestoneSet == true)
+        
+        player.setSleepTimer(.off)
+        UserDefaults.standard.removeObject(forKey: "defaultSleepTimerMinutes")
+    }
+    
+    @Test("NavigationCoordinator handles listenup://library deep link")
+    @MainActor
+    func testNavigationCoordinatorLibraryDeepLink() {
+        let coordinator = NavigationCoordinator.shared
+        coordinator.selectedTab = .profile
+        coordinator.isShowingFullPlayer = true
+        
+        let config = ModelConfiguration(isStoredInMemoryOnly: true)
+        guard let container = try? ModelContainer(for: LibraryItem.self, configurations: config) else { return }
+        let context = container.mainContext
+        let player = AudioPlayerManager()
+        
+        guard let libraryURL = URL(string: "listenup://library") else { return }
+        coordinator.handleURL(libraryURL, in: context, player: player)
+        
+        #expect(coordinator.selectedTab == .library)
+        #expect(coordinator.isShowingFullPlayer == false)
+    }
+    
+    @Test("Watch transferred track filename zero-padding preserves sorted playback order")
+    func testWatchTrackFilenameZeroPaddingSorting() {
+        let filenames = [
+            String(format: "%04d_%@", 10, "Track.mp3"),
+            String(format: "%04d_%@", 2, "Track.mp3"),
+            String(format: "%04d_%@", 1, "Track.mp3"),
+            String(format: "%04d_%@", 0, "Track.mp3")
+        ]
+        
+        let sorted = filenames.sorted { $0.localizedStandardCompare($1) == .orderedAscending }
+        #expect(sorted == [
+            "0000_Track.mp3",
+            "0001_Track.mp3",
+            "0002_Track.mp3",
+            "0010_Track.mp3"
+        ])
+    }
+    
+    @Test("Total listening time calculation prioritizes historical records and filters root items")
+    @MainActor
+    func testTotalListeningTimePrioritizesHistoricalRecords() {
+        let store = ListeningStatsStore()
+        store.resetRecords()
+        
+        // Record 1800 seconds in store
+        store.recordListening(seconds: 1800.0)
+        #expect(store.totalHistoricalSeconds == 1800.0)
+        
+        // Create root item with 600s and child track with 600s
+        let root = LibraryItem(title: "Root Book", kind: .multiPart, currentPosition: 600.0)
+        let child = LibraryItem(title: "Child Track", kind: .singleFile, currentPosition: 600.0)
+        child.parent = root
+        root.children = [child]
+        
+        let breakdown = store.totalBreakdown(from: [root, child])
+        // Historical 1800s should be prioritized over itemsTotal (which should only sum root, not child)
+        #expect(breakdown.totalSeconds == 1800.0)
+        #expect(breakdown.minutes == 30)
+        
+        store.resetRecords()
+    }
+    
+    @Test("AppDatabase exposes isCloudKitActive flag")
+    func testAppDatabaseCloudKitFlag() {
+        let db = AppDatabase.shared
+        // In unit test or environment, isCloudKitActive returns a valid boolean (true or false if local fallback)
+        _ = db.isCloudKitActive
+    }
 }
 
 

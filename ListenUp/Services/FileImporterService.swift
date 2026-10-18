@@ -382,35 +382,75 @@ extension FileImporterService {
     /// Converts an `ImportedItemDTO` tree into SwiftData `LibraryItem` entities and saves to the context.
     @MainActor
     public static func persist(dto: ImportedItemDTO, into context: ModelContext, parent: LibraryItem? = nil) -> LibraryItem {
+        let isRoot = (parent == nil)
+        
         // If an existing offloaded or historical item with matching ID or title exists,
         // reconnect the physical audio file while preserving past playback position and history!
-        let descriptor = FetchDescriptor<LibraryItem>()
-        if let allExisting = try? context.fetch(descriptor),
-           let existing = allExisting.first(where: {
-               ($0.id == dto.id || ($0.title.caseInsensitiveCompare(dto.title) == .orderedSame && ($0.author == dto.author || $0.author == nil || dto.author == nil))) && ($0.isFileOffloaded || $0.isDeletedFromLibrary)
-           }) {
-            existing.relativePath = dto.relativePath
-            if dto.totalDuration > 0 {
-                existing.totalDuration = dto.totalDuration
-            }
-            existing.isFileOffloaded = false
-            existing.isDeletedFromLibrary = false
-            if let artwork = dto.artworkData {
-                existing.artworkData = artwork
-            }
-            existing.lastUpdated = Date()
-            
-            if !dto.children.isEmpty {
-                for childDTO in dto.children {
-                    _ = persist(dto: childDTO, into: context, parent: existing)
+        if isRoot {
+            let targetID = dto.id
+            let targetTitle = dto.title
+            let descriptor = FetchDescriptor<LibraryItem>(
+                predicate: #Predicate<LibraryItem> { item in
+                    item.parent == nil && (item.id == targetID || item.title == targetTitle || item.isFileOffloaded || item.isDeletedFromLibrary)
                 }
+            )
+            if let candidates = try? context.fetch(descriptor),
+               let existing = candidates.first(where: {
+                   ($0.id == dto.id || ($0.title.caseInsensitiveCompare(dto.title) == .orderedSame && ($0.author == dto.author || $0.author == nil || dto.author == nil))) && ($0.isFileOffloaded || $0.isDeletedFromLibrary)
+               }) {
+                existing.relativePath = dto.relativePath
+                if dto.totalDuration > 0 {
+                    existing.totalDuration = dto.totalDuration
+                }
+                existing.isFileOffloaded = false
+                existing.isDeletedFromLibrary = false
+                if let artwork = dto.artworkData {
+                    existing.artworkData = artwork
+                }
+                existing.lastUpdated = Date()
+                
+                if !dto.children.isEmpty {
+                    var currentChildren = existing.children ?? []
+                    for childDTO in dto.children {
+                        if let matchingChild = currentChildren.first(where: {
+                            $0.id == childDTO.id || ($0.title.caseInsensitiveCompare(childDTO.title) == .orderedSame) || ($0.sortOrder == childDTO.sortOrder && $0.sortOrder != 0)
+                        }) {
+                            matchingChild.relativePath = childDTO.relativePath
+                            if childDTO.totalDuration > 0 {
+                                matchingChild.totalDuration = childDTO.totalDuration
+                            }
+                            matchingChild.isFileOffloaded = false
+                            matchingChild.isDeletedFromLibrary = false
+                            if let artwork = childDTO.artworkData {
+                                matchingChild.artworkData = artwork
+                            }
+                            matchingChild.lastUpdated = Date()
+                        } else {
+                            let newChild = buildHierarchy(dto: childDTO, into: context, parent: existing)
+                            currentChildren.append(newChild)
+                        }
+                    }
+                    existing.children = currentChildren
+                }
+                
+                existing.recalculateDurations()
+                try? context.save()
+                return existing
             }
-            
-            existing.recalculateDurations()
-            try? context.save()
-            return existing
         }
         
+        let item = buildHierarchy(dto: dto, into: context, parent: parent)
+        
+        if isRoot {
+            item.recalculateDurations()
+            try? context.save()
+        }
+        
+        return item
+    }
+    
+    @MainActor
+    private static func buildHierarchy(dto: ImportedItemDTO, into context: ModelContext, parent: LibraryItem?) -> LibraryItem {
         let item = LibraryItem(
             id: dto.id,
             title: dto.title,
@@ -428,16 +468,14 @@ extension FileImporterService {
         
         context.insert(item)
         
-        for childDTO in dto.children {
-            let childItem = persist(dto: childDTO, into: context, parent: item)
-            if item.children == nil {
-                item.children = []
+        if !dto.children.isEmpty {
+            var childrenList: [LibraryItem] = []
+            for childDTO in dto.children {
+                let childItem = buildHierarchy(dto: childDTO, into: context, parent: item)
+                childrenList.append(childItem)
             }
-            item.children?.append(childItem)
+            item.children = childrenList
         }
-        
-        item.recalculateDurations()
-        try? context.save()
         
         return item
     }

@@ -28,10 +28,10 @@
 		BB10648F0811493B8BE5CD2B /* ChapterInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10648F0811493B8BE5CD2B /* ChapterInfo.swift */; };
 		BB10F56C5A37417DB09BE110 /* LiquidGlass.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10F56C5A37417DB09BE110 /* LiquidGlass.swift */; };
 		BB11F56C5A37417DB09BE111 /* ListeningStatsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA11F56C5A37417DB09BE111 /* ListeningStatsStore.swift */; };
+		BB50DCAC40AF41AA8DA0A850 /* ChapterExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA50DCAC40AF41AA8DA0A850 /* ChapterExtractor.swift */; };
 		BB80F56C5A37417DB09BE180 /* ListeningHistoryArchive.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA80F56C5A37417DB09BE180 /* ListeningHistoryArchive.swift */; };
 		BB81F56C5A37417DB09BE181 /* ListeningHistoryBackupService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA81F56C5A37417DB09BE181 /* ListeningHistoryBackupService.swift */; };
 		BB82F56C5A37417DB09BE182 /* ListeningHistoryBackupSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA82F56C5A37417DB09BE182 /* ListeningHistoryBackupSheet.swift */; };
-		BB50DCAC40AF41AA8DA0A850 /* ChapterExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA50DCAC40AF41AA8DA0A850 /* ChapterExtractor.swift */; };
 		BBE3857B0F7F6446DA97DBDA /* ChaptersSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAE3857B0F7F6446DA97DBDA /* ChaptersSheet.swift */; };
 		C1E97DE5556A418AB82C9AEC /* SleepTimerSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E3857B0F7F6446DA97DBDA0 /* SleepTimerSheet.swift */; };
 		C26B4FFBCE1C4C6DACEF7713 /* LibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D85A4510F15047778D1131ED /* LibraryView.swift */; };
@@ -42,11 +42,12 @@
 		CP03F56C5A37417DB09BE103 /* CarPlayTemplateManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA03F56C5A37417DB09BE103 /* CarPlayTemplateManager.swift */; };
 		D038539DF3B4461DAD88B71E /* ItemKind.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1410648F0811493B8BE5CD2B /* ItemKind.swift */; };
 		D779B81BA0134A7987C823CC /* FullPlayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D14C52A963544626A0115DE6 /* FullPlayerView.swift */; };
-		PRIV01F56C5A37417DB09BE101 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = PRIV02F56C5A37417DB09BE102 /* PrivacyInfo.xcprivacy */; };
 		E01E00012DC24155864ECE01 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = E01E00022DC24155864ECE02 /* Assets.xcassets */; };
 		EB6139F0DE69004A37BE70910F /* ListenUpWatch.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = W6139F0DE69004A37BE70910F /* ListenUpWatch.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		F794CFBB2A4545BB8D03192A /* AudioPlayerManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1065A44E1A1141238F2D7C55 /* AudioPlayerManager.swift */; };
 		FC1EBEEC74AF4D199A29DD18 /* TimeFormatting.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01D000F5E9994231B019411A /* TimeFormatting.swift */; };
+		PRIV01F56C5A37417DB09BE101 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = PRIV02F56C5A37417DB09BE102 /* PrivacyInfo.xcprivacy */; };
+		TT03F56C5A37417DB09BE103 /* ListenUpTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TT01F56C5A37417DB09BE101 /* ListenUpTests.swift */; };
 		WB01D000F5E9994231B01941 /* TimeFormatting.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01D000F5E9994231B019411A /* TimeFormatting.swift */; };
 		WB01F56C5A37417DB09BE101 /* ListenUpWatchApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = WA01F56C5A37417DB09BE101 /* ListenUpWatchApp.swift */; };
 		WB02F56C5A37417DB09BE102 /* WatchContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = WA02F56C5A37417DB09BE102 /* WatchContentView.swift */; };
@@ -70,7 +71,6 @@
 		WGC05F56C5A37417DB09BE105 /* ListenUpWidgetsBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = WGA05F56C5A37417DB09BE105 /* ListenUpWidgetsBundle.swift */; };
 		WGC06F56C5A37417DB09BE106 /* PlayerWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = WGA06F56C5A37417DB09BE106 /* PlayerWidget.swift */; };
 		WGC07F56C5A37417DB09BE107 /* TimeListenedWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = WGA07F56C5A37417DB09BE107 /* TimeListenedWidget.swift */; };
-		TT03F56C5A37417DB09BE103 /* ListenUpTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TT01F56C5A37417DB09BE101 /* ListenUpTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -81,19 +81,19 @@
 			remoteGlobalIDString = WTA640A0AB6135472FA365FE;
 			remoteInfo = ListenUpWatch;
 		};
-		WGPRX1F56C5A37417DB09BE10 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = D0DAFF0D033744C688735580 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = WGA640A0AB6135472FA365FE;
-			remoteInfo = ListenUpWidgets;
-		};
 		TT07F56C5A37417DB09BE107 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = D0DAFF0D033744C688735580 /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = A640A0AB6135472FA365FE71;
 			remoteInfo = ListenUp;
+		};
+		WGPRX1F56C5A37417DB09BE10 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D0DAFF0D033744C688735580 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = WGA640A0AB6135472FA365FE;
+			remoteInfo = ListenUpWidgets;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -145,10 +145,10 @@
 		AA10648F0811493B8BE5CD2B /* ChapterInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ChapterInfo.swift; path = ListenUp/Models/ChapterInfo.swift; sourceTree = "<group>"; };
 		AA10F56C5A37417DB09BE110 /* LiquidGlass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = LiquidGlass.swift; path = ListenUp/Views/Components/LiquidGlass.swift; sourceTree = "<group>"; };
 		AA11F56C5A37417DB09BE111 /* ListeningStatsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ListeningStatsStore.swift; path = ListenUp/Services/ListeningStatsStore.swift; sourceTree = "<group>"; };
+		AA50DCAC40AF41AA8DA0A850 /* ChapterExtractor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ChapterExtractor.swift; path = ListenUp/Services/ChapterExtractor.swift; sourceTree = "<group>"; };
 		AA80F56C5A37417DB09BE180 /* ListeningHistoryArchive.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ListeningHistoryArchive.swift; path = ListenUp/Models/ListeningHistoryArchive.swift; sourceTree = "<group>"; };
 		AA81F56C5A37417DB09BE181 /* ListeningHistoryBackupService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ListeningHistoryBackupService.swift; path = ListenUp/Services/ListeningHistoryBackupService.swift; sourceTree = "<group>"; };
 		AA82F56C5A37417DB09BE182 /* ListeningHistoryBackupSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ListeningHistoryBackupSheet.swift; path = ListenUp/Views/Profile/ListeningHistoryBackupSheet.swift; sourceTree = "<group>"; };
-		AA50DCAC40AF41AA8DA0A850 /* ChapterExtractor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ChapterExtractor.swift; path = ListenUp/Services/ChapterExtractor.swift; sourceTree = "<group>"; };
 		AAE3857B0F7F6446DA97DBDA /* ChaptersSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ChaptersSheet.swift; path = ListenUp/Views/Player/ChaptersSheet.swift; sourceTree = "<group>"; };
 		B27B95033304496F9B146AD3 /* MiniPlayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MiniPlayerView.swift; path = ListenUp/Views/Player/MiniPlayerView.swift; sourceTree = "<group>"; };
 		CA01F56C5A37417DB09BE101 /* AppDatabase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDatabase.swift; path = ListenUp/Services/AppDatabase.swift; sourceTree = "<group>"; };
@@ -159,7 +159,12 @@
 		D85A4510F15047778D1131ED /* LibraryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = LibraryView.swift; path = ListenUp/Views/Library/LibraryView.swift; sourceTree = "<group>"; };
 		E01E00022DC24155864ECE02 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Assets.xcassets; path = ListenUp/Assets.xcassets; sourceTree = "<group>"; };
 		ECB0517D89B745B197CE3D03 /* PlaybackSpeedMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PlaybackSpeedMenu.swift; path = ListenUp/Views/Player/PlaybackSpeedMenu.swift; sourceTree = "<group>"; };
+		ENT01F56C5A37417DB09BE101 /* ListenUp.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = ListenUp.entitlements; path = ListenUp/ListenUp.entitlements; sourceTree = "<group>"; };
+		ENT02F56C5A37417DB09BE102 /* ListenUpWidgets.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = ListenUpWidgets.entitlements; path = ListenUpWidgets/ListenUpWidgets.entitlements; sourceTree = "<group>"; };
 		F6F70C93E9284ECA977D1441 /* CircularProgressView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CircularProgressView.swift; path = ListenUp/Views/Components/CircularProgressView.swift; sourceTree = "<group>"; };
+		PRIV02F56C5A37417DB09BE102 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; name = PrivacyInfo.xcprivacy; path = ListenUp/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		TT01F56C5A37417DB09BE101 /* ListenUpTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ListenUpTests.swift; path = Tests/ListenUpTests/ListenUpTests.swift; sourceTree = "<group>"; };
+		TT02F56C5A37417DB09BE102 /* ListenUpTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ListenUpTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		W6139F0DE69004A37BE70910F /* ListenUpWatch.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ListenUpWatch.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		WA01F56C5A37417DB09BE101 /* ListenUpWatchApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ListenUpWatchApp.swift; path = ListenUpWatch/ListenUpWatchApp.swift; sourceTree = "<group>"; };
 		WA02F56C5A37417DB09BE102 /* WatchContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = WatchContentView.swift; path = ListenUpWatch/Views/WatchContentView.swift; sourceTree = "<group>"; };
@@ -167,6 +172,7 @@
 		WA04F56C5A37417DB09BE104 /* WatchLibraryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = WatchLibraryView.swift; path = ListenUpWatch/Views/WatchLibraryView.swift; sourceTree = "<group>"; };
 		WA05F56C5A37417DB09BE105 /* WatchBookDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = WatchBookDetailView.swift; path = ListenUpWatch/Views/WatchBookDetailView.swift; sourceTree = "<group>"; };
 		WA06F56C5A37417DB09BE106 /* WatchDownloadsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = WatchDownloadsView.swift; path = ListenUpWatch/Views/WatchDownloadsView.swift; sourceTree = "<group>"; };
+		WG6139F0DE69004A37BE70910F /* ListenUpWidgets.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = ListenUpWidgets.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		WGA01F56C5A37417DB09BE101 /* WidgetModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = WidgetModels.swift; path = ListenUp/Shared/WidgetModels.swift; sourceTree = "<group>"; };
 		WGA02F56C5A37417DB09BE102 /* WidgetDataStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = WidgetDataStore.swift; path = ListenUp/Shared/WidgetDataStore.swift; sourceTree = "<group>"; };
 		WGA03F56C5A37417DB09BE103 /* WidgetIntents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = WidgetIntents.swift; path = ListenUp/Shared/WidgetIntents.swift; sourceTree = "<group>"; };
@@ -175,16 +181,17 @@
 		WGA06F56C5A37417DB09BE106 /* PlayerWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PlayerWidget.swift; path = ListenUpWidgets/PlayerWidget.swift; sourceTree = "<group>"; };
 		WGA07F56C5A37417DB09BE107 /* TimeListenedWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TimeListenedWidget.swift; path = ListenUpWidgets/TimeListenedWidget.swift; sourceTree = "<group>"; };
 		WGA08F56C5A37417DB09BE108 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = Info.plist; path = ListenUpWidgets/Info.plist; sourceTree = "<group>"; };
-		ENT01F56C5A37417DB09BE101 /* ListenUp.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = ListenUp.entitlements; path = ListenUp/ListenUp.entitlements; sourceTree = "<group>"; };
-		PRIV02F56C5A37417DB09BE102 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; name = PrivacyInfo.xcprivacy; path = ListenUp/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
-		ENT02F56C5A37417DB09BE102 /* ListenUpWidgets.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = ListenUpWidgets.entitlements; path = ListenUpWidgets/ListenUpWidgets.entitlements; sourceTree = "<group>"; };
-		WG6139F0DE69004A37BE70910F /* ListenUpWidgets.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = ListenUpWidgets.appex; sourceTree = BUILT_PRODUCTS_DIR; };
-		TT01F56C5A37417DB09BE101 /* ListenUpTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ListenUpTests.swift; path = Tests/ListenUpTests/ListenUpTests.swift; sourceTree = "<group>"; };
-		TT02F56C5A37417DB09BE102 /* ListenUpTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ListenUpTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		787B77043FB24B41B90958A4 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		TT05F56C5A37417DB09BE105 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -199,13 +206,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		WGFA787B77043FB24B41B909 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		TT05F56C5A37417DB09BE105 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -311,40 +311,6 @@
 			productReference = 6139F0DE69004A37BE70910F /* ListenUp.app */;
 			productType = "com.apple.product-type.application";
 		};
-		WTA640A0AB6135472FA365FE /* ListenUpWatch */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = WCA00E46D0AA2041D08D45FE /* Build configuration list for PBXNativeTarget "ListenUpWatch" */;
-			buildPhases = (
-				WSA4F57192156845579E6ACF /* Sources */,
-				WFA787B77043FB24B41B9095 /* Frameworks */,
-				WRA2AD2BF34B9F64047A63A5 /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-			);
-			name = ListenUpWatch;
-			productName = ListenUpWatch;
-			productReference = W6139F0DE69004A37BE70910F /* ListenUpWatch.app */;
-			productType = "com.apple.product-type.application";
-		};
-		WGA640A0AB6135472FA365FE /* ListenUpWidgets */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = WGCA00E46D0AA2041D08D4FE /* Build configuration list for PBXNativeTarget "ListenUpWidgets" */;
-			buildPhases = (
-				WGSA4F57192156845579E6AC /* Sources */,
-				WGFA787B77043FB24B41B909 /* Frameworks */,
-				WGRA2AD2BF34B9F64047A63A /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-			);
-			name = ListenUpWidgets;
-			productName = ListenUpWidgets;
-			productReference = WG6139F0DE69004A37BE70910F /* ListenUpWidgets.appex */;
-			productType = "com.apple.product-type.app-extension";
-		};
 		TT09F56C5A37417DB09BE109 /* ListenUpTests */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = TT12F56C5A37417DB09BE112 /* Build configuration list for PBXNativeTarget "ListenUpTests" */;
@@ -363,6 +329,40 @@
 			productReference = TT02F56C5A37417DB09BE102 /* ListenUpTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
+		WGA640A0AB6135472FA365FE /* ListenUpWidgets */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = WGCA00E46D0AA2041D08D4FE /* Build configuration list for PBXNativeTarget "ListenUpWidgets" */;
+			buildPhases = (
+				WGSA4F57192156845579E6AC /* Sources */,
+				WGFA787B77043FB24B41B909 /* Frameworks */,
+				WGRA2AD2BF34B9F64047A63A /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = ListenUpWidgets;
+			productName = ListenUpWidgets;
+			productReference = WG6139F0DE69004A37BE70910F /* ListenUpWidgets.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+		WTA640A0AB6135472FA365FE /* ListenUpWatch */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = WCA00E46D0AA2041D08D45FE /* Build configuration list for PBXNativeTarget "ListenUpWatch" */;
+			buildPhases = (
+				WSA4F57192156845579E6ACF /* Sources */,
+				WFA787B77043FB24B41B9095 /* Frameworks */,
+				WRA2AD2BF34B9F64047A63A5 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = ListenUpWatch;
+			productName = ListenUpWatch;
+			productReference = W6139F0DE69004A37BE70910F /* ListenUpWatch.app */;
+			productType = "com.apple.product-type.application";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -370,20 +370,20 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastUpgradeCheck = 2700;
+				LastUpgradeCheck = 2710;
 				TargetAttributes = {
 					A640A0AB6135472FA365FE71 = {
-						CreatedOnToolsVersion = 16.0;
-					};
-					WTA640A0AB6135472FA365FE = {
-						CreatedOnToolsVersion = 16.0;
-					};
-					WGA640A0AB6135472FA365FE = {
 						CreatedOnToolsVersion = 16.0;
 					};
 					TT09F56C5A37417DB09BE109 = {
 						CreatedOnToolsVersion = 16.0;
 						TestTargetID = A640A0AB6135472FA365FE71;
+					};
+					WGA640A0AB6135472FA365FE = {
+						CreatedOnToolsVersion = 16.0;
+					};
+					WTA640A0AB6135472FA365FE = {
+						CreatedOnToolsVersion = 16.0;
 					};
 				};
 			};
@@ -418,11 +418,10 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		WRA2AD2BF34B9F64047A63A5 /* Resources */ = {
+		TT06F56C5A37417DB09BE106 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				WBE01E00012DC24155864ECE /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -433,10 +432,11 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		TT06F56C5A37417DB09BE106 /* Resources */ = {
+		WRA2AD2BF34B9F64047A63A5 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				WBE01E00012DC24155864ECE /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -489,6 +489,27 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		TT04F56C5A37417DB09BE104 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				TT03F56C5A37417DB09BE103 /* ListenUpTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		WGSA4F57192156845579E6AC /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				WGC01F56C5A37417DB09BE101 /* WidgetModels.swift in Sources */,
+				WGC02F56C5A37417DB09BE102 /* WidgetDataStore.swift in Sources */,
+				WGC03F56C5A37417DB09BE103 /* WidgetIntents.swift in Sources */,
+				WGC05F56C5A37417DB09BE105 /* ListenUpWidgetsBundle.swift in Sources */,
+				WGC06F56C5A37417DB09BE106 /* PlayerWidget.swift in Sources */,
+				WGC07F56C5A37417DB09BE107 /* TimeListenedWidget.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		WSA4F57192156845579E6ACF /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -509,27 +530,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		WGSA4F57192156845579E6AC /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				WGC01F56C5A37417DB09BE101 /* WidgetModels.swift in Sources */,
-				WGC02F56C5A37417DB09BE102 /* WidgetDataStore.swift in Sources */,
-				WGC03F56C5A37417DB09BE103 /* WidgetIntents.swift in Sources */,
-				WGC05F56C5A37417DB09BE105 /* ListenUpWidgetsBundle.swift in Sources */,
-				WGC06F56C5A37417DB09BE106 /* PlayerWidget.swift in Sources */,
-				WGC07F56C5A37417DB09BE107 /* TimeListenedWidget.swift in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		TT04F56C5A37417DB09BE104 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				TT03F56C5A37417DB09BE103 /* ListenUpTests.swift in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -538,15 +538,15 @@
 			target = WTA640A0AB6135472FA365FE /* ListenUpWatch */;
 			targetProxy = PRX01F56C5A37417DB09BE100 /* PBXContainerItemProxy */;
 		};
-		WGDEP1F6C5A37417DB09BE100 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = WGA640A0AB6135472FA365FE /* ListenUpWidgets */;
-			targetProxy = WGPRX1F56C5A37417DB09BE10 /* PBXContainerItemProxy */;
-		};
 		TT08F56C5A37417DB09BE108 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = A640A0AB6135472FA365FE71 /* ListenUp */;
 			targetProxy = TT07F56C5A37417DB09BE107 /* PBXContainerItemProxy */;
+		};
+		WGDEP1F6C5A37417DB09BE100 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = WGA640A0AB6135472FA365FE /* ListenUpWidgets */;
+			targetProxy = WGPRX1F56C5A37417DB09BE10 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -625,6 +625,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
 				CLANG_WARN_BOOL_CONVERSION = YES;
@@ -678,6 +679,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
 				CLANG_WARN_BOOL_CONVERSION = YES;
@@ -721,6 +723,51 @@
 			};
 			name = Release;
 		};
+		TT10F56C5A37417DB09BE110 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = scot.mcg.ListenUpTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/ListenUp.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/ListenUp";
+			};
+			name = Debug;
+		};
+		TT11F56C5A37417DB09BE111 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = scot.mcg.ListenUpTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/ListenUp.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/ListenUp";
+			};
+			name = Release;
+		};
 		W1767C95A2DC24155864ECE6D /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -733,7 +780,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = ListenUp;
-				INFOPLIST_KEY_WKBackgroundModes = "audio";
+				INFOPLIST_KEY_WKBackgroundModes = audio;
 				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = scot.mcg.ListenUp;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -765,7 +812,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = ListenUp;
-				INFOPLIST_KEY_WKBackgroundModes = "audio";
+				INFOPLIST_KEY_WKBackgroundModes = audio;
 				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = scot.mcg.ListenUp;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -847,49 +894,6 @@
 			};
 			name = Debug;
 		};
-		TT10F56C5A37417DB09BE110 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				GENERATE_INFOPLIST_FILE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = scot.mcg.ListenUpTests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = iphoneos;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
-				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG";
-				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_STRICT_CONCURRENCY = complete;
-				SWIFT_VERSION = 6.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/ListenUp.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/ListenUp";
-			};
-			name = Debug;
-		};
-		TT11F56C5A37417DB09BE111 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				GENERATE_INFOPLIST_FILE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = scot.mcg.ListenUpTests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = iphoneos;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
-				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_STRICT_CONCURRENCY = complete;
-				SWIFT_VERSION = 6.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/ListenUp.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/ListenUp";
-			};
-			name = Release;
-		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -911,6 +915,15 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
+		TT12F56C5A37417DB09BE112 /* Build configuration list for PBXNativeTarget "ListenUpTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				TT10F56C5A37417DB09BE110 /* Debug */,
+				TT11F56C5A37417DB09BE111 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		WCA00E46D0AA2041D08D45FE /* Build configuration list for PBXNativeTarget "ListenUpWatch" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
@@ -925,15 +938,6 @@
 			buildConfigurations = (
 				WG84986A3FD51C4D4297D1B1 /* Debug */,
 				WG1767C95A2DC24155864ECE /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		TT12F56C5A37417DB09BE112 /* Build configuration list for PBXNativeTarget "ListenUpTests" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				TT10F56C5A37417DB09BE110 /* Debug */,
-				TT11F56C5A37417DB09BE111 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

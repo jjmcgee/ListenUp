@@ -67,6 +67,9 @@ public struct WatchDownloadsView: View {
             }
         }
         .navigationTitle("Storage")
+        .task {
+            libraryStore.refreshDownloadedFiles()
+        }
     }
 }
 

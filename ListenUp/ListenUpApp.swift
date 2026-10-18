@@ -49,7 +49,8 @@ struct ListenUpApp: App {
                     item: item,
                     isPlaying: p.isPlaying,
                     currentTime: p.currentTime,
-                    totalDuration: p.totalDuration
+                    totalDuration: p.totalDuration,
+                    immediateReload: false
                 )
             }
         }
@@ -66,7 +67,8 @@ struct ListenUpApp: App {
                     item: player.currentItem,
                     isPlaying: player.isPlaying,
                     currentTime: player.currentTime,
-                    totalDuration: player.totalDuration
+                    totalDuration: player.totalDuration,
+                    immediateReload: true
                 )
             }
         }
