@@ -128,8 +128,19 @@ Features that have UI controls or badges present in the codebase but are current
 
 - [x] **3.8 Configure CloudKit Entitlements & Dynamic Sync Status in `SettingsView`**
   - **Location:** `ListenUp/ListenUp.entitlements`, `ListenUp/Services/AppDatabase.swift` (line 31), `ListenUp/Views/SettingsView.swift` (line 121)
-  - **Issue:** `ListenUp.entitlements` only contains the App Group (`group.com.SmartApps.ListenUp`) and lacks `com.apple.developer.icloud-services` / `com.apple.developer.icloud-container-identifiers`. As a result, `AppDatabase` falls back to a local-only `ModelContainer` when CloudKit initialization fails, while `SettingsView` hardcodes `"iCloud SwiftData Sync: Active"`.
-  - **Fix:** Add the required iCloud/CloudKit container entitlements, expose a `var isCloudKitActive: Bool` flag on `AppDatabase`, and reflect the actual sync state in `SettingsView`.
+  - **Issue:** `ListenUp.entitlements` only contains the App Group (`group.scot.mcg.ListenUp`) and lacks `com.apple.developer.icloud-services` / `com.apple.developer.icloud-container-identifiers`. As a result, `AppDatabase` falls back to a local-only `ModelContainer` when CloudKit initialization fails, while `SettingsView` hardcodes `"iCloud SwiftData Sync: Active"`.
+  - **Fix:** Expose a `var isCloudKitActive: Bool` flag on `AppDatabase` and reflect the actual sync state dynamically in `SettingsView` ("Active" vs "Local Only").
+  - **Note for Future Implementation (Requires Paid Apple Developer Program Account):** Free Personal Development Teams do not support the iCloud capability and will fail Xcode provisioning if `com.apple.developer.icloud-container-identifiers` (`iCloud.scot.mcg.ListenUp`) or `com.apple.developer.icloud-services` (`CloudKit`) are present in `ListenUp.entitlements`. Once upgraded to a paid Apple Developer Program account, re-add these two keys to `ListenUp/ListenUp.entitlements` to enable production CloudKit sync:
+    ```xml
+    <key>com.apple.developer.icloud-container-identifiers</key>
+    <array>
+        <string>iCloud.scot.mcg.ListenUp</string>
+    </array>
+    <key>com.apple.developer.icloud-services</key>
+    <array>
+        <string>CloudKit</string>
+    </array>
+    ```
 
 - [x] **3.9 Fix Total Listening Time Fallback Calculation**
   - **Location:** `ListenUp/Views/ProfileView.swift` (`totalListeningSeconds`, lines 821–825), `ListenUp/Services/ListeningStatsStore.swift` (lines 345–349)
