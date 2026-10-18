@@ -16,6 +16,7 @@ public struct SettingsView: View {
     @AppStorage("shakeToExtendSleepTimer") private var shakeToExtendSleepTimer: Bool = false
     
     @State private var storageUsedString: String = "Calculating..."
+    @State private var isShowingBackupSheet: Bool = false
     
     public init() {}
     
@@ -86,6 +87,32 @@ public struct SettingsView: View {
                     Text("Imported audiobooks and course files are kept locally inside the app sandbox on your device. Audio is never uploaded to external servers.")
                 }
                 
+                // MARK: - History & Cloud Backup
+                Section {
+                    Button {
+                        isShowingBackupSheet = true
+                    } label: {
+                        HStack {
+                            Label("Backup Listening History", systemImage: "arrow.up.doc.fill")
+                                .foregroundStyle(Color.primary)
+                            Spacer()
+                            HStack(spacing: 4) {
+                                Text("Export to Cloud")
+                                    .font(.subheadline)
+                                    .foregroundStyle(Color.secondary)
+                                Image(systemName: "chevron.right")
+                                    .font(.system(size: 13, weight: .semibold))
+                                    .foregroundStyle(Color.secondary.opacity(0.5))
+                            }
+                        }
+                    }
+                    .buttonStyle(.plain)
+                } header: {
+                    Text("History & Cloud Backup")
+                } footer: {
+                    Text("Export an archive of all listening stats, daily streaks, and audiobook progress to save to an iCloud Drive folder or Cloud directory on device.")
+                }
+                
                 // MARK: - Sync & Connected Devices
                 Section {
                     HStack {
@@ -135,6 +162,9 @@ public struct SettingsView: View {
             }
             .task {
                 calculateStorageUsage()
+            }
+            .sheet(isPresented: $isShowingBackupSheet) {
+                ListeningHistoryBackupSheet()
             }
         }
     }

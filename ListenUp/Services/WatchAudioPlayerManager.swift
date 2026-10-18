@@ -42,6 +42,7 @@ public final class WatchAudioPlayerManager {
     private var resumptionRecommendationObserver: NSObjectProtocol?
     private var wasPlayingBeforeInterruption: Bool = false
     private var lastPersistedPosition: Double = 0.0
+    private var activePlayerItems: [AVPlayerItem] = []
     
     public var onPositionUpdated: ((_ bookID: UUID, _ position: Double, _ isCompleted: Bool) -> Void)?
     
@@ -191,6 +192,7 @@ public final class WatchAudioPlayerManager {
             first.seek(to: cmTime, toleranceBefore: .zero, toleranceAfter: .zero, completionHandler: nil)
         }
         
+        self.activePlayerItems = playerItems
         self.queuePlayer = player
         setupTimeObserver(for: player)
         setupItemEndObserver()
@@ -333,9 +335,15 @@ public final class WatchAudioPlayerManager {
             forName: AVPlayerItem.didPlayToEndTimeNotification,
             object: nil,
             queue: .main
-        ) { [weak self] _ in
+        ) { [weak self] notification in
+            guard let finishedItem = notification.object as? AVPlayerItem else { return }
+            let finishedID = ObjectIdentifier(finishedItem)
             Task { @MainActor [weak self] in
-                self?.handleTrackEnded()
+                guard let self = self,
+                      self.activePlayerItems.contains(where: { ObjectIdentifier($0) == finishedID }) else {
+                    return
+                }
+                self.handleTrackEnded()
             }
         }
     }
@@ -368,6 +376,7 @@ public final class WatchAudioPlayerManager {
             NotificationCenter.default.removeObserver(observer)
             itemDidPlayToEndObserver = nil
         }
+        activePlayerItems.removeAll()
         queuePlayer?.pause()
         queuePlayer?.removeAllItems()
         queuePlayer = nil

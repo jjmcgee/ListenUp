@@ -79,8 +79,12 @@ struct ListenUpApp: App {
             )
             
             if let items = try? context.fetch(descriptor), let item = items.first {
+                let delta = payload.listenedDelta ?? max(0.0, payload.position - item.currentPosition)
                 let didApply = WatchSyncManager.applySyncUpdate(payload: payload, to: item)
                 if didApply {
+                    if delta > 0 {
+                        ListeningStatsStore.shared.recordListening(seconds: delta, on: payload.lastUpdated)
+                    }
                     try? context.save()
                     // If this is the actively loaded item in the player, sync its timeline
                     if player?.currentItem?.id == item.id {
@@ -91,12 +95,24 @@ struct ListenUpApp: App {
         }
         
         // 3. Wire Remote Commands from Apple Watch (Control iPhone playback)
-        watchSync.onRemoteCommandReceived = { [weak player] command in
+        watchSync.onRemoteCommandReceived = { [weak player, weak navigationCoordinator] command in
             guard let player = player else { return }
             
             switch command.type {
             case .play:
-                player.resume()
+                if let bookID = command.bookID, player.currentItem?.id != bookID {
+                    let descriptor = FetchDescriptor<LibraryItem>(
+                        predicate: #Predicate { $0.id == bookID }
+                    )
+                    if let items = try? context.fetch(descriptor), let item = items.first {
+                        player.play(item: item)
+                        navigationCoordinator?.isShowingFullPlayer = true
+                    } else {
+                        player.resume()
+                    }
+                } else {
+                    player.resume()
+                }
             case .pause:
                 player.pause()
             case .togglePlayPause:

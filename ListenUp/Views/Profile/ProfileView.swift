@@ -25,6 +25,7 @@ public struct ProfileView: View {
     
     @State private var selectedStatsTab: ListeningStatsTab = .today
     @State private var isShowingGoalEditor: Bool = false
+    @State private var isShowingBackupSheet: Bool = false
     @State private var statsStore = ListeningStatsStore.shared
     
     public init() {}
@@ -44,6 +45,9 @@ public struct ProfileView: View {
                     
                     // MARK: - Listening History Section
                     listeningHistorySection
+                    
+                    // MARK: - Listening History Backup Card
+                    backupHistoryCard
                     
                     // MARK: - Library & Storage Summary
                     storageSummaryCard
@@ -68,6 +72,9 @@ public struct ProfileView: View {
             }
             .sheet(isPresented: $isShowingGoalEditor) {
                 DailyGoalEditorSheet(goalMinutes: $dailyGoalMinutes)
+            }
+            .sheet(isPresented: $isShowingBackupSheet) {
+                ListeningHistoryBackupSheet()
             }
         }
     }
@@ -605,11 +612,18 @@ public struct ProfileView: View {
                 
                 Spacer()
                 
-                if !historyItems.isEmpty {
-                    Text("\(historyItems.count) titles")
-                        .font(.caption)
-                        .foregroundStyle(Color.secondary)
+                Button {
+                    isShowingBackupSheet = true
+                } label: {
+                    Label("Backup & Export", systemImage: "arrow.up.doc.fill")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(Color.accentColor)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 4)
+                        .background(Color.accentColor.opacity(0.12))
+                        .clipShape(Capsule())
                 }
+                .buttonStyle(.plain)
             }
             .padding(.horizontal, 4)
             
@@ -728,6 +742,45 @@ public struct ProfileView: View {
         FileImporterService.deletePhysicalFiles(for: item)
         modelContext.delete(item)
         try? modelContext.save()
+    }
+    
+    // MARK: - Listening History Backup Card
+    
+    private var backupHistoryCard: some View {
+        Button {
+            isShowingBackupSheet = true
+        } label: {
+            LiquidGlassCard(cornerRadius: 18, tint: .accentColor) {
+                HStack(spacing: 14) {
+                    Image(systemName: "icloud.and.arrow.up.fill")
+                        .font(.system(size: 22))
+                        .foregroundStyle(Color.accentColor)
+                        .frame(width: 44, height: 44)
+                        .liquidGlassCircle(tint: .accentColor)
+                    
+                    VStack(alignment: .leading, spacing: 3) {
+                        HStack {
+                            Text("Backup & Export History")
+                                .font(.subheadline.weight(.semibold))
+                                .foregroundStyle(Color.primary)
+                            
+                            Spacer()
+                            
+                            Image(systemName: "chevron.right")
+                                .font(.system(size: 13, weight: .semibold))
+                                .foregroundStyle(Color.secondary)
+                        }
+                        
+                        Text("Export an archive of all listening history, streaks, and progress to save to an iCloud Drive folder or Cloud directory.")
+                            .font(.caption)
+                            .foregroundStyle(Color.secondary)
+                            .lineLimit(2)
+                    }
+                }
+                .padding(14)
+            }
+        }
+        .buttonStyle(.plain)
     }
     
     // MARK: - Storage Summary Card

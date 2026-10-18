@@ -263,6 +263,65 @@ struct ListenUpTests {
         #expect(localItem.lastUpdated == localDate)
     }
     
+    // MARK: - Stage 1 Tests
+    
+    @Test("WatchRemoteCommand serializes and deserializes bookID correctly")
+    func testWatchRemoteCommandWithBookID() {
+        let bookID = UUID()
+        let command = WatchRemoteCommand(type: .play, value: 1.5, bookID: bookID)
+        let dict = command.toDictionary()
+        
+        #expect(dict["msgType"] as? String == "remoteCommand")
+        #expect(dict["command"] as? String == "play")
+        #expect(dict["value"] as? Double == 1.5)
+        #expect(dict["bookID"] as? String == bookID.uuidString)
+        
+        let restored = WatchRemoteCommand.from(dictionary: dict)
+        #expect(restored != nil)
+        #expect(restored?.type == .play)
+        #expect(restored?.value == 1.5)
+        #expect(restored?.bookID == bookID)
+    }
+    
+    @Test("PlaybackSyncPayload supports listenedDelta in dictionary serialization")
+    func testPlaybackSyncPayloadWithListenedDelta() {
+        let bookID = UUID()
+        let now = Date()
+        let payload = PlaybackSyncPayload(
+            bookID: bookID,
+            position: 180.0,
+            isCompleted: false,
+            lastUpdated: now,
+            listenedDelta: 45.0
+        )
+        
+        let dict = payload.toDictionary()
+        #expect(dict["listenedDelta"] as? Double == 45.0)
+        
+        let restored = PlaybackSyncPayload.from(dictionary: dict)
+        #expect(restored != nil)
+        #expect(restored?.listenedDelta == 45.0)
+        #expect(restored?.position == 180.0)
+        #expect(restored?.bookID == bookID)
+    }
+    
+    @Test("Lazy Transferables generate correct filenames and encode payloads")
+    @MainActor
+    func testLazyTransferables() throws {
+        let items: [LibraryItem] = [
+            LibraryItem(title: "Transferable Test Book", totalDuration: 3600)
+        ]
+        let archive = ListeningHistoryBackupService.buildArchive(items: items)
+        
+        let jsonTransferable = JsonBackupArchiveTransferable(archive: archive)
+        #expect(jsonTransferable.filename.hasPrefix("ListenUp-ListeningHistory-"))
+        #expect(jsonTransferable.filename.hasSuffix(".json"))
+        
+        let zipTransferable = ZipBackupArchiveTransferable(archive: archive)
+        #expect(zipTransferable.filename.hasPrefix("ListenUp-ListeningHistory-"))
+        #expect(zipTransferable.filename.hasSuffix(".zip"))
+    }
+    
     // MARK: - Physical File Deletion Tests
     
     @Test("deletePhysicalFiles removes media files from local sandbox")
@@ -979,6 +1038,392 @@ struct ListenUpTests {
         #expect(player.isPlaying == false)
     }
     #endif
+    
+    // MARK: - Listening History Backup & Cloud Export Tests
+    
+    @Test("ListeningHistoryBackupService correctly builds archive from items and stats store")
+    @MainActor
+    func testBuildListeningHistoryArchive() {
+        let statsStore = ListeningStatsStore.shared
+        statsStore.resetRecords()
+        defer { statsStore.resetRecords() }
+        
+        statsStore.recordListening(seconds: 3600.0, on: Date())
+        
+        let book1 = LibraryItem(
+            title: "Project Hail Mary",
+            author: "Andy Weir",
+            kind: .singleFile,
+            totalDuration: 50000.0,
+            currentPosition: 25000.0,
+            isCompleted: false
+        )
+        
+        let completedDate = Date(timeIntervalSince1970: 1700000000)
+        let book2 = LibraryItem(
+            title: "The Martian",
+            author: "Andy Weir",
+            kind: .singleFile,
+            totalDuration: 36000.0,
+            currentPosition: 36000.0,
+            isCompleted: true,
+            completedDate: completedDate
+        )
+        
+        let multiPartBook = LibraryItem(
+            title: "Pimsleur French 1",
+            kind: .multiPart,
+            totalDuration: 3600.0,
+            currentPosition: 1800.0
+        )
+        let childTrack1 = LibraryItem(title: "Lesson 1", kind: .singleFile, totalDuration: 1800.0, sortOrder: 0, parent: multiPartBook)
+        let childTrack2 = LibraryItem(title: "Lesson 2", kind: .singleFile, totalDuration: 1800.0, sortOrder: 1, parent: multiPartBook)
+        multiPartBook.children = [childTrack1, childTrack2]
+        
+        let items = [book1, book2, multiPartBook, childTrack1, childTrack2]
+        
+        let archive = ListeningHistoryBackupService.buildArchive(items: items, dailyGoalMinutes: 45)
+        
+        #expect(archive.appName == "ListenUp")
+        #expect(archive.schemaVersion == 1)
+        #expect(archive.summary.dailyGoalMinutes == 45)
+        #expect(archive.dailyRecords.count >= 1)
+        #expect(archive.dailyActivity.first?.seconds == 3600.0)
+        #expect(archive.bookHistory.count == 3) // book1, book2, multiPartBook (child tracks not counted as separate roots)
+        #expect(archive.summary.completedTitlesCount == 1)
+        #expect(archive.summary.inProgressTitlesCount == 2)
+        
+        let martianRecord = archive.bookHistory.first(where: { $0.title == "The Martian" })
+        #expect(martianRecord != nil)
+        #expect(martianRecord?.isCompleted == true)
+        #expect(martianRecord?.completedDate == completedDate)
+        
+        let pimsleurRecord = archive.bookHistory.first(where: { $0.title == "Pimsleur French 1" })
+        #expect(pimsleurRecord?.childTracks?.count == 2)
+    }
+    
+    @Test("ListeningHistoryBackupService encodes and decodes JSON archive losslessly")
+    @MainActor
+    func testEncodeAndDecodeArchiveJSON() throws {
+        let original = ListeningHistoryArchive(
+            appName: "ListenUp",
+            appVersion: "1.0",
+            schemaVersion: 1,
+            exportDate: Date(),
+            summary: ListeningHistorySummary(
+                totalListeningSeconds: 7200.0,
+                totalHours: 2.0,
+                totalSummaryFormatted: "2h 0m",
+                months: 0,
+                days: 0,
+                hours: 2,
+                minutes: 0,
+                todayListeningSeconds: 1800.0,
+                todayHours: 0,
+                todayMinutes: 30,
+                dailyGoalMinutes: 30,
+                completedTitlesCount: 1,
+                inProgressTitlesCount: 1,
+                totalHistoryTitlesCount: 2,
+                recordedDaysCount: 3
+            ),
+            dailyRecords: ["2026-10-08": 1800.0, "2026-10-09": 3600.0, "2026-10-10": 1800.0],
+            dailyActivity: [
+                DailyActivityRecord(date: "2026-10-10", seconds: 1800.0, hours: 0.5, formattedDuration: "30 min"),
+                DailyActivityRecord(date: "2026-10-09", seconds: 3600.0, hours: 1.0, formattedDuration: "1 hr"),
+                DailyActivityRecord(date: "2026-10-08", seconds: 1800.0, hours: 0.5, formattedDuration: "30 min")
+            ],
+            bookHistory: [
+                BookHistoryRecord(
+                    id: UUID(),
+                    title: "Atomic Habits",
+                    author: "James Clear",
+                    kindRaw: "singleFile",
+                    relativePath: "Audiobooks/habits.mp3",
+                    totalDuration: 18000.0,
+                    formattedTotalDuration: "5 hr",
+                    currentPosition: 18000.0,
+                    formattedCurrentPosition: "5:00:00",
+                    progress: 1.0,
+                    progressPercentage: 100,
+                    isCompleted: true,
+                    completedDate: Date(),
+                    formattedCompletedDate: "Completed Oct 9, 2026",
+                    isFileOffloaded: false,
+                    isDeletedFromLibrary: false,
+                    lastUpdated: Date(),
+                    childTracksCount: 0
+                )
+            ]
+        )
+        
+        let jsonData = try ListeningHistoryBackupService.encodeJSON(archive: original)
+        #expect(!jsonData.isEmpty)
+        
+        let decoded = try ListeningHistoryBackupService.decodeJSON(from: jsonData)
+        #expect(decoded.appName == "ListenUp")
+        #expect(decoded.summary.totalHours == 2.0)
+        #expect(decoded.dailyRecords.count == 3)
+        #expect(decoded.bookHistory.count == 1)
+        #expect(decoded.bookHistory.first?.title == "Atomic Habits")
+    }
+    
+    @Test("ListeningHistoryBackupService creates human-readable summary report")
+    @MainActor
+    func testGenerateSummaryReport() {
+        let archive = ListeningHistoryArchive(
+            appName: "ListenUp",
+            appVersion: "1.0",
+            schemaVersion: 1,
+            exportDate: Date(),
+            summary: ListeningHistorySummary(
+                totalListeningSeconds: 14400.0,
+                totalHours: 4.0,
+                totalSummaryFormatted: "4h 0m",
+                months: 0,
+                days: 0,
+                hours: 4,
+                minutes: 0,
+                todayListeningSeconds: 3600.0,
+                todayHours: 1,
+                todayMinutes: 0,
+                dailyGoalMinutes: 30,
+                completedTitlesCount: 1,
+                inProgressTitlesCount: 1,
+                totalHistoryTitlesCount: 2,
+                recordedDaysCount: 1
+            ),
+            dailyRecords: ["2026-10-10": 3600.0],
+            dailyActivity: [DailyActivityRecord(date: "2026-10-10", seconds: 3600.0, hours: 1.0, formattedDuration: "1 hr")],
+            bookHistory: [
+                BookHistoryRecord(
+                    id: UUID(),
+                    title: "Dune",
+                    author: "Frank Herbert",
+                    kindRaw: "singleFile",
+                    relativePath: "dune.m4b",
+                    totalDuration: 72000.0,
+                    formattedTotalDuration: "20 hr",
+                    currentPosition: 72000.0,
+                    formattedCurrentPosition: "20:00:00",
+                    progress: 1.0,
+                    progressPercentage: 100,
+                    isCompleted: true,
+                    completedDate: Date(),
+                    formattedCompletedDate: "Completed Oct 10, 2026",
+                    isFileOffloaded: false,
+                    isDeletedFromLibrary: false,
+                    lastUpdated: Date(),
+                    childTracksCount: 0
+                )
+            ]
+        )
+        
+        let report = ListeningHistoryBackupService.generateSummaryReport(for: archive)
+        #expect(report.contains("LISTENUP LISTENING HISTORY BACKUP REPORT"))
+        #expect(report.contains("Dune"))
+        #expect(report.contains("Frank Herbert"))
+        #expect(report.contains("Completed"))
+    }
+    
+    @Test("ListeningHistoryBackupService packages and parses ZIP archive")
+    @MainActor
+    func testZipPackagingAndParsing() throws {
+        let archive = ListeningHistoryArchive(
+            appName: "ListenUp",
+            appVersion: "1.0",
+            schemaVersion: 1,
+            exportDate: Date(),
+            summary: ListeningHistorySummary(
+                totalListeningSeconds: 3600.0,
+                totalHours: 1.0,
+                totalSummaryFormatted: "1h 0m",
+                months: 0,
+                days: 0,
+                hours: 1,
+                minutes: 0,
+                todayListeningSeconds: 3600.0,
+                todayHours: 1,
+                todayMinutes: 0,
+                dailyGoalMinutes: 30,
+                completedTitlesCount: 1,
+                inProgressTitlesCount: 0,
+                totalHistoryTitlesCount: 1,
+                recordedDaysCount: 1
+            ),
+            dailyRecords: ["2026-10-10": 3600.0],
+            dailyActivity: [DailyActivityRecord(date: "2026-10-10", seconds: 3600.0, hours: 1.0, formattedDuration: "1 hr")],
+            bookHistory: []
+        )
+        
+        let zipData = try ListeningHistoryBackupService.createZipArchive(for: archive)
+        #expect(zipData.count > 0)
+        #expect(zipData[0] == 0x50 && zipData[1] == 0x4b) // PK zip signature
+        
+        let extractedFiles = ListeningHistoryBackupService.extractFilesFromZip(zipData: zipData)
+        #expect(extractedFiles.contains(where: { $0.key.hasSuffix("listening_history.json") }))
+        #expect(extractedFiles.contains(where: { $0.key.hasSuffix("listening_summary.txt") }))
+        
+        let parsed = try ListeningHistoryBackupService.parseArchive(from: zipData)
+        #expect(parsed.appName == "ListenUp")
+        #expect(parsed.summary.totalHours == 1.0)
+    }
+    
+    @Test("ListeningHistoryBackupService creates correct export payload for JSON and ZIP")
+    @MainActor
+    func testCreateExportPayload() throws {
+        let book = LibraryItem(title: "Test Book", kind: .singleFile, totalDuration: 1000.0)
+        
+        let jsonPayload = try ListeningHistoryBackupService.createExportPayload(
+            format: .json,
+            items: [book],
+            dailyGoalMinutes: 30
+        )
+        #expect(jsonPayload.contentType == .json)
+        #expect(jsonPayload.filename.hasSuffix(".json"))
+        #expect(!jsonPayload.data.isEmpty)
+        
+        let zipPayload = try ListeningHistoryBackupService.createExportPayload(
+            format: .zip,
+            items: [book],
+            dailyGoalMinutes: 30
+        )
+        #expect(zipPayload.contentType == .zip)
+        #expect(zipPayload.filename.hasSuffix(".zip"))
+        #expect(!zipPayload.data.isEmpty)
+    }
+    
+    @Test("ListeningHistoryBackupService restores listening history into SwiftData context")
+    @MainActor
+    func testRestoreListeningHistory() throws {
+        let schema = Schema([LibraryItem.self])
+        let config = ModelConfiguration(isStoredInMemoryOnly: true)
+        let container = try ModelContainer(for: schema, configurations: [config])
+        let context = ModelContext(container)
+        
+        let statsStore = ListeningStatsStore.shared
+        statsStore.resetRecords()
+        defer { statsStore.resetRecords() }
+        
+        let bookID = UUID()
+        let archive = ListeningHistoryArchive(
+            appName: "ListenUp",
+            appVersion: "1.0",
+            schemaVersion: 1,
+            exportDate: Date(),
+            summary: ListeningHistorySummary(
+                totalListeningSeconds: 10000.0,
+                totalHours: 2.77,
+                totalSummaryFormatted: "2h 46m",
+                months: 0,
+                days: 0,
+                hours: 2,
+                minutes: 46,
+                todayListeningSeconds: 0.0,
+                todayHours: 0,
+                todayMinutes: 0,
+                dailyGoalMinutes: 30,
+                completedTitlesCount: 1,
+                inProgressTitlesCount: 0,
+                totalHistoryTitlesCount: 1,
+                recordedDaysCount: 1
+            ),
+            dailyRecords: ["2026-09-15": 10000.0],
+            dailyActivity: [DailyActivityRecord(date: "2026-09-15", seconds: 10000.0, hours: 2.77, formattedDuration: "2 hr 46 min")],
+            bookHistory: [
+                BookHistoryRecord(
+                    id: bookID,
+                    title: "Restored Novel",
+                    author: "Arthur Conan Doyle",
+                    kindRaw: "singleFile",
+                    relativePath: "Audiobooks/novel.mp3",
+                    totalDuration: 10000.0,
+                    formattedTotalDuration: "2 hr 46 min",
+                    currentPosition: 10000.0,
+                    formattedCurrentPosition: "2:46:40",
+                    progress: 1.0,
+                    progressPercentage: 100,
+                    isCompleted: true,
+                    completedDate: Date(timeIntervalSince1970: 1690000000),
+                    formattedCompletedDate: "Completed Jul 22, 2023",
+                    isFileOffloaded: true,
+                    isDeletedFromLibrary: false,
+                    lastUpdated: Date(timeIntervalSince1970: 1690000000),
+                    childTracksCount: 0
+                )
+            ]
+        )
+        
+        let result = ListeningHistoryBackupService.restore(from: archive, into: context)
+        #expect(result.restoredDaysCount == 1)
+        #expect(result.newBooksCount == 1)
+        #expect(statsStore.allDailyRecords["2026-09-15"] == 10000.0)
+        
+        let descriptor = FetchDescriptor<LibraryItem>()
+        let items = try context.fetch(descriptor)
+        #expect(items.count == 1)
+        #expect(items.first?.title == "Restored Novel")
+        #expect(items.first?.isCompleted == true)
+        #expect(items.first?.isFileOffloaded == true) // Restored as offloaded item since physical file isn't present
+    }
+    
+    @Test("ListeningHistoryArchiveDocument initializes with data and content type")
+    func testListeningHistoryArchiveDocumentProperties() {
+        let testData = "{\"test\": true}".data(using: .utf8)!
+        let doc = ListeningHistoryArchiveDocument(data: testData, contentType: .json)
+        #expect(doc.data == testData)
+        #expect(doc.contentType == .json)
+        
+        let zipDoc = ListeningHistoryArchiveDocument(data: testData, contentType: .zip)
+        #expect(zipDoc.contentType == .zip)
+    }
+    
+    @Test("Re-importing audiobook after reinstalling and restoring preserves listening progress")
+    @MainActor
+    func testReimportingAudiobookPreservesRestoredHistoryAndPosition() throws {
+        let schema = Schema([LibraryItem.self])
+        let config = ModelConfiguration(isStoredInMemoryOnly: true)
+        let container = try ModelContainer(for: schema, configurations: [config])
+        let context = ModelContext(container)
+        
+        // 1. Simulate restoring a book from Cloud backup (offloaded item with progress)
+        let restoredBook = LibraryItem(
+            title: "The Hobbit",
+            author: "J.R.R. Tolkien",
+            kind: .singleFile,
+            totalDuration: 40000.0,
+            currentPosition: 30000.0, // 75% completed
+            isCompleted: false,
+            isFileOffloaded: true
+        )
+        context.insert(restoredBook)
+        try context.save()
+        
+        #expect(restoredBook.currentPosition == 30000.0)
+        #expect(restoredBook.isFileOffloaded == true)
+        #expect(restoredBook.relativePath == nil)
+        
+        // 2. Later, user imports the audio file into the reinstalled app
+        let importDTO = ImportedItemDTO(
+            title: "The Hobbit",
+            author: "J.R.R. Tolkien",
+            kind: .singleFile,
+            relativePath: "Audiobooks/TheHobbit.m4b",
+            totalDuration: 40000.0
+        )
+        
+        let persistedItem = FileImporterService.persist(dto: importDTO, into: context)
+        
+        // Verify it reconnects to the restored item and retains the 30000s (75%) progress!
+        #expect(persistedItem.id == restoredBook.id)
+        #expect(persistedItem.currentPosition == 30000.0)
+        #expect(persistedItem.isFileOffloaded == false)
+        #expect(persistedItem.relativePath == "Audiobooks/TheHobbit.m4b")
+        
+        let descriptor = FetchDescriptor<LibraryItem>()
+        let allItems = try context.fetch(descriptor)
+        #expect(allItems.count == 1) // No duplicate item created!
+    }
 }
 
 

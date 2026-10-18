@@ -167,6 +167,26 @@ public final class ListeningStatsStore {
         )
     }
     
+    /// Returns all raw daily listening records mapped by calendar day (e.g. "2026-09-21": seconds).
+    public var allDailyRecords: [String: Double] {
+        dailyRecords
+    }
+    
+    /// Restores daily listening records from a backup, optionally merging with existing records.
+    public func restoreDailyRecords(_ records: [String: Double], merge: Bool = true) {
+        if merge {
+            for (day, seconds) in records {
+                let existing = dailyRecords[day] ?? 0.0
+                dailyRecords[day] = max(existing, seconds)
+            }
+        } else {
+            dailyRecords = records
+        }
+        saveRecords()
+        currentDayKey = dayDateFormatter.string(from: Date())
+        syncToWidgets()
+    }
+    
     /// Resets all recorded listening history (useful for tests and debug).
     public func resetRecords() {
         dailyRecords.removeAll()

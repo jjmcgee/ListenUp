@@ -84,7 +84,7 @@ public struct WatchBookDetailView: View {
                         
                         // Play on iPhone
                         Button {
-                            syncManager.sendRemoteCommand(WatchRemoteCommand(type: .play, value: nil))
+                            syncManager.sendRemoteCommand(WatchRemoteCommand(type: .play, value: nil, bookID: book.id))
                             dismiss()
                             onPlayTriggered?()
                         } label: {
@@ -122,7 +122,7 @@ public struct WatchBookDetailView: View {
                         
                         // Can still play on iPhone while downloading
                         Button {
-                            syncManager.sendRemoteCommand(WatchRemoteCommand(type: .play, value: nil))
+                            syncManager.sendRemoteCommand(WatchRemoteCommand(type: .play, value: nil, bookID: book.id))
                             dismiss()
                             onPlayTriggered?()
                         } label: {
@@ -148,7 +148,7 @@ public struct WatchBookDetailView: View {
                         
                         // Play on iPhone
                         Button {
-                            syncManager.sendRemoteCommand(WatchRemoteCommand(type: .play, value: nil))
+                            syncManager.sendRemoteCommand(WatchRemoteCommand(type: .play, value: nil, bookID: book.id))
                             dismiss()
                             onPlayTriggered?()
                         } label: {

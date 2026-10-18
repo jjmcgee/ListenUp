@@ -145,6 +145,7 @@ public final class AudioPlayerManager {
     // MARK: - Internal Audio Engine Properties
     
     private var queuePlayer: AVQueuePlayer?
+    private var activePlayerItems: [AVPlayerItem] = []
     private var timeObserverToken: Any?
     private var itemDidPlayToEndObserver: NSObjectProtocol?
     private var didBecomeInactiveObserver: NSObjectProtocol?
@@ -625,6 +626,7 @@ public final class AudioPlayerManager {
             firstItem.seek(to: cmOffset, toleranceBefore: .zero, toleranceAfter: .zero, completionHandler: nil)
         }
         
+        self.activePlayerItems = playerItems
         self.queuePlayer = player
         setupTimeObserver(for: player)
         setupItemEndObserver()
@@ -697,9 +699,15 @@ public final class AudioPlayerManager {
             forName: AVPlayerItem.didPlayToEndTimeNotification,
             object: nil,
             queue: .main
-        ) { [weak self] _ in
+        ) { [weak self] notification in
+            guard let finishedItem = notification.object as? AVPlayerItem else { return }
+            let finishedID = ObjectIdentifier(finishedItem)
             Task { @MainActor [weak self] in
-                self?.handleTrackDidPlayToEnd()
+                guard let self = self,
+                      self.activePlayerItems.contains(where: { ObjectIdentifier($0) == finishedID }) else {
+                    return
+                }
+                self.handleTrackDidPlayToEnd()
             }
         }
     }
@@ -763,6 +771,7 @@ public final class AudioPlayerManager {
             NotificationCenter.default.removeObserver(observer)
             itemDidPlayToEndObserver = nil
         }
+        activePlayerItems.removeAll()
         queuePlayer?.pause()
         queuePlayer?.removeAllItems()
         queuePlayer = nil

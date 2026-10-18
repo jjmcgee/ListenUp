@@ -12,22 +12,28 @@ public struct PlaybackSyncPayload: Codable, Sendable {
     public let position: Double
     public let isCompleted: Bool
     public let lastUpdated: Date
+    public let listenedDelta: Double?
     
-    public init(bookID: UUID, position: Double, isCompleted: Bool, lastUpdated: Date) {
+    public init(bookID: UUID, position: Double, isCompleted: Bool, lastUpdated: Date, listenedDelta: Double? = nil) {
         self.bookID = bookID
         self.position = position
         self.isCompleted = isCompleted
         self.lastUpdated = lastUpdated
+        self.listenedDelta = listenedDelta
     }
     
     public func toDictionary() -> [String: Any] {
-        return [
+        var dict: [String: Any] = [
             "msgType": "playbackSync",
             "bookID": bookID.uuidString,
             "position": position,
             "isCompleted": isCompleted,
             "lastUpdated": lastUpdated.timeIntervalSince1970
         ]
+        if let delta = listenedDelta {
+            dict["listenedDelta"] = delta
+        }
+        return dict
     }
     
     public static func from(dictionary: [String: Any]) -> PlaybackSyncPayload? {
@@ -39,11 +45,13 @@ public struct PlaybackSyncPayload: Codable, Sendable {
               let timeInterval = dictionary["lastUpdated"] as? Double else {
             return nil
         }
+        let listenedDelta = dictionary["listenedDelta"] as? Double
         return PlaybackSyncPayload(
             bookID: uuid,
             position: position,
             isCompleted: isCompleted,
-            lastUpdated: Date(timeIntervalSince1970: timeInterval)
+            lastUpdated: Date(timeIntervalSince1970: timeInterval),
+            listenedDelta: listenedDelta
         )
     }
 }
@@ -67,10 +75,12 @@ public enum WatchRemoteCommandType: String, Codable, Sendable {
 public struct WatchRemoteCommand: Sendable {
     public let type: WatchRemoteCommandType
     public let value: Double?
+    public let bookID: UUID?
     
-    public init(type: WatchRemoteCommandType, value: Double? = nil) {
+    public init(type: WatchRemoteCommandType, value: Double? = nil, bookID: UUID? = nil) {
         self.type = type
         self.value = value
+        self.bookID = bookID
     }
     
     public func toDictionary() -> [String: Any] {
@@ -80,6 +90,9 @@ public struct WatchRemoteCommand: Sendable {
         ]
         if let value = value {
             dict["value"] = value
+        }
+        if let bookID = bookID {
+            dict["bookID"] = bookID.uuidString
         }
         return dict
     }
@@ -91,7 +104,8 @@ public struct WatchRemoteCommand: Sendable {
             return nil
         }
         let value = dictionary["value"] as? Double
-        return WatchRemoteCommand(type: type, value: value)
+        let bookID = (dictionary["bookID"] as? String).flatMap { UUID(uuidString: $0) }
+        return WatchRemoteCommand(type: type, value: value, bookID: bookID)
     }
 }
 
@@ -408,6 +422,19 @@ public final class WatchSyncManager: NSObject {
     
     // MARK: - Remote Playback State Broadcast (Phone -> Watch)
     
+    private func updateApplicationContext(key: String, value: Any) {
+        #if canImport(WatchConnectivity)
+        guard let session = session, session.activationState == .activated else { return }
+        var currentContext = session.applicationContext
+        currentContext[key] = value
+        do {
+            try session.updateApplicationContext(currentContext)
+        } catch {
+            print("[WatchSyncManager] Failed to update application context for key \(key): \(error.localizedDescription)")
+        }
+        #endif
+    }
+    
     /// Broadcasts current iPhone playback state to Apple Watch for Now Playing UI.
     public func broadcastRemotePlaybackState(_ state: WatchRemotePlaybackState) {
         self.remotePlaybackState = state
@@ -418,10 +445,12 @@ public final class WatchSyncManager: NSObject {
         if session.isReachable {
             session.sendMessage(dict, replyHandler: nil) { [weak self] _ in
                 // Fallback to application context if message dropped
-                try? self?.session?.updateApplicationContext(dict)
+                Task { @MainActor [weak self] in
+                    self?.updateApplicationContext(key: "remoteStateData", value: dict)
+                }
             }
         } else {
-            try? session.updateApplicationContext(dict)
+            updateApplicationContext(key: "remoteStateData", value: dict)
         }
         #endif
     }
@@ -441,10 +470,12 @@ public final class WatchSyncManager: NSObject {
         
         if session.isReachable {
             session.sendMessage(payload, replyHandler: nil) { [weak self] _ in
-                try? self?.session?.updateApplicationContext(payload)
+                Task { @MainActor [weak self] in
+                    self?.updateApplicationContext(key: "catalogData", value: payload)
+                }
             }
         } else {
-            try? session.updateApplicationContext(payload)
+            updateApplicationContext(key: "catalogData", value: payload)
         }
         #endif
     }
@@ -499,12 +530,14 @@ public final class WatchSyncManager: NSObject {
         let dict = payload.toDictionary()
         
         if session.isReachable {
-            session.sendMessage(dict, replyHandler: nil) { error in
+            session.sendMessage(dict, replyHandler: nil) { [weak self] error in
                 print("[WatchSyncManager] Failed to send real-time sync message: \(error.localizedDescription)")
-                try? session.updateApplicationContext(dict)
+                Task { @MainActor [weak self] in
+                    self?.updateApplicationContext(key: "syncPayloadData", value: dict)
+                }
             }
         } else {
-            try? session.updateApplicationContext(dict)
+            updateApplicationContext(key: "syncPayloadData", value: dict)
         }
         #endif
     }
@@ -640,7 +673,24 @@ extension WatchSyncManager: WCSessionDelegate {
     }
     
     nonisolated public func session(_ session: WCSession, didReceiveApplicationContext applicationContext: [String : Any]) {
-        handleIncomingDictionary(applicationContext)
+        var handledAny = false
+        if let catalogDict = applicationContext["catalogData"] as? [String: Any] {
+            handleIncomingDictionary(catalogDict)
+            handledAny = true
+        }
+        if let remoteStateDict = applicationContext["remoteStateData"] as? [String: Any] {
+            handleIncomingDictionary(remoteStateDict)
+            handledAny = true
+        }
+        if let syncPayloadDict = applicationContext["syncPayloadData"] as? [String: Any] {
+            handleIncomingDictionary(syncPayloadDict)
+            handledAny = true
+        }
+        
+        // Handle legacy flat dictionary if no namespaced keys were matched
+        if !handledAny || applicationContext["msgType"] != nil || applicationContext["bookID"] != nil {
+            handleIncomingDictionary(applicationContext)
+        }
     }
     
     private nonisolated func handleIncomingDictionary(_ dict: [String: Any]) {

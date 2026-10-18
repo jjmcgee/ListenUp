@@ -74,15 +74,27 @@ public actor FileImporterService {
     
     // MARK: - Primary Public Import Entry Points
     
+    /// Imports an external or security-scoped audio file or folder URL, copies it into the sandbox,
+    /// parses its metadata, and persists it into the SwiftData ModelContext.
+    @MainActor
+    @discardableResult
+    public func importURL(_ sourceURL: URL, into context: ModelContext, parent: LibraryItem? = nil) async throws -> LibraryItem {
+        let dto = try await processImport(from: sourceURL)
+        return Self.persist(dto: dto, into: context, parent: parent)
+    }
+    
     /// Imports a security-scoped URL (file or folder), copying contents into `Documents/Audiobooks/`
     /// and returning the Sendable hierarchy description.
     public func processImport(from sourceURL: URL) async throws -> ImportedItemDTO {
         // 1. Security-scoped resource access
-        guard sourceURL.startAccessingSecurityScopedResource() else {
-            throw FileImporterError.securityScopeAccessDenied
-        }
+        let isSecurityScoped = sourceURL.startAccessingSecurityScopedResource()
         defer {
-            sourceURL.stopAccessingSecurityScopedResource()
+            if isSecurityScoped {
+                sourceURL.stopAccessingSecurityScopedResource()
+            }
+        }
+        guard isSecurityScoped || FileManager.default.fileExists(atPath: sourceURL.path) else {
+            throw FileImporterError.securityScopeAccessDenied
         }
         
         let fileManager = FileManager.default
@@ -370,6 +382,35 @@ extension FileImporterService {
     /// Converts an `ImportedItemDTO` tree into SwiftData `LibraryItem` entities and saves to the context.
     @MainActor
     public static func persist(dto: ImportedItemDTO, into context: ModelContext, parent: LibraryItem? = nil) -> LibraryItem {
+        // If an existing offloaded or historical item with matching ID or title exists,
+        // reconnect the physical audio file while preserving past playback position and history!
+        let descriptor = FetchDescriptor<LibraryItem>()
+        if let allExisting = try? context.fetch(descriptor),
+           let existing = allExisting.first(where: {
+               ($0.id == dto.id || ($0.title.caseInsensitiveCompare(dto.title) == .orderedSame && ($0.author == dto.author || $0.author == nil || dto.author == nil))) && ($0.isFileOffloaded || $0.isDeletedFromLibrary)
+           }) {
+            existing.relativePath = dto.relativePath
+            if dto.totalDuration > 0 {
+                existing.totalDuration = dto.totalDuration
+            }
+            existing.isFileOffloaded = false
+            existing.isDeletedFromLibrary = false
+            if let artwork = dto.artworkData {
+                existing.artworkData = artwork
+            }
+            existing.lastUpdated = Date()
+            
+            if !dto.children.isEmpty {
+                for childDTO in dto.children {
+                    _ = persist(dto: childDTO, into: context, parent: existing)
+                }
+            }
+            
+            existing.recalculateDurations()
+            try? context.save()
+            return existing
+        }
+        
         let item = LibraryItem(
             id: dto.id,
             title: dto.title,

@@ -13,8 +13,23 @@ public final class NavigationCoordinator {
     
     public init() {}
     
-    /// Handles incoming deep links from WidgetKit (e.g., `listenup://play?id=...`, `listenup://stats`).
+    /// Handles incoming deep links from WidgetKit (e.g., `listenup://play?id=...`, `listenup://stats`)
+    /// as well as external audio file open-in events (`file://` URLs from AirDrop or Files app).
     public func handleURL(_ url: URL, in context: ModelContext, player: AudioPlayerManager) {
+        if url.isFileURL {
+            selectedTab = .library
+            Task {
+                do {
+                    let item = try await FileImporterService.shared.importURL(url, into: context)
+                    player.play(item: item)
+                    isShowingFullPlayer = true
+                } catch {
+                    print("[NavigationCoordinator] Failed to import external audio file: \(error.localizedDescription)")
+                }
+            }
+            return
+        }
+        
         guard url.scheme?.lowercased() == "listenup" else { return }
         
         let host = url.host?.lowercased() ?? ""
