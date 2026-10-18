@@ -32,6 +32,7 @@ public final class WatchAudioPlayerManager {
     }
     
     public private(set) var currentTrackIndex: Int = 0
+    public private(set) var chapters: [ChapterInfo] = []
     
     // Track durations for multi-part continuous virtual timeline
     private var trackDurations: [Double] = []
@@ -143,10 +144,19 @@ public final class WatchAudioPlayerManager {
                 }
             }
             
+            var extractedChapters: [ChapterInfo] = []
+            var cumulative: Double = 0.0
+            for (idx, (url, dur)) in zip(urls, durations).enumerated() {
+                let title = url.deletingPathExtension().lastPathComponent
+                extractedChapters.append(ChapterInfo(index: idx, title: title, startTime: cumulative, duration: dur))
+                cumulative += dur
+            }
+            
             await MainActor.run { [weak self] in
                 guard let self = self else { return }
                 self.trackDurations = durations
                 self.totalDuration = durations.reduce(0.0, +)
+                self.chapters = extractedChapters
                 self.loadQueue(startAtPosition: startPosition)
                 self.resume()
             }
@@ -247,6 +257,7 @@ public final class WatchAudioPlayerManager {
         currentBookAuthor = nil
         currentTime = 0.0
         totalDuration = 0.0
+        chapters = []
         updateNowPlayingInfo()
         #if os(watchOS) || os(iOS)
         Task.detached(priority: .utility) {

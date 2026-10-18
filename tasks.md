@@ -153,12 +153,12 @@ Features that have UI controls or badges present in the codebase but are current
 
 Improvements to core user workflows across library management, search, player controls, and Apple Watch.
 
-- [ ] **4.1 Allow Re-Importing / Relinking Offloaded Books**
+- [x] **4.1 Allow Re-Importing / Relinking Offloaded Books**
   - **Location:** `ListenUp/Views/LibraryView.swift` (lines 130–135, 208–219), `ListenUp/Views/Components/LibraryRow.swift` (lines 154–202)
   - **Issue:** Once a user offloads an audiobook's audio file to save space, tapping the item only shows a dead-end alert ("File Offloaded") with an "OK" button and no way to restore or re-link the audio file while preserving progress.
   - **Fix:** Add a "Relink Audio File…" button to the alert and context menu that opens `.fileImporter` and re-attaches the selected audio file/folder to the existing `LibraryItem` (preserving its `id`, `currentPosition`, and history).
 
-- [ ] **4.2 Fix Search to Include Nested Folder Items & Handle Folders/Offloaded Books**
+- [x] **4.2 Fix Search to Include Nested Folder Items & Handle Folders/Offloaded Books**
   - **Location:** `ListenUp/Views/SearchView.swift` (lines 72–74, 134)
   - **Issue:**
     1. `SearchView` filters by `$0.parent == nil`, excluding any `.singleFile` or `.multiPart` books organized inside `.folder` items.
@@ -166,27 +166,27 @@ Improvements to core user workflows across library management, search, player co
     3. Tapping an offloaded book in Search bypasses the offload check and attempts playback.
   - **Fix:** Filter search candidates by `$0.kind != .singleFile || $0.parent == nil || $0.parent?.kind == .folder` (all playable books + folders, excluding raw multi-part child tracks), navigate on folder tap, and check `item.isFileOffloaded` before playing.
 
-- [ ] **4.3 Add Library Sorting & Completed Filter Controls**
+- [x] **4.3 Add Library Sorting & Completed Filter Controls**
   - **Location:** `ListenUp/Views/LibraryView.swift` (lines 29–34, 225–265)
   - **Issue:** Users cannot sort their library (e.g., by Recently Played, Title, Author, Duration, or Progress) and cannot filter strictly for Completed/Finished books.
   - **Fix:** Add a sort menu in the `LibraryView` header (`Last Played`, `Title`, `Author`, `Progress`, `Duration`) persisted via `@AppStorage`, and add a `.completed` case to `LibraryFilter`.
 
-- [ ] **4.4 Enable Multi-Selection in File Importer**
+- [x] **4.4 Enable Multi-Selection in File Importer**
   - **Location:** `ListenUp/Views/LibraryView.swift` (line 167)
   - **Issue:** `.fileImporter` sets `allowsMultipleSelection: false`, forcing users to import audiobooks one at a time or preventing them from selecting multiple loose MP3 tracks to form a book.
   - **Fix:** Set `allowsMultipleSelection: true` and support batch-importing multiple standalone books or grouping selected tracks.
 
-- [ ] **4.5 Improve Chapters Sheet UX & Add User Bookmarks**
+- [x] **4.5 Improve Chapters Sheet UX & Add User Bookmarks**
   - **Location:** `ListenUp/Views/FullPlayerView.swift` (line 400), `ListenUp/Views/ChaptersSheet.swift`
   - **Issue:** Tapping "Chapters" on a `.singleFile` book without embedded chapters opens an empty sheet. Additionally, learners using courses (like Pimsleur) or long audiobooks have no way to save custom timestamped bookmarks.
   - **Fix:** Show the chapter count badge on the Chapters button (or adapt its label when empty), and add a "Bookmarks" tab inside `ChaptersSheet` so users can save, rename, and jump to custom positions.
 
-- [ ] **4.6 Enhance Watch Player with Digital Crown Scrubbing/Volume & Chapter List**
+- [x] **4.6 Enhance Watch Player with Digital Crown Scrubbing/Volume & Chapter List**
   - **Location:** `ListenUpWatch/Views/WatchNowPlayingView.swift`, `ListenUpWatch/Views/WatchLibraryView.swift`
   - **Issue:** `WatchNowPlayingView` lacks Digital Crown integration, chapter selection, and a visual "Now Playing" indicator in `WatchLibraryView`.
   - **Fix:** Add `.digitalCrownRotation` support for volume or fine scrubbing, add a chapter list sheet on Watch, and highlight the active book in `WatchLibraryView`.
 
-- [ ] **4.7 Fix `LiquidGlassModifier` Interactive Press State**
+- [x] **4.7 Fix `LiquidGlassModifier` Interactive Press State**
   - **Location:** `ListenUp/Views/Components/LiquidGlass.swift` (lines 24, 59)
   - **Issue:** `@State private var isPressed = false` is declared and used for scale/shadow animations when `isInteractive == true`, but no gesture or button style ever updates `isPressed`.
   - **Fix:** Attach a non-blocking `DragGesture(minimumDistance: 0)` or move the press animation into a dedicated `ButtonStyle` so interactive glass cards respond to touch.

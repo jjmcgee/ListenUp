@@ -58,6 +58,18 @@ public struct LiquidGlassModifier: ViewModifier {
             )
             .scaleEffect(isInteractive && isPressed ? 0.97 : 1.0)
             .animation(.spring(response: 0.28, dampingFraction: 0.72), value: isPressed)
+            .simultaneousGesture(
+                isInteractive ? DragGesture(minimumDistance: 0)
+                    .onChanged { _ in
+                        if !isPressed {
+                            isPressed = true
+                        }
+                    }
+                    .onEnded { _ in
+                        isPressed = false
+                    }
+                : nil
+            )
     }
     
     @ViewBuilder
@@ -260,6 +272,48 @@ public struct LiquidGlassCard<Content: View>: View {
     public var body: some View {
         content()
             .liquidGlass(cornerRadius: cornerRadius, tint: tint)
+    }
+}
+
+// MARK: - Liquid Glass Button Style
+
+/// Dedicated button style providing reactive press scaling and liquid glass styling.
+public struct LiquidGlassButtonStyle: ButtonStyle {
+    public let shapeKind: LiquidGlassShapeKind
+    public let tint: Color?
+    
+    public init(
+        shapeKind: LiquidGlassShapeKind = .capsule,
+        tint: Color? = nil
+    ) {
+        self.shapeKind = shapeKind
+        self.tint = tint
+    }
+    
+    public func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .modifier(LiquidGlassModifier(shapeKind: shapeKind, tint: tint, isInteractive: false))
+            .scaleEffect(configuration.isPressed ? 0.96 : 1.0)
+            .opacity(configuration.isPressed ? 0.88 : 1.0)
+            .animation(.spring(response: 0.24, dampingFraction: 0.72), value: configuration.isPressed)
+    }
+}
+
+extension ButtonStyle where Self == LiquidGlassButtonStyle {
+    public static var liquidGlassCapsule: LiquidGlassButtonStyle {
+        LiquidGlassButtonStyle(shapeKind: .capsule)
+    }
+    
+    public static func liquidGlassCapsule(tint: Color?) -> LiquidGlassButtonStyle {
+        LiquidGlassButtonStyle(shapeKind: .capsule, tint: tint)
+    }
+    
+    public static var liquidGlassCircle: LiquidGlassButtonStyle {
+        LiquidGlassButtonStyle(shapeKind: .circle)
+    }
+    
+    public static func liquidGlassRoundedRectangle(cornerRadius: CGFloat = 16, tint: Color? = nil) -> LiquidGlassButtonStyle {
+        LiquidGlassButtonStyle(shapeKind: .roundedRectangle(cornerRadius: cornerRadius), tint: tint)
     }
 }
 

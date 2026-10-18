@@ -26,12 +26,42 @@ public struct LibraryView: View {
     @State private var importErrorMessage: String? = nil
     @State private var bookPendingDeletionPrompt: LibraryItem? = nil
     @State private var itemShowingOffloadedAlert: LibraryItem? = nil
+    @State private var itemToRelink: LibraryItem? = nil
+    @State private var isShowingRelinkFileImporter: Bool = false
+    
+    @AppStorage("librarySortOption") private var sortOptionRaw: String = SortOption.lastPlayed.rawValue
+    
+    public var sortOption: SortOption {
+        get { SortOption(rawValue: sortOptionRaw) ?? .lastPlayed }
+        nonmutating set { sortOptionRaw = newValue.rawValue }
+    }
     
     public enum FilterOption: String, CaseIterable, Identifiable {
         case all = "All"
         case inProgress = "In Progress"
+        case completed = "Finished"
         
         public var id: String { rawValue }
+    }
+    
+    public enum SortOption: String, CaseIterable, Identifiable {
+        case lastPlayed = "Recent"
+        case title = "Title"
+        case author = "Author"
+        case progress = "Progress"
+        case duration = "Duration"
+        
+        public var id: String { rawValue }
+        
+        public var iconName: String {
+            switch self {
+            case .lastPlayed: return "clock"
+            case .title: return "textformat"
+            case .author: return "person"
+            case .progress: return "chart.bar.fill"
+            case .duration: return "hourglass"
+            }
+        }
     }
     
     public init(parentFolder: LibraryItem? = nil, searchText: String = "") {
@@ -125,6 +155,10 @@ public struct LibraryView: View {
                                     },
                                     onDeleteAudioFile: {
                                         offloadFile(for: item)
+                                    },
+                                    onRelink: {
+                                        itemToRelink = item
+                                        isShowingRelinkFileImporter = true
                                     }
                                 )
                                 .onTapGesture {
@@ -148,26 +182,59 @@ public struct LibraryView: View {
             }
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
-                    Button {
-                        isShowingFileImporter = true
-                    } label: {
-                        HStack(spacing: 5) {
-                            Image(systemName: "book.badge.plus")
-                                .font(.system(size: 14, weight: .semibold))
+                    HStack(spacing: 8) {
+                        sortMenu
+
+                        
+                        Button {
+                            isShowingFileImporter = true
+                        } label: {
+                            HStack(spacing: 5) {
+                                Image(systemName: "book.badge.plus")
+                                    .font(.system(size: 14, weight: .semibold))
+                            }
+                            .foregroundStyle(Color.accentColor)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                            .liquidGlassCapsule(tint: Color.accentColor, isInteractive: true)
                         }
-                        .foregroundStyle(Color.accentColor)
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 6)
-                        .liquidGlassCapsule(tint: Color.accentColor, isInteractive: true)
+                        .accessibilityLabel("Import Audiobook")
                     }
                 }
             }
             .fileImporter(
                 isPresented: $isShowingFileImporter,
                 allowedContentTypes: [.audio, .folder],
-                allowsMultipleSelection: false
+                allowsMultipleSelection: true
             ) { result in
                 handleImportResult(result)
+            }
+            .fileImporter(
+                isPresented: $isShowingRelinkFileImporter,
+                allowedContentTypes: [.audio, .folder],
+                allowsMultipleSelection: false
+            ) { result in
+                switch result {
+                case .success(let urls):
+                    guard let selectedURL = urls.first, let item = itemToRelink else { return }
+                    isImporting = true
+                    Task {
+                        do {
+                            try await FileImporterService.shared.relinkURL(selectedURL, to: item, in: modelContext)
+                            await MainActor.run {
+                                isImporting = false
+                                itemToRelink = nil
+                            }
+                        } catch {
+                            await MainActor.run {
+                                isImporting = false
+                                importErrorMessage = "Failed to relink audio file: \(error.localizedDescription)"
+                            }
+                        }
+                    }
+                case .failure(let error):
+                    importErrorMessage = error.localizedDescription
+                }
             }
             .overlay {
                 if isImporting {
@@ -213,7 +280,11 @@ public struct LibraryView: View {
                     set: { if !$0 { itemShowingOffloadedAlert = nil } }
                 ),
                 presenting: itemShowingOffloadedAlert
-            ) { _ in
+            ) { item in
+                Button("Relink Audio File…") {
+                    itemToRelink = item
+                    isShowingRelinkFileImporter = true
+                }
                 Button("OK", role: .cancel) {}
             } message: { item in
                 Text("The audio file for \"\(item.title)\" was removed to save storage. Your completion status and listening history are preserved.")
@@ -237,12 +308,17 @@ public struct LibraryView: View {
                 baseItems = allItems.filter { item in
                     item.kind != .folder && item.parent?.kind != .multiPart && !item.isCompleted && item.currentPosition > 0 && !item.isDeletedFromLibrary
                 }
+            case .completed:
+                // All completed audiobooks (excluding structural folders, child tracks, and soft-deleted items)
+                baseItems = allItems.filter { item in
+                    item.kind != .folder && item.parent?.kind != .multiPart && item.isCompleted && !item.isDeletedFromLibrary
+                }
             }
         }
         
         let trimmedQuery = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
         
-        return baseItems.filter { item in
+        let filtered = baseItems.filter { item in
             // Search filter
             let matchesSearch = trimmedQuery.isEmpty ||
                 item.title.localizedCaseInsensitiveContains(trimmedQuery) ||
@@ -258,10 +334,27 @@ public struct LibraryView: View {
                     return true
                 case .inProgress:
                     return item.kind != .folder && !item.isCompleted && item.currentPosition > 0
+                case .completed:
+                    return item.kind != .folder && item.isCompleted
                 }
             }
             
             return true
+        }
+        
+        return filtered.sorted { a, b in
+            switch sortOption {
+            case .lastPlayed:
+                return a.lastUpdated > b.lastUpdated
+            case .title:
+                return a.title.localizedCaseInsensitiveCompare(b.title) == .orderedAscending
+            case .author:
+                return (a.author ?? "").localizedCaseInsensitiveCompare(b.author ?? "") == .orderedAscending
+            case .progress:
+                return a.progress > b.progress
+            case .duration:
+                return a.totalDuration > b.totalDuration
+            }
         }
     }
     
@@ -272,6 +365,33 @@ public struct LibraryView: View {
             return item.playableTracks.contains { $0.id == current.id }
         }
         return false
+    }
+    
+    // MARK: - Sort Menu
+    
+    @ViewBuilder
+    private var sortMenu: some View {
+        Menu {
+            ForEach(SortOption.allCases) { option in
+                Button {
+                    sortOption = option
+                } label: {
+                    if sortOption == option {
+                        Label(option.rawValue, systemImage: "checkmark")
+                    } else {
+                        Label(option.rawValue, systemImage: option.iconName)
+                    }
+                }
+            }
+        } label: {
+            Image(systemName: "arrow.up.arrow.down")
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundStyle(Color.accentColor)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 6)
+                .liquidGlassCapsule(tint: Color.accentColor, isInteractive: true)
+        }
+        .accessibilityLabel("Sort Library")
     }
     
     // MARK: - Empty State
@@ -302,6 +422,20 @@ public struct LibraryView: View {
                         .font(.title3.weight(.bold))
                     
                     Text("Start listening to an audiobook and it will appear here.")
+                        .font(.subheadline)
+                        .foregroundStyle(Color.secondary)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 32)
+                        
+                case .completed:
+                    Image(systemName: "checkmark.circle")
+                        .font(.system(size: 64))
+                        .foregroundStyle(Color.secondary.opacity(0.4))
+                    
+                    Text("No Completed Books")
+                        .font(.title3.weight(.bold))
+                    
+                    Text("Finished audiobooks will appear here.")
                         .font(.subheadline)
                         .foregroundStyle(Color.secondary)
                         .multilineTextAlignment(.center)
@@ -360,18 +494,20 @@ public struct LibraryView: View {
     private func handleImportResult(_ result: Result<[URL], Error>) {
         switch result {
         case .success(let urls):
-            guard let selectedURL = urls.first else { return }
+            guard !urls.isEmpty else { return }
             isImporting = true
             
             Task {
                 do {
-                    let dto = try await FileImporterService.shared.processImport(from: selectedURL)
+                    let dtos = try await FileImporterService.shared.processMultipleImports(from: urls)
                     await MainActor.run {
-                        _ = FileImporterService.persist(
-                            dto: dto,
-                            into: modelContext,
-                            parent: parentFolder
-                        )
+                        for dto in dtos {
+                            _ = FileImporterService.persist(
+                                dto: dto,
+                                into: modelContext,
+                                parent: parentFolder
+                            )
+                        }
                         isImporting = false
                     }
                 } catch {

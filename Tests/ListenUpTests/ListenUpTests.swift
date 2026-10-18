@@ -501,12 +501,48 @@ struct ListenUpTests {
     
     // MARK: - Library Filter Tests
     
-    @Test("Library FilterOption contains only All and In Progress tabs")
+    @Test("Library FilterOption contains All, In Progress, and Finished tabs")
     func testLibraryFilterOptions() {
         let options = LibraryView.FilterOption.allCases
-        #expect(options.count == 2)
+        #expect(options.count == 3)
         #expect(options.contains(.all))
         #expect(options.contains(.inProgress))
+        #expect(options.contains(.completed))
+    }
+    
+    @Test("Completed tab filtering isolates finished books and excludes active unfinished books and folders")
+    func testCompletedTabFiltering() {
+        let finishedSingle = LibraryItem(title: "Finished Novel", kind: .singleFile, totalDuration: 3600.0, isCompleted: true)
+        let unfinishedSingle = LibraryItem(title: "Reading Novel", kind: .singleFile, totalDuration: 3600.0, currentPosition: 500.0, isCompleted: false)
+        let folder = LibraryItem(title: "Audio Courses", kind: .folder)
+        
+        let allItems = [finishedSingle, unfinishedSingle, folder]
+        
+        let completedBooks = allItems.filter { item in
+            item.kind != .folder && item.parent?.kind != .multiPart && item.isCompleted && !item.isDeletedFromLibrary
+        }
+        
+        #expect(completedBooks.count == 1)
+        #expect(completedBooks.first?.title == "Finished Novel")
+    }
+    
+    @Test("Library sorting sorts by title, author, progress, and duration accurately")
+    func testLibrarySorting() {
+        let bookA = LibraryItem(title: "Alpha", author: "Zoe", totalDuration: 1000.0, currentPosition: 200.0)
+        let bookB = LibraryItem(title: "Beta", author: "Alex", totalDuration: 5000.0, currentPosition: 4000.0)
+        let items = [bookA, bookB]
+        
+        let byTitle = items.sorted { $0.title.localizedCaseInsensitiveCompare($1.title) == .orderedAscending }
+        #expect(byTitle.first?.title == "Alpha")
+        
+        let byAuthor = items.sorted { ($0.author ?? "").localizedCaseInsensitiveCompare($1.author ?? "") == .orderedAscending }
+        #expect(byAuthor.first?.author == "Alex")
+        
+        let byProgress = items.sorted { $0.progress > $1.progress }
+        #expect(byProgress.first?.title == "Beta")
+        
+        let byDuration = items.sorted { $0.totalDuration > $1.totalDuration }
+        #expect(byDuration.first?.title == "Beta")
     }
     
     @Test("In Progress tab filtering isolates active unfinished books and excludes completed books and folders")
@@ -1697,6 +1733,52 @@ struct ListenUpTests {
         let db = AppDatabase.shared
         // In unit test or environment, isCloudKitActive returns a valid boolean (true or false if local fallback)
         _ = db.isCloudKitActive
+    }
+    
+    // MARK: - Bookmark Store Tests
+    
+    @Test("BookmarkStore adds, sorts, updates, and deletes user bookmarks correctly")
+    @MainActor
+    func testBookmarkStoreCRUD() {
+        let store = BookmarkStore()
+        store.reset()
+        
+        let bookID = UUID()
+        
+        // Add first bookmark at 120s with custom title
+        let b1 = store.addBookmark(bookID: bookID, title: "Important Chapter Note", timestamp: 120.0)
+        #expect(b1.title == "Important Chapter Note")
+        #expect(b1.timestamp == 120.0)
+        #expect(b1.bookID == bookID)
+        
+        // Add second bookmark at 45s without title (defaults to Bookmark 2)
+        let b2 = store.addBookmark(bookID: bookID, title: nil, timestamp: 45.0)
+        #expect(b2.title == "Bookmark 2")
+        #expect(b2.timestamp == 45.0)
+        
+        // Bookmarks should be sorted chronologically by timestamp (45s, then 120s)
+        var list = store.bookmarks(for: bookID)
+        #expect(list.count == 2)
+        #expect(list[0].id == b2.id)
+        #expect(list[1].id == b1.id)
+        
+        // Update title of b2
+        store.updateBookmarkTitle(bookmarkID: b2.id, bookID: bookID, newTitle: "Intro Conclusion")
+        list = store.bookmarks(for: bookID)
+        #expect(list[0].title == "Intro Conclusion")
+        
+        // Delete b1
+        store.deleteBookmark(bookmarkID: b1.id, bookID: bookID)
+        list = store.bookmarks(for: bookID)
+        #expect(list.count == 1)
+        #expect(list[0].id == b2.id)
+        
+        // Delete remaining by IndexSet
+        store.deleteBookmarks(for: bookID, at: IndexSet(integer: 0))
+        list = store.bookmarks(for: bookID)
+        #expect(list.isEmpty)
+        
+        store.reset()
     }
 }
 

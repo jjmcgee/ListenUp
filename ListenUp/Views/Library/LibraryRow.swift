@@ -9,6 +9,7 @@ public struct LibraryRow: View {
     public var onDelete: (() -> Void)?
     public var onToggleCompleted: (() -> Void)?
     public var onDeleteAudioFile: (() -> Void)?
+    public var onRelink: (() -> Void)?
     
     public init(
         item: LibraryItem,
@@ -16,7 +17,8 @@ public struct LibraryRow: View {
         onPlay: (() -> Void)? = nil,
         onDelete: (() -> Void)? = nil,
         onToggleCompleted: (() -> Void)? = nil,
-        onDeleteAudioFile: (() -> Void)? = nil
+        onDeleteAudioFile: (() -> Void)? = nil,
+        onRelink: (() -> Void)? = nil
     ) {
         self.item = item
         self.isCurrentlyPlaying = isCurrentlyPlaying
@@ -24,6 +26,7 @@ public struct LibraryRow: View {
         self.onDelete = onDelete
         self.onToggleCompleted = onToggleCompleted
         self.onDeleteAudioFile = onDeleteAudioFile
+        self.onRelink = onRelink
     }
     
     public var body: some View {
@@ -181,6 +184,14 @@ public struct LibraryRow: View {
                         item.isCompleted ? "Mark as Unfinished" : "Mark as Finished",
                         systemImage: item.isCompleted ? "arrow.counterclockwise" : "checkmark"
                     )
+                }
+                
+                if item.isFileOffloaded {
+                    Button {
+                        onRelink?()
+                    } label: {
+                        Label("Relink Audio File…", systemImage: "link.badge.plus")
+                    }
                 }
                 
                 if item.isCompleted && !item.isFileOffloaded {

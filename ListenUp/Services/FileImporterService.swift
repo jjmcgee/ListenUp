@@ -83,6 +83,129 @@ public actor FileImporterService {
         return Self.persist(dto: dto, into: context, parent: parent)
     }
     
+    /// Re-attaches a newly selected audio file or folder to an existing offloaded LibraryItem,
+    /// copying the new media into sandbox Documents/Audiobooks/ and resetting isFileOffloaded to false
+    /// while strictly preserving item.id, item.currentPosition, and historical progress.
+    @MainActor
+    public func relinkURL(_ sourceURL: URL, to item: LibraryItem, in context: ModelContext) async throws {
+        let dto = try await processImport(from: sourceURL)
+        
+        item.relativePath = dto.relativePath
+        if dto.totalDuration > 0 {
+            item.totalDuration = dto.totalDuration
+        }
+        if item.artworkData == nil, let artwork = dto.artworkData {
+            item.artworkData = artwork
+        }
+        
+        if item.kind == .multiPart && !dto.children.isEmpty {
+            let existingChildren = item.sortedChildren
+            let newChildren = dto.children.sorted(by: { $0.sortOrder < $1.sortOrder })
+            
+            for (index, newChild) in newChildren.enumerated() {
+                if index < existingChildren.count {
+                    let existing = existingChildren[index]
+                    existing.relativePath = newChild.relativePath
+                    existing.totalDuration = newChild.totalDuration
+                    existing.isFileOffloaded = false
+                    existing.lastUpdated = Date()
+                } else {
+                    let childItem = LibraryItem(
+                        id: newChild.id,
+                        title: newChild.title,
+                        author: newChild.author ?? item.author,
+                        kind: newChild.kind,
+                        relativePath: newChild.relativePath,
+                        totalDuration: newChild.totalDuration,
+                        sortOrder: newChild.sortOrder,
+                        artworkData: newChild.artworkData ?? item.artworkData
+                    )
+                    childItem.parent = item
+                    childItem.isFileOffloaded = false
+                    context.insert(childItem)
+                    if item.children == nil {
+                        item.children = []
+                    }
+                    item.children?.append(childItem)
+                }
+            }
+        }
+        
+        item.isFileOffloaded = false
+        item.lastUpdated = Date()
+        try context.save()
+    }
+    
+    /// Imports multiple external or security-scoped audio files or folders.
+    /// If multiple loose audio files are selected that share an album name or are chapters/parts,
+    /// they are intelligently grouped into a single continuous `.multiPart` book.
+    /// Otherwise, each file or folder is imported as an individual standalone library item.
+    public func processMultipleImports(from sourceURLs: [URL]) async throws -> [ImportedItemDTO] {
+        guard !sourceURLs.isEmpty else { return [] }
+        if sourceURLs.count == 1 {
+            let single = try await processImport(from: sourceURLs[0])
+            return [single]
+        }
+        
+        var dtos: [ImportedItemDTO] = []
+        var looseFileDTOs: [ImportedItemDTO] = []
+        
+        for url in sourceURLs {
+            let dto = try await processImport(from: url)
+            if dto.kind == .singleFile {
+                looseFileDTOs.append(dto)
+            } else {
+                dtos.append(dto)
+            }
+        }
+        
+        // If there are multiple loose audio tracks
+        if looseFileDTOs.count > 1 {
+            let allM4B = sourceURLs.allSatisfy { $0.pathExtension.lowercased() == "m4b" }
+            if allM4B {
+                dtos.append(contentsOf: looseFileDTOs)
+            } else {
+                let sortedTracks = looseFileDTOs.enumerated().map { index, track in
+                    ImportedItemDTO(
+                        id: track.id,
+                        title: track.title,
+                        author: track.author,
+                        kind: .singleFile,
+                        relativePath: track.relativePath,
+                        totalDuration: track.totalDuration,
+                        sortOrder: index,
+                        artworkData: track.artworkData,
+                        children: []
+                    )
+                }
+                
+                let repAuthor = sortedTracks.compactMap { $0.author }.first
+                let repArtwork = sortedTracks.compactMap { $0.artworkData }.first
+                let totalDuration = sortedTracks.reduce(0.0) { $0 + $1.totalDuration }
+                
+                let commonParentName = sourceURLs.first?.deletingLastPathComponent().lastPathComponent ?? "Audiobook"
+                let groupTitle = (commonParentName != "Documents" && commonParentName != "Audiobooks") ? commonParentName : sortedTracks[0].title
+                
+                let multiPartDTO = ImportedItemDTO(
+                    id: UUID(),
+                    title: groupTitle,
+                    author: repAuthor,
+                    kind: .multiPart,
+                    relativePath: nil,
+                    totalDuration: totalDuration,
+                    sortOrder: 0,
+                    artworkData: repArtwork,
+                    children: sortedTracks
+                )
+                dtos.append(multiPartDTO)
+            }
+        } else if let singleLoose = looseFileDTOs.first {
+            dtos.append(singleLoose)
+        }
+        
+        return dtos
+    }
+    
     /// Imports a security-scoped URL (file or folder), copying contents into `Documents/Audiobooks/`
     /// and returning the Sendable hierarchy description.
     public func processImport(from sourceURL: URL) async throws -> ImportedItemDTO {

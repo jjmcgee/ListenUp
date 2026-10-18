@@ -4,6 +4,7 @@ import SwiftUI
 public struct WatchLibraryView: View {
     @Environment(WatchLibraryStore.self) private var libraryStore
     @Environment(WatchSyncManager.self) private var syncManager
+    @Environment(WatchAudioPlayerManager.self) private var localPlayer
     
     public var onSelectBookToPlay: (() -> Void)?
     
@@ -60,35 +61,63 @@ public struct WatchLibraryView: View {
         }
     }
     
+    private func isNowPlaying(_ book: WatchLibraryItemSummary) -> Bool {
+        if let remote = syncManager.remotePlaybackState, remote.bookID == book.id && remote.isPlaying {
+            return true
+        }
+        if localPlayer.currentBookID == book.id && localPlayer.isPlaying {
+            return true
+        }
+        return false
+    }
+    
     @ViewBuilder
     private func watchBookRow(_ book: WatchLibraryItemSummary) -> some View {
         let status = libraryStore.status(for: book.id)
+        let isPlaying = isNowPlaying(book)
         
         HStack(spacing: 8) {
             // Status Icon Indicator
             ZStack {
-                switch status {
-                case .downloaded:
-                    Image(systemName: "applewatch.side.right")
+                if isPlaying {
+                    Image(systemName: "waveform")
                         .font(.system(size: 14, weight: .bold))
-                        .foregroundStyle(.green)
-                case .downloading(let prog):
-                    ProgressView(value: prog)
-                        .progressViewStyle(.circular)
-                        .scaleEffect(0.6)
-                case .onPhoneOnly:
-                    Image(systemName: "iphone")
-                        .font(.system(size: 14))
                         .foregroundStyle(Color.accentColor)
+                } else {
+                    switch status {
+                    case .downloaded:
+                        Image(systemName: "applewatch.side.right")
+                            .font(.system(size: 14, weight: .bold))
+                            .foregroundStyle(.green)
+                    case .downloading(let prog):
+                        ProgressView(value: prog)
+                            .progressViewStyle(.circular)
+                            .scaleEffect(0.6)
+                    case .onPhoneOnly:
+                        Image(systemName: "iphone")
+                            .font(.system(size: 14))
+                            .foregroundStyle(Color.accentColor)
+                    }
                 }
             }
             .frame(width: 22, height: 22)
             
             // Textual Details
             VStack(alignment: .leading, spacing: 2) {
-                Text(book.title)
-                    .font(.system(size: 13, weight: .semibold))
-                    .lineLimit(1)
+                HStack(spacing: 4) {
+                    Text(book.title)
+                        .font(.system(size: 13, weight: .semibold))
+                        .lineLimit(1)
+                    
+                    if isPlaying {
+                        Text("PLAYING")
+                            .font(.system(size: 8, weight: .heavy))
+                            .foregroundStyle(Color.accentColor)
+                            .padding(.horizontal, 4)
+                            .padding(.vertical, 1)
+                            .background(Color.accentColor.opacity(0.18), in: Capsule())
+                    }
+                }
                 
                 if let author = book.author, !author.isEmpty {
                     Text(author)
@@ -132,5 +161,6 @@ public struct WatchLibraryView: View {
         WatchLibraryView()
             .environment(WatchLibraryStore.shared)
             .environment(WatchSyncManager.shared)
+            .environment(WatchAudioPlayerManager.shared)
     }
 }

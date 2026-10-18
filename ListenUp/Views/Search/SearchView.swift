@@ -8,8 +8,11 @@ public struct SearchView: View {
     
     public let searchText: String
     
-    @Query(filter: #Predicate<LibraryItem> { !$0.isDeletedFromLibrary && $0.parent == nil }, sort: \LibraryItem.lastUpdated, order: .reverse)
+    @Query(filter: #Predicate<LibraryItem> { !$0.isDeletedFromLibrary }, sort: \LibraryItem.lastUpdated, order: .reverse)
     private var allItems: [LibraryItem]
+    
+    @State private var selectedFolder: LibraryItem? = nil
+    @State private var itemShowingOffloadedAlert: LibraryItem? = nil
     
     public init(searchText: String = "") {
         self.searchText = searchText
@@ -60,6 +63,21 @@ public struct SearchView: View {
             #if os(iOS)
             .toolbar(.hidden, for: .navigationBar)
             #endif
+            .navigationDestination(item: $selectedFolder) { folder in
+                LibraryView(parentFolder: folder)
+            }
+            .alert(
+                "Audio File Offloaded",
+                isPresented: Binding(
+                    get: { itemShowingOffloadedAlert != nil },
+                    set: { if !$0 { itemShowingOffloadedAlert = nil } }
+                ),
+                presenting: itemShowingOffloadedAlert
+            ) { _ in
+                Button("OK", role: .cancel) {}
+            } message: { item in
+                Text("The audio file for \"\(item.title)\" was removed to save storage. Please relink or re-import it from the Library.")
+            }
         }
     }
     
@@ -70,7 +88,13 @@ public struct SearchView: View {
         let isPlaying = isItemPlaying(item)
         
         Button {
-            player.play(item: item)
+            if item.kind == .folder {
+                selectedFolder = item
+            } else if item.isFileOffloaded {
+                itemShowingOffloadedAlert = item
+            } else {
+                player.play(item: item)
+            }
         } label: {
             HStack(spacing: 14) {
                 // Artwork Thumbnail
@@ -132,14 +156,16 @@ public struct SearchView: View {
     }
     
     private var displayedItems: [LibraryItem] {
-        let rootItems = allItems.filter { $0.parent == nil && !$0.isDeletedFromLibrary }
+        let candidates = allItems.filter { item in
+            !item.isDeletedFromLibrary && (item.kind == .folder || item.parent == nil || item.parent?.kind == .folder)
+        }
         let trimmed = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
         
         if trimmed.isEmpty {
-            return rootItems
+            return candidates.filter { $0.parent == nil }
         }
         
-        return rootItems.filter { item in
+        return candidates.filter { item in
             item.title.localizedCaseInsensitiveContains(trimmed) ||
             (item.author?.localizedCaseInsensitiveContains(trimmed) ?? false)
         }

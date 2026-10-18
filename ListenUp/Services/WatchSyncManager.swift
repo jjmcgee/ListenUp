@@ -111,6 +111,21 @@ public struct WatchRemoteCommand: Sendable {
 
 // MARK: - Remote Playback State
 
+/// Compact summary of a chapter for Apple Watch display and navigation.
+public struct WatchChapterSummary: Codable, Identifiable, Sendable, Hashable {
+    public let id: String
+    public let title: String
+    public let startTime: Double
+    public let duration: Double
+    
+    public init(id: String = UUID().uuidString, title: String, startTime: Double, duration: Double) {
+        self.id = id
+        self.title = title
+        self.startTime = startTime
+        self.duration = duration
+    }
+}
+
 /// Snapshot of the iPhone's active playback status delivered to Apple Watch for Now Playing display.
 public struct WatchRemotePlaybackState: Sendable {
     public let bookID: UUID?
@@ -123,6 +138,7 @@ public struct WatchRemotePlaybackState: Sendable {
     public let playbackRate: Float
     public let isCompleted: Bool
     public let lastUpdated: Date
+    public let chapters: [WatchChapterSummary]
     
     public init(
         bookID: UUID?,
@@ -134,7 +150,8 @@ public struct WatchRemotePlaybackState: Sendable {
         isPlaying: Bool,
         playbackRate: Float = 1.0,
         isCompleted: Bool = false,
-        lastUpdated: Date = Date()
+        lastUpdated: Date = Date(),
+        chapters: [WatchChapterSummary] = []
     ) {
         self.bookID = bookID
         self.title = title
@@ -146,6 +163,7 @@ public struct WatchRemotePlaybackState: Sendable {
         self.playbackRate = playbackRate
         self.isCompleted = isCompleted
         self.lastUpdated = lastUpdated
+        self.chapters = chapters
     }
     
     public func toDictionary() -> [String: Any] {
@@ -162,6 +180,14 @@ public struct WatchRemotePlaybackState: Sendable {
         if let bookID = bookID { dict["bookID"] = bookID.uuidString }
         if let author = author { dict["author"] = author }
         if let chapterTitle = chapterTitle { dict["chapterTitle"] = chapterTitle }
+        if !chapters.isEmpty {
+            dict["chapters"] = chapters.map { [
+                "id": $0.id,
+                "title": $0.title,
+                "startTime": $0.startTime,
+                "duration": $0.duration
+            ] }
+        }
         return dict
     }
     
@@ -181,6 +207,17 @@ public struct WatchRemotePlaybackState: Sendable {
         let author = dictionary["author"] as? String
         let chapterTitle = dictionary["chapterTitle"] as? String
         
+        var chapters: [WatchChapterSummary] = []
+        if let rawChapters = dictionary["chapters"] as? [[String: Any]] {
+            chapters = rawChapters.compactMap { d in
+                guard let title = d["title"] as? String,
+                      let startTime = d["startTime"] as? Double,
+                      let duration = d["duration"] as? Double else { return nil }
+                let id = (d["id"] as? String) ?? UUID().uuidString
+                return WatchChapterSummary(id: id, title: title, startTime: startTime, duration: duration)
+            }
+        }
+        
         return WatchRemotePlaybackState(
             bookID: bookID,
             title: title,
@@ -191,7 +228,8 @@ public struct WatchRemotePlaybackState: Sendable {
             isPlaying: isPlaying,
             playbackRate: Float(rateVal),
             isCompleted: isCompleted,
-            lastUpdated: Date(timeIntervalSince1970: timeInterval)
+            lastUpdated: Date(timeIntervalSince1970: timeInterval),
+            chapters: chapters
         )
     }
 }

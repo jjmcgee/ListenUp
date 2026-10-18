@@ -162,6 +162,9 @@ struct ListenUpApp: App {
     
     @MainActor
     private func broadcastPlaybackStateToWatch() {
+        let watchChapters = player.chapters.map {
+            WatchChapterSummary(id: "\($0.id)", title: $0.title, startTime: $0.startTime, duration: $0.duration)
+        }
         let state = WatchRemotePlaybackState(
             bookID: player.currentItem?.id,
             title: player.currentItem?.title ?? "",
@@ -172,7 +175,8 @@ struct ListenUpApp: App {
             isPlaying: player.isPlaying,
             playbackRate: player.playbackRate,
             isCompleted: player.currentItem?.isCompleted ?? false,
-            lastUpdated: Date()
+            lastUpdated: Date(),
+            chapters: watchChapters
         )
         watchSync.broadcastRemotePlaybackState(state)
     }

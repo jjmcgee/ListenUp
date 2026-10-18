@@ -397,17 +397,29 @@ public struct FullPlayerView: View {
                                 .foregroundStyle(player.activeSleepTimerOption == .off ? Color.primary : Color.accentColor)
                             }
                             
-                            // Chapters List Button (Icon 4 placed after timer icon as requested)
+                            // Chapters & Bookmarks List Button (Icon 4 placed after timer icon as requested)
                             Button {
                                 showingChaptersSheet = true
                             } label: {
-                                Image(systemName: "list.bullet")
-                                    .font(.system(size: 15, weight: .semibold))
-                                    .foregroundStyle(Color.primary)
-                                    .frame(width: 36, height: 36)
-                                    .liquidGlassCircle(isInteractive: true)
+                                ZStack(alignment: .topTrailing) {
+                                    Image(systemName: "list.bullet")
+                                        .font(.system(size: 15, weight: .semibold))
+                                        .foregroundStyle(Color.primary)
+                                        .frame(width: 36, height: 36)
+                                        .liquidGlassCircle(isInteractive: true)
+                                    
+                                    if !player.chapters.isEmpty {
+                                        Text("\(player.chapters.count)")
+                                            .font(.system(size: 9, weight: .bold))
+                                            .foregroundStyle(.white)
+                                            .padding(.horizontal, 4)
+                                            .padding(.vertical, 1)
+                                            .background(Color.accentColor, in: Capsule())
+                                            .offset(x: 4, y: -4)
+                                    }
+                                }
                             }
-                            .accessibilityLabel("Chapters")
+                            .accessibilityLabel(player.chapters.isEmpty ? "Chapters and Bookmarks" : "Chapters (\(player.chapters.count))")
                         }
                         .padding(.horizontal, 28)
                         .padding(.bottom, 24)

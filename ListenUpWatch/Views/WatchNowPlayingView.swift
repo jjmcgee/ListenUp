@@ -17,6 +17,7 @@ public enum WatchPlayerMode: String, CaseIterable, Identifiable {
 
 /// Compact, watch-tailored audio player view.
 /// Seamlessly controls iPhone playback (Remote Mode) or plays downloaded books locally (Standalone Mode).
+/// Features Digital Crown scrubbing and chapter selection sheets.
 public struct WatchNowPlayingView: View {
     @Environment(WatchSyncManager.self) private var syncManager
     @Environment(WatchAudioPlayerManager.self) private var localPlayer
@@ -25,6 +26,8 @@ public struct WatchNowPlayingView: View {
     public var onNavigateToLibrary: (() -> Void)?
     
     @State private var playerMode: WatchPlayerMode = .phoneRemote
+    @State private var crownScrubOffset: Double = 0.0
+    @State private var showingChaptersSheet: Bool = false
     
     private let playbackRates: [Float] = PlaybackSpeed.supportedRates
     
@@ -54,6 +57,38 @@ public struct WatchNowPlayingView: View {
             }
             .padding(.horizontal, 6)
             .padding(.vertical, 4)
+        }
+        #if os(watchOS)
+        .focusable()
+        .digitalCrownRotation(
+            $crownScrubOffset,
+            from: -100000.0,
+            through: 100000.0,
+            by: 1.0,
+            sensitivity: .medium,
+            isContinuous: true,
+            isHapticFeedbackEnabled: true
+        )
+        .onChange(of: crownScrubOffset) { oldValue, newValue in
+            let delta = newValue - oldValue
+            guard abs(delta) >= 2.0 else { return }
+            if playerMode == .phoneRemote {
+                if delta > 0 {
+                    syncManager.sendRemoteCommand(WatchRemoteCommand(type: .skipForward, value: abs(delta)))
+                } else {
+                    syncManager.sendRemoteCommand(WatchRemoteCommand(type: .skipBackward, value: abs(delta)))
+                }
+            } else {
+                if delta > 0 {
+                    localPlayer.skipForward(by: abs(delta))
+                } else {
+                    localPlayer.skipBackward(by: abs(delta))
+                }
+            }
+        }
+        #endif
+        .sheet(isPresented: $showingChaptersSheet) {
+            watchChaptersSheetContent
         }
     }
     
@@ -175,14 +210,14 @@ public struct WatchNowPlayingView: View {
                 }
                 .padding(.top, 2)
                 
-                // Secondary Controls: Speed & Chapters
-                HStack(spacing: 12) {
+                // Secondary Controls: Prev Chapter, Speed, Chapters List, Next Chapter
+                HStack(spacing: 8) {
                     // Previous Chapter
                     Button {
                         syncManager.sendRemoteCommand(WatchRemoteCommand(type: .previousChapter))
                     } label: {
                         Image(systemName: "backward.end.fill")
-                            .font(.system(size: 12))
+                            .font(.system(size: 11))
                             .foregroundStyle(.secondary)
                     }
                     .buttonStyle(.plain)
@@ -193,12 +228,32 @@ public struct WatchNowPlayingView: View {
                         syncManager.sendRemoteCommand(WatchRemoteCommand(type: .setPlaybackRate, value: Double(next)))
                     } label: {
                         Text(String(format: "%.2fx", state.playbackRate))
-                            .font(.system(size: 11, weight: .bold))
+                            .font(.system(size: 10, weight: .bold))
                             .foregroundStyle(Color.accentColor)
                             .padding(.vertical, 3)
-                            .padding(.horizontal, 7)
+                            .padding(.horizontal, 6)
                             .background(Color.white.opacity(0.12))
                             .clipShape(Capsule())
+                    }
+                    .buttonStyle(.plain)
+                    
+                    // Chapters List Button
+                    Button {
+                        showingChaptersSheet = true
+                    } label: {
+                        HStack(spacing: 3) {
+                            Image(systemName: "list.bullet")
+                                .font(.system(size: 10, weight: .semibold))
+                            if !state.chapters.isEmpty {
+                                Text("\(state.chapters.count)")
+                                    .font(.system(size: 10, weight: .bold))
+                            }
+                        }
+                        .foregroundStyle(Color.accentColor)
+                        .padding(.vertical, 3)
+                        .padding(.horizontal, 6)
+                        .background(Color.white.opacity(0.12))
+                        .clipShape(Capsule())
                     }
                     .buttonStyle(.plain)
                     
@@ -207,7 +262,7 @@ public struct WatchNowPlayingView: View {
                         syncManager.sendRemoteCommand(WatchRemoteCommand(type: .nextChapter))
                     } label: {
                         Image(systemName: "forward.end.fill")
-                            .font(.system(size: 12))
+                            .font(.system(size: 11))
                             .foregroundStyle(.secondary)
                     }
                     .buttonStyle(.plain)
@@ -339,20 +394,43 @@ public struct WatchNowPlayingView: View {
                 }
                 .padding(.top, 2)
                 
-                // Speed Cycling Button
-                Button {
-                    let next = nextPlaybackRate(after: localPlayer.playbackRate)
-                    localPlayer.setPlaybackRate(next)
-                } label: {
-                    Text(String(format: "%.2fx", localPlayer.playbackRate))
-                        .font(.system(size: 11, weight: .bold))
+                // Secondary Controls: Speed & Chapters
+                HStack(spacing: 10) {
+                    // Speed Cycling Button
+                    Button {
+                        let next = nextPlaybackRate(after: localPlayer.playbackRate)
+                        localPlayer.setPlaybackRate(next)
+                    } label: {
+                        Text(String(format: "%.2fx", localPlayer.playbackRate))
+                            .font(.system(size: 10, weight: .bold))
+                            .foregroundStyle(Color.green)
+                            .padding(.vertical, 3)
+                            .padding(.horizontal, 6)
+                            .background(Color.white.opacity(0.12))
+                            .clipShape(Capsule())
+                    }
+                    .buttonStyle(.plain)
+                    
+                    // Chapters List Button
+                    Button {
+                        showingChaptersSheet = true
+                    } label: {
+                        HStack(spacing: 3) {
+                            Image(systemName: "list.bullet")
+                                .font(.system(size: 10, weight: .semibold))
+                            if !localPlayer.chapters.isEmpty {
+                                Text("\(localPlayer.chapters.count)")
+                                    .font(.system(size: 10, weight: .bold))
+                            }
+                        }
                         .foregroundStyle(Color.green)
                         .padding(.vertical, 3)
-                        .padding(.horizontal, 8)
+                        .padding(.horizontal, 6)
                         .background(Color.white.opacity(0.12))
                         .clipShape(Capsule())
+                    }
+                    .buttonStyle(.plain)
                 }
-                .buttonStyle(.plain)
                 .padding(.top, 2)
                 
                 // Local Badge
@@ -397,6 +475,81 @@ public struct WatchNowPlayingView: View {
             .padding(.top, 4)
         }
         .padding(.vertical, 6)
+    }
+    
+    // MARK: - Watch Chapters Sheet
+    
+    @ViewBuilder
+    private var watchChaptersSheetContent: some View {
+        let (chapters, currentTime): ([WatchChapterSummary], Double) = {
+            if playerMode == .phoneRemote {
+                let list = syncManager.remotePlaybackState?.chapters ?? []
+                let time = syncManager.remotePlaybackState?.currentTime ?? 0.0
+                return (list, time)
+            } else {
+                let list = localPlayer.chapters.map {
+                    WatchChapterSummary(id: "\($0.id)", title: $0.title, startTime: $0.startTime, duration: $0.duration)
+                }
+                return (list, localPlayer.currentTime)
+            }
+        }()
+        
+        NavigationStack {
+            Group {
+                if chapters.isEmpty {
+                    VStack(spacing: 6) {
+                        Image(systemName: "book.pages")
+                            .font(.system(size: 24))
+                            .foregroundStyle(.secondary)
+                        Text("No Chapters")
+                            .font(.system(size: 13, weight: .bold))
+                        Text("No embedded chapter markers were found for this audiobook.")
+                            .font(.system(size: 10))
+                            .foregroundStyle(.secondary)
+                            .multilineTextAlignment(.center)
+                    }
+                    .padding()
+                } else {
+                    List {
+                        ForEach(chapters) { chapter in
+                            Button {
+                                if playerMode == .phoneRemote {
+                                    syncManager.sendRemoteCommand(WatchRemoteCommand(type: .seek, value: chapter.startTime))
+                                } else {
+                                    localPlayer.seek(to: chapter.startTime)
+                                }
+                                showingChaptersSheet = false
+                            } label: {
+                                HStack(spacing: 6) {
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text(chapter.title)
+                                            .font(.system(size: 12, weight: .semibold))
+                                            .lineLimit(2)
+                                        Text(TimeFormatting.formatChapterTimestamp(chapter.startTime))
+                                            .font(.system(size: 10, design: .monospaced))
+                                            .foregroundStyle(.secondary)
+                                    }
+                                    Spacer()
+                                    if currentTime >= chapter.startTime && currentTime < (chapter.startTime + max(chapter.duration, 1.0)) {
+                                        Image(systemName: "checkmark")
+                                            .font(.system(size: 11, weight: .bold))
+                                            .foregroundStyle(playerMode == .phoneRemote ? Color.accentColor : Color.green)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            .navigationTitle("Chapters")
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Done") {
+                        showingChaptersSheet = false
+                    }
+                }
+            }
+        }
     }
 }
 
