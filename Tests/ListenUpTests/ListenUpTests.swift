@@ -1780,6 +1780,433 @@ struct ListenUpTests {
         
         store.reset()
     }
+    
+    // MARK: - Stage 5: Advanced Math, Conflict Resolution & Hierarchy Tests
+    
+    @Test("Multi-part virtual timeline offset and chapter mapping math accurately spans across track boundaries")
+    func testMultiPartVirtualTimelineOffsetAndCrossTrackChapterMapping() {
+        let book = LibraryItem(title: "The Odyssey", kind: .multiPart)
+        
+        let track1 = LibraryItem(title: "Books 1-4", kind: .singleFile, relativePath: "odyssey_1.mp3", totalDuration: 1200.0, sortOrder: 0, parent: book)
+        let track2 = LibraryItem(title: "Books 5-8", kind: .singleFile, relativePath: "odyssey_2.mp3", totalDuration: 1800.0, sortOrder: 1, parent: book)
+        let track3 = LibraryItem(title: "Books 9-12", kind: .singleFile, relativePath: "odyssey_3.mp3", totalDuration: 2000.0, sortOrder: 2, parent: book)
+        
+        book.children = [track1, track2, track3]
+        book.recalculateDurations()
+        
+        #expect(book.totalDuration == 5000.0)
+        #expect(book.segments.count == 3)
+        
+        // Chapters spanning across track boundaries
+        let ch1 = ChapterInfo(index: 0, title: "Telemachy", startTime: 0.0, duration: 800.0)
+        let ch2 = ChapterInfo(index: 1, title: "Council in Ithaca", startTime: 800.0, duration: 1400.0) // 800 .. 2200 (spans track1 and track2)
+        let ch3 = ChapterInfo(index: 2, title: "Scheria", startTime: 2200.0, duration: 1400.0) // 2200 .. 3600 (spans track2 and track3)
+        let ch4 = ChapterInfo(index: 3, title: "Polyphemus", startTime: 3600.0, duration: 1400.0) // 3600 .. 5000 (track3)
+        let chapters = [ch1, ch2, ch3, ch4]
+        
+        func chapter(at time: Double) -> (chapter: ChapterInfo, elapsed: Double, remaining: Double)? {
+            for c in chapters {
+                if time >= c.startTime && time < c.endTime {
+                    return (c, time - c.startTime, c.endTime - time)
+                }
+            }
+            if let last = chapters.last, time >= last.startTime {
+                return (last, min(time - last.startTime, last.duration), 0.0)
+            }
+            return nil
+        }
+        
+        // 1. Position T = 0 (Start of Book)
+        let seg0 = book.segment(at: 0.0)
+        #expect(seg0?.segment.trackIndex == 0)
+        #expect(seg0?.localOffset == 0.0)
+        let chLookup0 = chapter(at: 0.0)
+        #expect(chLookup0?.chapter.index == 0)
+        #expect(chLookup0?.elapsed == 0.0)
+        #expect(chLookup0?.remaining == 800.0)
+        
+        // 2. Position T = 1000 (Inside Track 1, but inside Chapter 2 which started at 800)
+        let seg1 = book.segment(at: 1000.0)
+        #expect(seg1?.segment.trackIndex == 0)
+        #expect(seg1?.localOffset == 1000.0)
+        let chLookup1 = chapter(at: 1000.0)
+        #expect(chLookup1?.chapter.index == 1)
+        #expect(chLookup1?.elapsed == 200.0)
+        #expect(chLookup1?.remaining == 1200.0)
+        
+        // 3. Exact boundary between Track 1 and Track 2 (T = 1200)
+        let segBoundary = book.segment(at: 1200.0)
+        #expect(segBoundary?.segment.trackIndex == 1)
+        #expect(segBoundary?.localOffset == 0.0)
+        let chLookupBoundary = chapter(at: 1200.0)
+        #expect(chLookupBoundary?.chapter.index == 1)
+        #expect(chLookupBoundary?.elapsed == 400.0)
+        #expect(chLookupBoundary?.remaining == 1000.0)
+        
+        // 4. Position T = 2500 (Inside Track 2, inside Chapter 3)
+        let seg2 = book.segment(at: 2500.0)
+        #expect(seg2?.segment.trackIndex == 1)
+        #expect(seg2?.localOffset == 1300.0) // 2500 - 1200
+        let chLookup2 = chapter(at: 2500.0)
+        #expect(chLookup2?.chapter.index == 2)
+        #expect(chLookup2?.elapsed == 300.0) // 2500 - 2200
+        #expect(chLookup2?.remaining == 1100.0) // 3600 - 2500
+        
+        // 5. Position T = 3000 (Exact boundary between Track 2 and Track 3)
+        let segBoundary2 = book.segment(at: 3000.0)
+        #expect(segBoundary2?.segment.trackIndex == 2)
+        #expect(segBoundary2?.localOffset == 0.0)
+        let chLookupBoundary2 = chapter(at: 3000.0)
+        #expect(chLookupBoundary2?.chapter.index == 2)
+        #expect(chLookupBoundary2?.elapsed == 800.0) // 3000 - 2200
+        #expect(chLookupBoundary2?.remaining == 600.0) // 3600 - 3000
+        
+        // 6. Position T = 4500 (Inside Track 3, inside Chapter 4)
+        let seg3 = book.segment(at: 4500.0)
+        #expect(seg3?.segment.trackIndex == 2)
+        #expect(seg3?.localOffset == 1500.0) // 4500 - 3000
+        let chLookup3 = chapter(at: 4500.0)
+        #expect(chLookup3?.chapter.index == 3)
+        #expect(chLookup3?.elapsed == 900.0) // 4500 - 3600
+        #expect(chLookup3?.remaining == 500.0) // 5000 - 4500
+        
+        // 7. Reverse virtual position calculation
+        #expect(book.virtualPosition(trackIndex: 0, localOffset: 1000.0) == 1000.0)
+        #expect(book.virtualPosition(trackIndex: 1, localOffset: 0.0) == 1200.0)
+        #expect(book.virtualPosition(trackIndex: 1, localOffset: 1300.0) == 2500.0)
+        #expect(book.virtualPosition(trackIndex: 2, localOffset: 1500.0) == 4500.0)
+    }
+    
+    @Test("ListeningHistoryBackupService handles archive JSON encoding/decoding and merge conflict resolution")
+    @MainActor
+    func testListeningHistoryBackupServiceMergeConflictResolution() throws {
+        let config = ModelConfiguration(isStoredInMemoryOnly: true)
+        let container = try ModelContainer(for: LibraryItem.self, configurations: config)
+        let context = container.mainContext
+        
+        let bookAID = UUID(uuidString: "11111111-1111-1111-1111-111111111111")!
+        let bookBID = UUID(uuidString: "22222222-2222-2222-2222-222222222222")!
+        let bookCID = UUID(uuidString: "33333333-3333-3333-3333-333333333333")!
+        
+        let localDateA = Date(timeIntervalSince1970: 1000)
+        let localDateB = Date(timeIntervalSince1970: 5000)
+        
+        // Book A: local has earlier timestamp (1000) and less progress (3600s), not completed
+        let bookA = LibraryItem(
+            id: bookAID,
+            title: "Dune",
+            author: "Frank Herbert",
+            kind: .singleFile,
+            relativePath: "dune.mp3",
+            totalDuration: 10000.0,
+            currentPosition: 3600.0,
+            isCompleted: false,
+            lastUpdated: localDateA
+        )
+        
+        // Book B: local has newer timestamp (5000) and is completed (8000s)
+        let completedDateB = Date(timeIntervalSince1970: 4500)
+        let bookB = LibraryItem(
+            id: bookBID,
+            title: "Project Hail Mary",
+            author: "Andy Weir",
+            kind: .singleFile,
+            relativePath: "hailmary.mp3",
+            totalDuration: 8000.0,
+            currentPosition: 8000.0,
+            isCompleted: true,
+            completedDate: completedDateB,
+            lastUpdated: localDateB
+        )
+        
+        context.insert(bookA)
+        context.insert(bookB)
+        try context.save()
+        
+        // Setup initial stats store
+        let statsStore = ListeningStatsStore.shared
+        statsStore.resetRecords()
+        statsStore.restoreDailyRecords([
+            "2026-10-15": 1200.0,
+            "2026-10-16": 3600.0
+        ], merge: false)
+        
+        // Construct incoming backup archive
+        let backupDateA = Date(timeIntervalSince1970: 2000) // Newer than localDateA
+        let completedDateA = Date(timeIntervalSince1970: 1900)
+        let recordA = BookHistoryRecord(
+            id: bookAID,
+            title: "Dune",
+            author: "Frank Herbert",
+            kindRaw: ItemKind.singleFile.rawValue,
+            relativePath: "dune.mp3",
+            totalDuration: 10000.0,
+            formattedTotalDuration: "2h 46m",
+            currentPosition: 5400.0, // Further progress
+            formattedCurrentPosition: "1h 30m",
+            progress: 0.54,
+            progressPercentage: 54,
+            isCompleted: true, // Marked completed in backup!
+            completedDate: completedDateA,
+            formattedCompletedDate: "Oct 15",
+            isFileOffloaded: false,
+            isDeletedFromLibrary: false,
+            lastUpdated: backupDateA,
+            childTracksCount: 0
+        )
+        
+        let backupDateB = Date(timeIntervalSince1970: 2500) // Older than localDateB
+        let recordB = BookHistoryRecord(
+            id: bookBID,
+            title: "Project Hail Mary",
+            author: "Andy Weir",
+            kindRaw: ItemKind.singleFile.rawValue,
+            relativePath: "hailmary.mp3",
+            totalDuration: 8000.0,
+            formattedTotalDuration: "2h 13m",
+            currentPosition: 4000.0, // Regressed progress in older backup
+            formattedCurrentPosition: "1h 06m",
+            progress: 0.5,
+            progressPercentage: 50,
+            isCompleted: false, // Incomplete in older backup
+            completedDate: nil,
+            formattedCompletedDate: nil,
+            isFileOffloaded: false,
+            isDeletedFromLibrary: false,
+            lastUpdated: backupDateB,
+            childTracksCount: 0
+        )
+        
+        let recordC = BookHistoryRecord(
+            id: bookCID,
+            title: "Foundation",
+            author: "Isaac Asimov",
+            kindRaw: ItemKind.singleFile.rawValue,
+            relativePath: "foundation.mp3",
+            totalDuration: 7200.0,
+            formattedTotalDuration: "2h 00m",
+            currentPosition: 2400.0,
+            formattedCurrentPosition: "40m",
+            progress: 0.33,
+            progressPercentage: 33,
+            isCompleted: false,
+            completedDate: nil,
+            formattedCompletedDate: nil,
+            isFileOffloaded: false,
+            isDeletedFromLibrary: false,
+            lastUpdated: Date(timeIntervalSince1970: 3000),
+            childTracksCount: 0
+        )
+        
+        let summary = ListeningHistorySummary(
+            totalListeningSeconds: 15000.0,
+            totalHours: 4.1,
+            totalSummaryFormatted: "4h 06m",
+            months: 0,
+            days: 0,
+            hours: 4,
+            minutes: 6,
+            todayListeningSeconds: 1800.0,
+            todayHours: 0,
+            todayMinutes: 30,
+            dailyGoalMinutes: 30,
+            completedTitlesCount: 2,
+            inProgressTitlesCount: 1,
+            totalHistoryTitlesCount: 3,
+            recordedDaysCount: 3
+        )
+        
+        let incomingDailyRecords: [String: Double] = [
+            "2026-10-15": 2400.0, // Higher than local 1200.0 -> max should merge to 2400.0
+            "2026-10-16": 1800.0, // Lower than local 3600.0 -> max should keep 3600.0
+            "2026-10-17": 900.0   // New day
+        ]
+        
+        let archive = ListeningHistoryArchive(
+            summary: summary,
+            dailyRecords: incomingDailyRecords,
+            dailyActivity: [],
+            bookHistory: [recordA, recordB, recordC]
+        )
+        
+        // 1. Lossless JSON Encoding and Decoding
+        let jsonData = try ListeningHistoryBackupService.encodeJSON(archive: archive)
+        let decoded = try ListeningHistoryBackupService.decodeJSON(from: jsonData)
+        #expect(decoded.bookHistory.count == 3)
+        #expect(decoded.dailyRecords["2026-10-15"] == 2400.0)
+        
+        // 2. Perform Restore & Conflict Resolution
+        let result = ListeningHistoryBackupService.restore(from: decoded, into: context)
+        #expect(result.updatedBooksCount == 1) // Book A was updated; Book B was kept
+        #expect(result.newBooksCount == 1)     // Book C was added as new offloaded item
+        
+        // Verify Book A: took further progress (5400.0), completed union (true), and newer lastUpdated
+        #expect(bookA.currentPosition == 5400.0)
+        #expect(bookA.isCompleted == true)
+        #expect(bookA.completedDate == completedDateA)
+        #expect(bookA.lastUpdated == backupDateA)
+        
+        // Verify Book B: preserved higher progress (8000.0), completion (true), and newer local lastUpdated
+        #expect(bookB.currentPosition == 8000.0)
+        #expect(bookB.isCompleted == true)
+        #expect(bookB.completedDate == completedDateB)
+        #expect(bookB.lastUpdated == localDateB)
+        
+        // Verify Book C: inserted as offloaded item into context
+        let descriptorC = FetchDescriptor<LibraryItem>(predicate: #Predicate { $0.id == bookCID })
+        let fetchedC = try context.fetch(descriptorC).first
+        #expect(fetchedC != nil)
+        #expect(fetchedC?.title == "Foundation")
+        #expect(fetchedC?.currentPosition == 2400.0)
+        #expect(fetchedC?.isFileOffloaded == true)
+        
+        // Verify Daily Records: max-seconds merge
+        let stats = statsStore.allDailyRecords
+        #expect(stats["2026-10-15"] == 2400.0)
+        #expect(stats["2026-10-16"] == 3600.0)
+        #expect(stats["2026-10-17"] == 900.0)
+        
+        statsStore.resetRecords()
+    }
+    
+    @Test("FileImporterService deduplication reconnects offloaded items and builds folder hierarchies")
+    @MainActor
+    func testFileImporterServiceInProcessModelContainerDeduplicationAndFolderHierarchy() throws {
+        let config = ModelConfiguration(isStoredInMemoryOnly: true)
+        let container = try ModelContainer(for: LibraryItem.self, configurations: config)
+        let context = container.mainContext
+        
+        // 1. Setup existing offloaded book in context
+        let existingID = UUID()
+        let existingOffloaded = LibraryItem(
+            id: existingID,
+            title: "The Hobbit",
+            author: "J.R.R. Tolkien",
+            kind: .singleFile,
+            relativePath: "OldPath/hobbit.mp3",
+            totalDuration: 4000.0,
+            currentPosition: 1500.0,
+            isCompleted: false,
+            isFileOffloaded: true,
+            lastUpdated: Date(timeIntervalSince1970: 1000)
+        )
+        context.insert(existingOffloaded)
+        try context.save()
+        
+        // DTO for re-importing / deduplicating "The Hobbit"
+        let hobbitDTO = ImportedItemDTO(
+            id: existingID,
+            title: "The Hobbit",
+            author: "J.R.R. Tolkien",
+            kind: .singleFile,
+            relativePath: "Audiobooks/Hobbit/audio.m4b",
+            totalDuration: 4200.0
+        )
+        
+        let persistedHobbit = FileImporterService.persist(dto: hobbitDTO, into: context)
+        #expect(persistedHobbit.id == existingID)
+        #expect(persistedHobbit.currentPosition == 1500.0) // Position preserved!
+        #expect(persistedHobbit.isFileOffloaded == false)   // Reconnected!
+        #expect(persistedHobbit.relativePath == "Audiobooks/Hobbit/audio.m4b")
+        
+        // Check that no duplicate root row was created
+        let allItems = try context.fetch(FetchDescriptor<LibraryItem>())
+        #expect(allItems.count == 1)
+        
+        // 2. Folder Hierarchy Creation
+        let child1DTO = ImportedItemDTO(
+            title: "Unit 01",
+            author: "Pimsleur",
+            kind: .singleFile,
+            relativePath: "Audiobooks/German/unit1.mp3",
+            totalDuration: 1800.0,
+            sortOrder: 0
+        )
+        let child2DTO = ImportedItemDTO(
+            title: "Unit 02",
+            author: "Pimsleur",
+            kind: .singleFile,
+            relativePath: "Audiobooks/German/unit2.mp3",
+            totalDuration: 1800.0,
+            sortOrder: 1
+        )
+        let folderDTO = ImportedItemDTO(
+            title: "Pimsleur German 1",
+            author: "Pimsleur",
+            kind: .folder,
+            relativePath: "Audiobooks/German",
+            children: [child1DTO, child2DTO]
+        )
+        
+        let folderItem = FileImporterService.persist(dto: folderDTO, into: context)
+        #expect(folderItem.kind == .folder)
+        #expect(folderItem.title == "Pimsleur German 1")
+        #expect(folderItem.totalDuration == 3600.0)
+        #expect(folderItem.sortedChildren.count == 2)
+        #expect(folderItem.sortedChildren[0].title == "Unit 01")
+        #expect(folderItem.sortedChildren[1].title == "Unit 02")
+        #expect(folderItem.sortedChildren[0].parent?.id == folderItem.id)
+        #expect(folderItem.sortedChildren[1].parent?.id == folderItem.id)
+    }
+    
+    @Test("ListeningStatsStore computes accurate streak days across consecutive and gapped days")
+    @MainActor
+    func testListeningStatsStoreGappedDayStreak() {
+        let store = ListeningStatsStore.shared
+        store.resetRecords()
+        
+        let calendar = Calendar.current
+        let now = Date()
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        
+        let todayKey = formatter.string(from: now)
+        let d1Key = formatter.string(from: calendar.date(byAdding: .day, value: -1, to: now)!)
+        let d2Key = formatter.string(from: calendar.date(byAdding: .day, value: -2, to: now)!)
+        let d3Key = formatter.string(from: calendar.date(byAdding: .day, value: -3, to: now)!)
+        let d4Key = formatter.string(from: calendar.date(byAdding: .day, value: -4, to: now)!)
+        let d5Key = formatter.string(from: calendar.date(byAdding: .day, value: -5, to: now)!)
+        
+        // Case 1: Yesterday listened (3 days consecutive), not yet listened today -> Streak = 3
+        store.restoreDailyRecords([
+            d1Key: 1800.0,
+            d2Key: 1200.0,
+            d3Key: 2400.0,
+            d4Key: 0.0,
+            d5Key: 3000.0
+        ], merge: false)
+        #expect(store.currentStreakDays == 3)
+        
+        // Case 2: Gap at yesterday (didn't listen yesterday), listened day before -> Streak = 0
+        store.restoreDailyRecords([
+            d1Key: 0.0,
+            d2Key: 1200.0,
+            d3Key: 2400.0
+        ], merge: false)
+        #expect(store.currentStreakDays == 0)
+        
+        // Case 3: Listened today, listened yesterday, listened 2 days ago -> Streak = 3
+        store.restoreDailyRecords([
+            todayKey: 600.0,
+            d1Key: 1800.0,
+            d2Key: 1200.0,
+            d3Key: 0.0,
+            d4Key: 3600.0
+        ], merge: false)
+        #expect(store.currentStreakDays == 3)
+        
+        // Case 4: Listened today, but had a gap yesterday -> Streak = 1 (fresh streak starting today)
+        store.restoreDailyRecords([
+            todayKey: 900.0,
+            d1Key: 0.0,
+            d2Key: 1800.0,
+            d3Key: 1800.0
+        ], merge: false)
+        #expect(store.currentStreakDays == 1)
+        
+        store.resetRecords()
+    }
 }
 
 

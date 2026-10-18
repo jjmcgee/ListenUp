@@ -11,6 +11,8 @@ public struct LibraryRow: View {
     public var onDeleteAudioFile: (() -> Void)?
     public var onRelink: (() -> Void)?
     
+    @ScaledMetric(relativeTo: .body) private var artworkSize: CGFloat = 58
+    
     public init(
         item: LibraryItem,
         isCurrentlyPlaying: Bool = false,
@@ -29,6 +31,36 @@ public struct LibraryRow: View {
         self.onRelink = onRelink
     }
     
+    private var accessibilityRowLabel: String {
+        if let author = item.author, !author.isEmpty {
+            return "\(item.title), by \(author)"
+        }
+        return item.title
+    }
+    
+    private var accessibilityRowValue: String {
+        if item.kind == .folder {
+            return "\(item.sortedChildren.count) items"
+        } else if item.isCompleted {
+            return "Completed\(item.isFileOffloaded ? ", audio file offloaded" : "")"
+        } else {
+            let progressStr = "\(Int(item.progress * 100)) percent completed"
+            let durationStr = item.totalDuration > 0 ? ", \(item.formattedTotalDuration) total" : ""
+            let playingStr = isCurrentlyPlaying ? ", currently playing" : ""
+            return "\(progressStr)\(durationStr)\(playingStr)"
+        }
+    }
+    
+    private var accessibilityRowHint: String {
+        if item.kind == .folder {
+            return "Double tap to open folder"
+        } else if item.isFileOffloaded {
+            return "Double tap to view options to relink audio file"
+        } else {
+            return isCurrentlyPlaying ? "Double tap to pause" : "Double tap to play"
+        }
+    }
+    
     public var body: some View {
         HStack(spacing: 14) {
             // Artwork Thumbnail with Playing Badge
@@ -40,7 +72,7 @@ public struct LibraryRow: View {
                     kind: item.kind,
                     cornerRadius: 8
                 )
-                .frame(width: 58, height: 58)
+                .frame(width: artworkSize, height: artworkSize)
                 .shadow(color: .black.opacity(0.12), radius: 4, x: 0, y: 2)
                 
                 if isCurrentlyPlaying {
@@ -155,6 +187,10 @@ public struct LibraryRow: View {
         }
         .padding(.vertical, 4)
         .contentShape(Rectangle())
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(accessibilityRowLabel)
+        .accessibilityValue(accessibilityRowValue)
+        .accessibilityHint(accessibilityRowHint)
         .contextMenu {
             if item.kind != .folder {
                 if !item.isFileOffloaded {

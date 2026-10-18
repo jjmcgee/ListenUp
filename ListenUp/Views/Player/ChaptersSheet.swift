@@ -196,13 +196,13 @@ public struct ChaptersSheet: View {
                             HStack(alignment: .center, spacing: 12) {
                                 VStack(alignment: .leading, spacing: 4) {
                                     Text(chapter.title)
-                                        .font(.system(size: 16, weight: .semibold))
+                                        .font(.headline)
                                         .foregroundStyle(Color.primary)
                                         .lineLimit(2)
                                         .multilineTextAlignment(.leading)
                                     
                                     Text("Start: \(TimeFormatting.formatChapterTimestamp(chapter.startTime)) - Duration: \(TimeFormatting.formatChapterDuration(chapter.duration))")
-                                        .font(.system(size: 13, weight: .regular))
+                                        .font(.caption)
                                         .foregroundStyle(Color.secondary)
                                 }
                                 
@@ -260,21 +260,21 @@ public struct ChaptersSheet: View {
                         HStack(alignment: .center, spacing: 12) {
                             VStack(alignment: .leading, spacing: 4) {
                                 Text(bookmark.title)
-                                    .font(.system(size: 16, weight: .semibold))
+                                    .font(.headline)
                                     .foregroundStyle(Color.primary)
                                     .lineLimit(2)
                                     .multilineTextAlignment(.leading)
                                 
                                 HStack(spacing: 6) {
                                     Text(TimeFormatting.formatTimestamp(bookmark.timestamp))
-                                        .font(.system(size: 13, weight: .medium, design: .monospaced))
+                                        .font(.system(.caption, design: .monospaced, weight: .medium))
                                         .foregroundStyle(Color.accentColor)
                                     
                                     Text("•")
                                         .foregroundStyle(Color.secondary)
                                     
                                     Text(bookmark.createdAt.formatted(date: .abbreviated, time: .shortened))
-                                        .font(.system(size: 12, weight: .regular))
+                                        .font(.caption)
                                         .foregroundStyle(Color.secondary)
                                 }
                             }

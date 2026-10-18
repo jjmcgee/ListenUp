@@ -33,8 +33,9 @@ public struct FloatingNavBar: View {
     
     @FocusState private var isSearchFieldFocused: Bool
     
-    private let barHeight: CGFloat = 64
-    private let circleSize: CGFloat = 64
+    @ScaledMetric(relativeTo: .body) private var barHeight: CGFloat = 64
+    @ScaledMetric(relativeTo: .body) private var circleSize: CGFloat = 64
+    @ScaledMetric(relativeTo: .body) private var tabButtonHeight: CGFloat = 52
     
     public init(
         selectedTab: Binding<NavTab>,
@@ -74,6 +75,8 @@ public struct FloatingNavBar: View {
                             .contentShape(Circle())
                     }
                     .buttonStyle(.plain)
+                    .accessibilityLabel("Show navigation tabs")
+                    .accessibilityHint("Double tap to close search and view library, profile, and settings")
                     .transition(.asymmetric(
                         insertion: .opacity.combined(with: .scale(scale: 0.9)),
                         removal: .opacity.combined(with: .scale(scale: 0.9))
@@ -98,6 +101,7 @@ public struct FloatingNavBar: View {
                             .contentShape(Circle())
                     }
                     .buttonStyle(.plain)
+                    .accessibilityLabel("Search library")
                     .transition(.asymmetric(
                         insertion: .opacity.combined(with: .scale(scale: 0.9)),
                         removal: .opacity.combined(with: .scale(scale: 0.9))
@@ -132,6 +136,7 @@ public struct FloatingNavBar: View {
                                     .font(.system(size: 18))
                                     .foregroundStyle(Color.secondary)
                             }
+                            .accessibilityLabel("Clear search text")
                             .padding(.trailing, 14)
                         } else {
                             Spacer()
@@ -174,7 +179,7 @@ public struct FloatingNavBar: View {
                     .foregroundStyle(isSelected ? Color.accentColor : Color.primary)
             }
             .frame(maxWidth: .infinity)
-            .frame(height: 52)
+            .frame(height: tabButtonHeight)
             .background {
                 if isSelected {
                     Capsule()
@@ -197,6 +202,8 @@ public struct FloatingNavBar: View {
             .contentShape(Capsule())
         }
         .buttonStyle(.plain)
+        .accessibilityLabel(tab.rawValue)
+        .accessibilityAddTraits(isSelected ? [.isButton, .isSelected] : .isButton)
     }
     
     // MARK: - Helpers

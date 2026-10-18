@@ -7,6 +7,8 @@ public struct MiniPlayerView: View {
     public var onExpand: () -> Void
     
     @AppStorage("skipBackwardInterval") private var skipBackwardInterval: Double = 15.0
+    @ScaledMetric(relativeTo: .body) private var artworkSize: CGFloat = 44
+    @ScaledMetric(relativeTo: .body) private var playButtonSize: CGFloat = 36
     
     private var skipBackwardIcon: String {
         let seconds = Int(skipBackwardInterval)
@@ -55,7 +57,7 @@ public struct MiniPlayerView: View {
                         kind: item.kind,
                         cornerRadius: 6
                     )
-                    .frame(width: 44, height: 44)
+                    .frame(width: artworkSize, height: artworkSize)
                     .shadow(color: .black.opacity(0.15), radius: 3, x: 0, y: 1)
                     
                     // Metadata
@@ -81,6 +83,7 @@ public struct MiniPlayerView: View {
                             .font(.system(size: 20))
                             .foregroundStyle(Color.primary)
                     }
+                    .accessibilityLabel("Skip backward \(Int(skipBackwardInterval)) seconds")
                     .padding(.horizontal, 4)
                     
                     // Controls: Play / Pause
@@ -90,9 +93,10 @@ public struct MiniPlayerView: View {
                         Image(systemName: player.isPlaying ? "pause.fill" : "play.fill")
                             .font(.system(size: 17, weight: .bold))
                             .foregroundStyle(Color.accentColor)
-                            .frame(width: 36, height: 36)
+                            .frame(width: playButtonSize, height: playButtonSize)
                             .liquidGlassCircle(tint: Color.accentColor, isInteractive: true)
                     }
+                    .accessibilityLabel(player.isPlaying ? "Pause" : "Play")
                     .padding(.trailing, 4)
                 }
                 .padding(.horizontal, 14)
@@ -102,6 +106,11 @@ public struct MiniPlayerView: View {
             .liquidGlass(cornerRadius: 18, tint: Color.accentColor)
             .contentShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
             .onTapGesture {
+                onExpand()
+            }
+            .accessibilityElement(children: .contain)
+            .accessibilityHint("Double tap to open now playing player")
+            .accessibilityAction(named: "Open Player") {
                 onExpand()
             }
             .padding(.horizontal, 12)

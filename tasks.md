@@ -197,17 +197,17 @@ Improvements to core user workflows across library management, search, player co
 
 Ensuring ListenUp works seamlessly with VoiceOver, Dynamic Type, and has strong unit test coverage for core services.
 
-- [ ] **5.1 Add Missing VoiceOver Accessibility Labels and Values**
+- [x] **5.1 Add Missing VoiceOver Accessibility Labels and Values**
   - **Location:** `ListenUp/Views/FullPlayerView.swift` (lines 118–124, 272–297, 319–370), `ListenUp/Views/MiniPlayerView.swift` (lines 136–170), `ListenUp/Views/Components/FloatingNavBar.swift` (lines 38–96), `ListenUp/Views/Components/LibraryRow.swift`
   - **Issue:** Icon-only transport buttons (play/pause, skip back 15s, skip forward 30s, dismiss chevron), the custom drag scrubber in `FullPlayerView`, and the custom `FloatingNavBar` tabs lack `.accessibilityLabel`, `.accessibilityValue`, and `.accessibilityAdjustableAction`.
   - **Fix:** Add explicit accessibility labels/traits to all icon buttons and implement `.accessibilityAdjustableAction` on the custom progress scrubber so VoiceOver users can scrub forward/backward.
 
-- [ ] **5.2 Support Dynamic Type Across Custom Views**
+- [x] **5.2 Support Dynamic Type Across Custom Views**
   - **Location:** Throughout `ListenUp/Views/` (hardcoded `.system(size: ...)` font modifiers)
   - **Issue:** Most views use fixed point sizes (`.system(size: 14, weight: .semibold)`) and fixed frame heights, preventing text from scaling with the user's iOS/watchOS Dynamic Type accessibility settings.
   - **Fix:** Replace fixed `.system(size:)` declarations with semantic SwiftUI text styles (`.headline`, `.subheadline`, `.caption`, etc.) or scale custom sizes and container heights with `@ScaledMetric`.
 
-- [ ] **5.3 Expand Unit Test Suite for Core Services**
+- [x] **5.3 Expand Unit Test Suite for Core Services**
   - **Location:** `Tests/ListenUpTests/ListenUpTests.swift`
   - **Issue:** Existing tests cover model computations, time formatting, and `ListeningStatsStore`, but lack tests for `FileImporterService`, `ListeningHistoryBackupService`, `AudioPlayerManager` virtual multi-part offset math, and `WidgetDataStore` round-tripping.
   - **Fix:** Add unit tests covering:

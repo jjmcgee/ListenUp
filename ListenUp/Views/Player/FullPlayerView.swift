@@ -18,6 +18,11 @@ public struct FullPlayerView: View {
     @State private var showingChaptersSheet: Bool = false
     @State private var showingWatchSyncSheet: Bool = false
     
+    @ScaledMetric(relativeTo: .body) private var transportButtonSize: CGFloat = 56
+    @ScaledMetric(relativeTo: .body) private var playButtonSize: CGFloat = 74
+    @ScaledMetric(relativeTo: .body) private var headerButtonSize: CGFloat = 40
+    @ScaledMetric(relativeTo: .body) private var chapterButtonSize: CGFloat = 36
+    
     private var skipBackwardIcon: String {
         let seconds = Int(skipBackwardInterval)
         switch seconds {
@@ -85,9 +90,10 @@ public struct FullPlayerView: View {
                                     Image(systemName: "chevron.compact.down")
                                         .font(.system(size: 26, weight: .bold))
                                         .foregroundStyle(Color.secondary)
-                                        .frame(width: 40, height: 40)
+                                        .frame(width: headerButtonSize, height: headerButtonSize)
                                         .liquidGlassCircle(isInteractive: true)
                                 }
+                                .accessibilityLabel("Dismiss Now Playing")
                                 
                                 Spacer()
                                 
@@ -97,7 +103,7 @@ public struct FullPlayerView: View {
                                     Image(systemName: "applewatch.radiowaves.left.and.right")
                                         .font(.system(size: 18, weight: .semibold))
                                         .foregroundStyle(Color.accentColor)
-                                        .frame(width: 40, height: 40)
+                                        .frame(width: headerButtonSize, height: headerButtonSize)
                                         .liquidGlassCircle(tint: Color.accentColor, isInteractive: true)
                                 }
                                 .accessibilityLabel("Apple Watch Sync")
@@ -126,7 +132,7 @@ public struct FullPlayerView: View {
                         // Titles & Author
                         VStack(spacing: 4) {
                             Text(item.title)
-                                .font(.system(size: 22, weight: .bold, design: .rounded))
+                                .font(.system(.title3, design: .rounded, weight: .bold))
                                 .multilineTextAlignment(.center)
                                 .lineLimit(2)
                                 .foregroundStyle(Color.primary)
@@ -134,7 +140,7 @@ public struct FullPlayerView: View {
                             
                             if let author = item.author, !author.isEmpty {
                                 Text(author)
-                                    .font(.system(size: 16, weight: .medium))
+                                    .font(.subheadline.weight(.medium))
                                     .foregroundStyle(Color.secondary)
                                     .lineLimit(1)
                             }
@@ -150,11 +156,12 @@ public struct FullPlayerView: View {
                                     Image(systemName: "chevron.left")
                                         .font(.system(size: 15, weight: .bold))
                                         .foregroundStyle(Color.primary)
-                                        .frame(width: 36, height: 36)
+                                        .frame(width: chapterButtonSize, height: chapterButtonSize)
                                         .liquidGlassCircle(isInteractive: true)
                                 }
                                 .disabled(player.currentChapterIndex == 0 && player.currentChapterElapsed <= 3.0)
                                 .opacity((player.currentChapterIndex == 0 && player.currentChapterElapsed <= 3.0) ? 0.35 : 1.0)
+                                .accessibilityLabel("Previous Chapter")
                                 
                                 Spacer()
                                 
@@ -171,6 +178,8 @@ public struct FullPlayerView: View {
                                         .padding(.vertical, 7)
                                         .liquidGlassCapsule(tint: Color.accentColor, isInteractive: true)
                                 }
+                                .accessibilityLabel("Chapter: \(currentChapter.title)")
+                                .accessibilityHint("Double tap to open chapters and bookmarks list")
                                 
                                 Spacer()
                                 
@@ -181,11 +190,12 @@ public struct FullPlayerView: View {
                                     Image(systemName: "chevron.right")
                                         .font(.system(size: 15, weight: .bold))
                                         .foregroundStyle(Color.primary)
-                                        .frame(width: 36, height: 36)
+                                        .frame(width: chapterButtonSize, height: chapterButtonSize)
                                         .liquidGlassCircle(isInteractive: true)
                                 }
                                 .disabled(player.currentChapterIndex == (player.chapters.count - 1))
                                 .opacity((player.currentChapterIndex == (player.chapters.count - 1)) ? 0.35 : 1.0)
+                                .accessibilityLabel("Next Chapter")
                             }
                             .padding(.horizontal, 20)
                         } else if item.kind == .multiPart, let currentTrack = player.currentTrack {
@@ -238,6 +248,34 @@ public struct FullPlayerView: View {
                                 }
                             )
                             .tint(Color.accentColor)
+                            .accessibilityLabel(isChapterMode ? "Chapter Playback Position" : "Book Playback Position")
+                            .accessibilityValue(isChapterMode
+                                ? "\(TimeFormatting.formatChapterDuration(currentScrubberDisplayValue)) of \(TimeFormatting.formatChapterDuration(scrubberMaxDuration))"
+                                : "\(TimeFormatting.formatTimestamp(currentScrubberDisplayValue)) of \(TimeFormatting.formatTimestamp(scrubberMaxDuration))"
+                            )
+                            .accessibilityAdjustableAction { direction in
+                                let step: Double = max(15.0, scrubberMaxDuration * 0.05)
+                                switch direction {
+                                case .increment:
+                                    if isChapterMode, let ch = player.currentChapter {
+                                        let next = min(currentScrubberDisplayValue + step, ch.duration)
+                                        player.seek(to: ch.startTime + next)
+                                    } else {
+                                        let next = min(player.currentTime + step, player.totalDuration)
+                                        player.seek(to: next)
+                                    }
+                                case .decrement:
+                                    if isChapterMode, let ch = player.currentChapter {
+                                        let prev = max(currentScrubberDisplayValue - step, 0.0)
+                                        player.seek(to: ch.startTime + prev)
+                                    } else {
+                                        let prev = max(player.currentTime - step, 0.0)
+                                        player.seek(to: prev)
+                                    }
+                                @unknown default:
+                                    break
+                                }
+                            }
                             
                             // Time Labels (05:38 - Chapter 44 of 136 - -04:08)
                             HStack {
@@ -317,6 +355,8 @@ public struct FullPlayerView: View {
                                 }
                                 .buttonStyle(.plain)
                                 .padding(.top, 2)
+                                .accessibilityLabel(isShowingBookScrubber ? "Switch to Chapter Timeline" : "Switch to Full Book Timeline")
+                                .accessibilityValue("\(bookRemainingFormatted) remaining in book")
                             } else {
                                 HStack(spacing: 5) {
                                     Image(systemName: "book.closed")
@@ -342,19 +382,21 @@ public struct FullPlayerView: View {
                                 Image(systemName: skipBackwardIcon)
                                     .font(.system(size: 24, weight: .semibold))
                                     .foregroundStyle(Color.primary)
-                                    .frame(width: 56, height: 56)
+                                    .frame(width: transportButtonSize, height: transportButtonSize)
                                     .liquidGlassCircle(isInteractive: true)
                             }
+                            .accessibilityLabel("Skip backward \(Int(skipBackwardInterval)) seconds")
                             
                             // Play / Pause Toggle
                             Button {
                                 player.togglePlayPause()
                             } label: {
                                 Image(systemName: player.isPlaying ? "pause.circle.fill" : "play.circle.fill")
-                                    .font(.system(size: 74))
+                                    .font(.system(size: playButtonSize))
                                     .foregroundStyle(Color.accentColor)
                                     .shadow(color: Color.accentColor.opacity(0.35), radius: 14, x: 0, y: 6)
                             }
+                            .accessibilityLabel(player.isPlaying ? "Pause" : "Play")
                             
                             // Skip Forward
                             Button {
@@ -363,9 +405,10 @@ public struct FullPlayerView: View {
                                 Image(systemName: skipForwardIcon)
                                     .font(.system(size: 24, weight: .semibold))
                                     .foregroundStyle(Color.primary)
-                                    .frame(width: 56, height: 56)
+                                    .frame(width: transportButtonSize, height: transportButtonSize)
                                     .liquidGlassCircle(isInteractive: true)
                             }
+                            .accessibilityLabel("Skip forward \(Int(skipForwardInterval)) seconds")
                         }
                         .padding(.vertical, 8)
                         
@@ -396,6 +439,8 @@ public struct FullPlayerView: View {
                                 .liquidGlassCapsule(tint: player.activeSleepTimerOption == .off ? nil : Color.accentColor, isInteractive: true)
                                 .foregroundStyle(player.activeSleepTimerOption == .off ? Color.primary : Color.accentColor)
                             }
+                            .accessibilityLabel("Sleep Timer")
+                            .accessibilityValue(player.activeSleepTimerOption == .off ? "Off" : "\(TimeFormatting.formatTimestamp(player.sleepTimerRemaining ?? 0)) remaining")
                             
                             // Chapters & Bookmarks List Button (Icon 4 placed after timer icon as requested)
                             Button {
@@ -405,7 +450,7 @@ public struct FullPlayerView: View {
                                     Image(systemName: "list.bullet")
                                         .font(.system(size: 15, weight: .semibold))
                                         .foregroundStyle(Color.primary)
-                                        .frame(width: 36, height: 36)
+                                        .frame(width: chapterButtonSize, height: chapterButtonSize)
                                         .liquidGlassCircle(isInteractive: true)
                                     
                                     if !player.chapters.isEmpty {
