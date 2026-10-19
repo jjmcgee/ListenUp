@@ -77,6 +77,7 @@ public struct ChaptersSheet: View {
                             .frame(width: 34, height: 34)
                             .liquidGlassCircle(isInteractive: true)
                     }
+                    .buttonStyle(.plain)
                     .accessibilityLabel("Close")
                 }
                 
@@ -97,6 +98,7 @@ public struct ChaptersSheet: View {
                             .padding(.vertical, 6)
                             .liquidGlassCapsule(tint: Color.accentColor, isInteractive: true)
                         }
+                        .buttonStyle(.plain)
                         .disabled(player.isLoadingChapters)
                         .accessibilityLabel("Reload Chapters")
                     } else {
@@ -115,6 +117,7 @@ public struct ChaptersSheet: View {
                             .padding(.vertical, 6)
                             .liquidGlassCapsule(tint: Color.accentColor, isInteractive: true)
                         }
+                        .buttonStyle(.plain)
                         .accessibilityLabel("Add Bookmark")
                     }
                 }
@@ -224,6 +227,7 @@ public struct ChaptersSheet: View {
                             }
                             .contentShape(Rectangle())
                         }
+                        .buttonStyle(.plain)
                         .id(chapter.id)
                     }
                 }
@@ -289,6 +293,7 @@ public struct ChaptersSheet: View {
                         .padding(.horizontal, 10)
                         .contentShape(Rectangle())
                     }
+                    .buttonStyle(.plain)
                     .contextMenu {
                         Button {
                             renameBookmarkTitle = bookmark.title

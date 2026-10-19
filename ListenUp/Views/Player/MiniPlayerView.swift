@@ -83,6 +83,7 @@ public struct MiniPlayerView: View {
                             .font(.system(size: 20))
                             .foregroundStyle(Color.primary)
                     }
+                    .buttonStyle(.plain)
                     .accessibilityLabel("Skip backward \(Int(skipBackwardInterval)) seconds")
                     .padding(.horizontal, 4)
                     
@@ -96,6 +97,7 @@ public struct MiniPlayerView: View {
                             .frame(width: playButtonSize, height: playButtonSize)
                             .liquidGlassCircle(tint: Color.accentColor, isInteractive: true)
                     }
+                    .buttonStyle(.plain)
                     .accessibilityLabel(player.isPlaying ? "Pause" : "Play")
                     .padding(.trailing, 4)
                 }

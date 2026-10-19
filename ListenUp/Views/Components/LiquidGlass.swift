@@ -19,18 +19,20 @@ public struct LiquidGlassModifier: ViewModifier {
     public let shapeKind: LiquidGlassShapeKind
     public let tint: Color?
     public let isInteractive: Bool
+    public var isPressed: Bool = false
     
     @Environment(\.colorScheme) private var colorScheme
-    @State private var isPressed: Bool = false
     
     public init(
         shapeKind: LiquidGlassShapeKind = .roundedRectangle(cornerRadius: 16),
         tint: Color? = nil,
-        isInteractive: Bool = false
+        isInteractive: Bool = false,
+        isPressed: Bool = false
     ) {
         self.shapeKind = shapeKind
         self.tint = tint
         self.isInteractive = isInteractive
+        self.isPressed = isPressed
     }
     
     public func body(content: Content) -> some View {
@@ -46,9 +48,9 @@ public struct LiquidGlassModifier: ViewModifier {
             }
             .shadow(
                 color: Color.black.opacity(colorScheme == .dark ? 0.28 : 0.08),
-                radius: isPressed ? 6 : 14,
+                radius: (isInteractive && isPressed) ? 6 : 14,
                 x: 0,
-                y: isPressed ? 2 : 6
+                y: (isInteractive && isPressed) ? 2 : 6
             )
             .shadow(
                 color: (tint ?? Color.accentColor).opacity(colorScheme == .dark ? 0.12 : 0.05),
@@ -56,31 +58,26 @@ public struct LiquidGlassModifier: ViewModifier {
                 x: 0,
                 y: 2
             )
-            .scaleEffect(isInteractive && isPressed ? 0.97 : 1.0)
-            .animation(.spring(response: 0.28, dampingFraction: 0.72), value: isPressed)
-            .simultaneousGesture(
-                isInteractive ? DragGesture(minimumDistance: 0)
-                    .onChanged { _ in
-                        if !isPressed {
-                            isPressed = true
-                        }
-                    }
-                    .onEnded { _ in
-                        isPressed = false
-                    }
-                : nil
-            )
+            .scaleEffect((isInteractive && isPressed) ? 0.96 : 1.0)
+            .animation(.spring(response: 0.24, dampingFraction: 0.72), value: isPressed)
     }
     
     @ViewBuilder
     private func clippedContent(_ content: Content) -> some View {
         switch shapeKind {
         case .capsule:
-            content.clipShape(Capsule())
+            content
+                .clipShape(Capsule())
+                .contentShape(Capsule())
         case .circle:
-            content.clipShape(Circle())
+            content
+                .clipShape(Circle())
+                .contentShape(Circle())
         case .roundedRectangle(let radius):
-            content.clipShape(RoundedRectangle(cornerRadius: radius, style: .continuous))
+            let shape = RoundedRectangle(cornerRadius: radius, style: .continuous)
+            content
+                .clipShape(shape)
+                .contentShape(shape)
         }
     }
     
@@ -292,7 +289,12 @@ public struct LiquidGlassButtonStyle: ButtonStyle {
     
     public func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .modifier(LiquidGlassModifier(shapeKind: shapeKind, tint: tint, isInteractive: false))
+            .modifier(LiquidGlassModifier(
+                shapeKind: shapeKind,
+                tint: tint,
+                isInteractive: true,
+                isPressed: configuration.isPressed
+            ))
             .scaleEffect(configuration.isPressed ? 0.96 : 1.0)
             .opacity(configuration.isPressed ? 0.88 : 1.0)
             .animation(.spring(response: 0.24, dampingFraction: 0.72), value: configuration.isPressed)

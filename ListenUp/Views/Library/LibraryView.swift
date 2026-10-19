@@ -198,6 +198,7 @@ public struct LibraryView: View {
                             .padding(.vertical, 6)
                             .liquidGlassCapsule(tint: Color.accentColor, isInteractive: true)
                         }
+                        .buttonStyle(.plain)
                         .accessibilityLabel("Import Audiobook")
                     }
                 }

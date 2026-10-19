@@ -93,6 +93,7 @@ public struct FullPlayerView: View {
                                         .frame(width: headerButtonSize, height: headerButtonSize)
                                         .liquidGlassCircle(isInteractive: true)
                                 }
+                                .buttonStyle(.plain)
                                 .accessibilityLabel("Dismiss Now Playing")
                                 
                                 Spacer()
@@ -106,6 +107,7 @@ public struct FullPlayerView: View {
                                         .frame(width: headerButtonSize, height: headerButtonSize)
                                         .liquidGlassCircle(tint: Color.accentColor, isInteractive: true)
                                 }
+                                .buttonStyle(.plain)
                                 .accessibilityLabel("Apple Watch Sync")
                             }
                             .padding(.horizontal, 24)
@@ -159,6 +161,7 @@ public struct FullPlayerView: View {
                                         .frame(width: chapterButtonSize, height: chapterButtonSize)
                                         .liquidGlassCircle(isInteractive: true)
                                 }
+                                .buttonStyle(.plain)
                                 .disabled(player.currentChapterIndex == 0 && player.currentChapterElapsed <= 3.0)
                                 .opacity((player.currentChapterIndex == 0 && player.currentChapterElapsed <= 3.0) ? 0.35 : 1.0)
                                 .accessibilityLabel("Previous Chapter")
@@ -178,6 +181,7 @@ public struct FullPlayerView: View {
                                         .padding(.vertical, 7)
                                         .liquidGlassCapsule(tint: Color.accentColor, isInteractive: true)
                                 }
+                                .buttonStyle(.plain)
                                 .accessibilityLabel("Chapter: \(currentChapter.title)")
                                 .accessibilityHint("Double tap to open chapters and bookmarks list")
                                 
@@ -193,6 +197,7 @@ public struct FullPlayerView: View {
                                         .frame(width: chapterButtonSize, height: chapterButtonSize)
                                         .liquidGlassCircle(isInteractive: true)
                                 }
+                                .buttonStyle(.plain)
                                 .disabled(player.currentChapterIndex == (player.chapters.count - 1))
                                 .opacity((player.currentChapterIndex == (player.chapters.count - 1)) ? 0.35 : 1.0)
                                 .accessibilityLabel("Next Chapter")
@@ -385,6 +390,7 @@ public struct FullPlayerView: View {
                                     .frame(width: transportButtonSize, height: transportButtonSize)
                                     .liquidGlassCircle(isInteractive: true)
                             }
+                            .buttonStyle(.plain)
                             .accessibilityLabel("Skip backward \(Int(skipBackwardInterval)) seconds")
                             
                             // Play / Pause Toggle
@@ -396,6 +402,7 @@ public struct FullPlayerView: View {
                                     .foregroundStyle(Color.accentColor)
                                     .shadow(color: Color.accentColor.opacity(0.35), radius: 14, x: 0, y: 6)
                             }
+                            .buttonStyle(.plain)
                             .accessibilityLabel(player.isPlaying ? "Pause" : "Play")
                             
                             // Skip Forward
@@ -408,6 +415,7 @@ public struct FullPlayerView: View {
                                     .frame(width: transportButtonSize, height: transportButtonSize)
                                     .liquidGlassCircle(isInteractive: true)
                             }
+                            .buttonStyle(.plain)
                             .accessibilityLabel("Skip forward \(Int(skipForwardInterval)) seconds")
                         }
                         .padding(.vertical, 8)
@@ -439,6 +447,7 @@ public struct FullPlayerView: View {
                                 .liquidGlassCapsule(tint: player.activeSleepTimerOption == .off ? nil : Color.accentColor, isInteractive: true)
                                 .foregroundStyle(player.activeSleepTimerOption == .off ? Color.primary : Color.accentColor)
                             }
+                            .buttonStyle(.plain)
                             .accessibilityLabel("Sleep Timer")
                             .accessibilityValue(player.activeSleepTimerOption == .off ? "Off" : "\(TimeFormatting.formatTimestamp(player.sleepTimerRemaining ?? 0)) remaining")
                             
@@ -464,6 +473,7 @@ public struct FullPlayerView: View {
                                     }
                                 }
                             }
+                            .buttonStyle(.plain)
                             .accessibilityLabel(player.chapters.isEmpty ? "Chapters and Bookmarks" : "Chapters (\(player.chapters.count))")
                         }
                         .padding(.horizontal, 28)
