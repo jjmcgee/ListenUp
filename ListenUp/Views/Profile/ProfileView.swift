@@ -6,7 +6,7 @@ import UIKit
 
 /// Listener Profile and Statistics screen for ListenUp.
 /// Displays listening streaks, aggregate time listened, completed audiobooks,
-/// achievement milestones, and storage breakdown, styled with the Liquid Glass design system.
+/// achievement milestones, completed listening history, and cloud backup, styled with the Liquid Glass design system.
 public struct ProfileView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.scenePhase) private var scenePhase
@@ -51,9 +51,6 @@ public struct ProfileView: View {
                     
                     // MARK: - Listening History Backup Card
                     backupHistoryCard
-                    
-                    // MARK: - Library & Storage Summary
-                    storageSummaryCard
                     
                     // Bottom Spacer for Floating Nav Bar clearance
                     Color.clear
@@ -261,9 +258,7 @@ public struct ProfileView: View {
     
     private var monthlyStatsView: some View {
         let comparison = statsStore.monthlyComparison(from: allItems)
-        let prevHours = comparison.previousMonthHours
-        let currHours = comparison.currentMonthHours
-        let maxHours = max(prevHours, currHours, 2.0)
+        let maxHours = max(comparison.months.map(\.hours).max() ?? 0.0, 2.0)
         
         return VStack(spacing: 16) {
             // Chart Area with Y-axis scale and grid lines
@@ -292,21 +287,17 @@ public struct ProfileView: View {
                     }
                     .frame(height: 110)
                     
-                    // The Two Bars: Previous Month and Current Month
-                    HStack(spacing: 40) {
-                        monthBarColumn(
-                            monthName: comparison.previousMonthName,
-                            hours: prevHours,
-                            maxHours: maxHours,
-                            isCurrentMonth: false
-                        )
-                        
-                        monthBarColumn(
-                            monthName: comparison.currentMonthName,
-                            hours: currHours,
-                            maxHours: maxHours,
-                            isCurrentMonth: true
-                        )
+                    // The 4 Month Bars: Previous 3 Months and Current Month
+                    HStack(alignment: .bottom, spacing: 0) {
+                        ForEach(comparison.months) { month in
+                            monthBarColumn(
+                                monthName: month.monthName,
+                                hours: month.hours,
+                                maxHours: maxHours,
+                                isCurrentMonth: month.isCurrentMonth
+                            )
+                            .frame(maxWidth: .infinity)
+                        }
                     }
                     .frame(maxWidth: .infinity)
                 }
@@ -334,8 +325,10 @@ public struct ProfileView: View {
         return VStack(spacing: 6) {
             // Value above bar
             Text(String(format: "%.1fh", hours))
-                .font(.system(size: 12, weight: .bold, design: .rounded))
+                .font(.system(size: 11, weight: .bold, design: .rounded))
                 .foregroundStyle(isCurrentMonth ? Color.accentColor : Color.secondary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
             
             // Bar
             RoundedRectangle(cornerRadius: 8)
@@ -352,7 +345,7 @@ public struct ProfileView: View {
                         endPoint: .bottom
                     )
                 )
-                .frame(width: 48, height: barHeight)
+                .frame(width: 38, height: barHeight)
                 .shadow(
                     color: isCurrentMonth ? Color.accentColor.opacity(0.3) : Color.clear,
                     radius: 6,
@@ -361,9 +354,12 @@ public struct ProfileView: View {
             
             // X-Axis Month Label
             Text(monthName)
-                .font(.system(size: 13, weight: isCurrentMonth ? .bold : .medium))
+                .font(.system(size: 12, weight: isCurrentMonth ? .bold : .medium))
                 .foregroundStyle(isCurrentMonth ? Color.primary : Color.secondary)
+                .lineLimit(1)
         }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(monthName): \(String(format: "%.1f", hours)) hours\(isCurrentMonth ? ", current month" : "")")
     }
     
     private func monthlyComparisonPill(comparison: ListeningStatsStore.MonthlyComparison) -> some View {
@@ -612,7 +608,7 @@ public struct ProfileView: View {
     
     private var historyItems: [LibraryItem] {
         allItems.filter { item in
-            item.kind != .folder && item.parent?.kind != .multiPart && (item.isCompleted || item.currentPosition > 0)
+            item.kind != .folder && item.parent?.kind != .multiPart && item.isCompleted
         }
         .sorted {
             let date0 = $0.completedDate ?? $0.lastUpdated
@@ -652,7 +648,7 @@ public struct ProfileView: View {
                             .font(.system(size: 22))
                             .foregroundStyle(Color.secondary.opacity(0.6))
                         
-                        Text("No listening history yet. Start listening to an audiobook to build your history!")
+                        Text("No completed audiobooks yet. Finished audiobooks will appear here in your listening history!")
                             .font(.caption)
                             .foregroundStyle(Color.secondary)
                     }
@@ -696,15 +692,14 @@ public struct ProfileView: View {
                     }
                     
                     HStack(spacing: 6) {
-                        if item.isCompleted, let formattedDate = item.formattedCompletedDate {
+                        if let formattedDate = item.formattedCompletedDate {
                             Text(formattedDate)
                                 .font(.system(size: 10))
                                 .foregroundStyle(Color.green)
-                        } else if item.totalDuration > 0 {
-                            let percent = Int(item.progress * 100)
-                            Text("\(percent)% listened")
+                        } else {
+                            Text("Completed")
                                 .font(.system(size: 10))
-                                .foregroundStyle(Color.accentColor)
+                                .foregroundStyle(Color.green)
                         }
                         
                         if item.totalDuration > 0 {
@@ -739,7 +734,7 @@ public struct ProfileView: View {
                             .padding(.vertical, 2)
                             .background(Color.blue.opacity(0.12))
                             .clipShape(Capsule())
-                    } else if item.isCompleted {
+                    } else {
                         Image(systemName: "checkmark.circle.fill")
                             .font(.system(size: 16))
                             .foregroundStyle(.green)
@@ -800,39 +795,6 @@ public struct ProfileView: View {
             }
         }
         .buttonStyle(.plain)
-    }
-    
-    // MARK: - Storage Summary Card
-    
-    private var storageSummaryCard: some View {
-        LiquidGlassCard(cornerRadius: 18) {
-            HStack(spacing: 14) {
-                Image(systemName: "internaldrive.fill")
-                    .font(.system(size: 24))
-                    .foregroundStyle(Color.accentColor)
-                    .frame(width: 44, height: 44)
-                    .liquidGlassCircle(tint: .accentColor)
-                
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Library Storage")
-                        .font(.subheadline.weight(.semibold))
-                    let localCount = allItems.filter { $0.parent == nil && !$0.isDeletedFromLibrary && !$0.isFileOffloaded }.count
-                    let offloadedCount = allItems.filter { $0.isFileOffloaded }.count
-                    if offloadedCount > 0 {
-                        Text("\(localCount) audiobooks on device • \(offloadedCount) offloaded.")
-                            .font(.caption)
-                            .foregroundStyle(Color.secondary)
-                    } else {
-                        Text("\(localCount) audiobooks kept locally in device sandbox.")
-                            .font(.caption)
-                            .foregroundStyle(Color.secondary)
-                    }
-                }
-                
-                Spacer()
-            }
-            .padding(14)
-        }
     }
     
     // MARK: - Computed Properties

@@ -376,6 +376,13 @@ struct ListenUpTests {
         
         let inProgressCount = items.filter { $0.parent == nil && !$0.isCompleted && $0.currentPosition > 0 }.count
         #expect(inProgressCount == 1)
+        
+        // Profile listening history list strictly includes completed books and excludes currently playing / in-progress books
+        let profileHistoryItems = items.filter { item in
+            item.kind != .folder && item.parent?.kind != .multiPart && item.isCompleted
+        }
+        #expect(profileHistoryItems.count == 1)
+        #expect(profileHistoryItems.first?.title == "Deep Work")
     }
     
     @Test("ListeningStatsStore correctly breaks down total seconds into months, days, hours, and minutes")
@@ -419,6 +426,64 @@ struct ListenUpTests {
         #expect(monthly.currentMonthHours == 1.5)
         #expect(monthly.previousMonthHours == 3.0)
         #expect(monthly.hoursDelta == -1.5)
+        #expect(monthly.months.count == 4)
+        #expect(monthly.months.last?.isCurrentMonth == true)
+        
+        store.resetRecords()
+    }
+    
+    @Test("ListeningStatsStore computes stats for current month and previous 3 months")
+    @MainActor
+    func testMonthlyStatsIncludesCurrentMonthAndPreviousThreeMonths() {
+        let store = ListeningStatsStore()
+        store.resetRecords()
+        
+        let now = Date()
+        let calendar = Calendar.current
+        let startOfCurrentMonth = calendar.dateInterval(of: .month, for: now)?.start ?? now
+        
+        guard let oneMonthAgo = calendar.date(byAdding: .month, value: -1, to: startOfCurrentMonth),
+              let twoMonthsAgo = calendar.date(byAdding: .month, value: -2, to: startOfCurrentMonth),
+              let threeMonthsAgo = calendar.date(byAdding: .month, value: -3, to: startOfCurrentMonth) else {
+            return
+        }
+        
+        // Record:
+        // 3 months ago: 2.0 hours (7200s)
+        // 2 months ago: 4.0 hours (14400s)
+        // 1 month ago: 6.0 hours (21600s)
+        // Current month: 8.0 hours (28800s)
+        store.recordListening(seconds: 7200.0, on: threeMonthsAgo)
+        store.recordListening(seconds: 14400.0, on: twoMonthsAgo)
+        store.recordListening(seconds: 21600.0, on: oneMonthAgo)
+        store.recordListening(seconds: 28800.0, on: now)
+        
+        let monthly = store.monthlyComparison()
+        #expect(monthly.months.count == 4)
+        
+        // Index 0: 3 months ago
+        #expect(monthly.months[0].hours == 2.0)
+        #expect(monthly.months[0].isCurrentMonth == false)
+        
+        // Index 1: 2 months ago
+        #expect(monthly.months[1].hours == 4.0)
+        #expect(monthly.months[1].isCurrentMonth == false)
+        
+        // Index 2: 1 month ago (previous month)
+        #expect(monthly.months[2].hours == 6.0)
+        #expect(monthly.months[2].isCurrentMonth == false)
+        
+        // Index 3: Current month
+        #expect(monthly.months[3].hours == 8.0)
+        #expect(monthly.months[3].isCurrentMonth == true)
+        
+        // Comparison summary properties (current vs previous month)
+        #expect(monthly.previousMonthHours == 6.0)
+        #expect(monthly.currentMonthHours == 8.0)
+        #expect(monthly.hoursDelta == 2.0)
+        if let pct = monthly.percentageChange {
+            #expect(abs(pct - 33.33) < 0.1)
+        }
         
         store.resetRecords()
     }
@@ -639,11 +704,11 @@ struct ListenUpTests {
         let completedCount = activeItems.filter { $0.kind != .folder && $0.parent?.kind != .multiPart && $0.isCompleted }.count
         #expect(completedCount == 1) // 1984 still counts as completed!
         
-        // History items query in ProfileView
+        // History items query in ProfileView (strictly completed books)
         let historyItems = activeItems.filter { item in
-            item.kind != .folder && item.parent?.kind != .multiPart && (item.isCompleted || item.currentPosition > 0)
+            item.kind != .folder && item.parent?.kind != .multiPart && item.isCompleted
         }
-        #expect(historyItems.count == 2)
+        #expect(historyItems.count == 1)
         #expect(historyItems.contains(where: { $0.title == "1984" && $0.isDeletedFromLibrary == true }))
     }
     

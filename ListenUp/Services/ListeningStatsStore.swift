@@ -8,7 +8,7 @@ import UIKit
 ///
 /// Tracks listening seconds per day and calculates metrics for Audible-style Listening Stats:
 /// - **Today**: Hours and minutes listened today (spans exactly 1 calendar day, resetting to 0 at 00:00).
-/// - **Monthly**: Listening hours for previous calendar month and current calendar month.
+/// - **Monthly**: Listening hours across recent calendar months (current month and previous 3 months).
 /// - **Total**: Complete listening time broken down into Months, Days, Hours, and Minutes.
 @Observable
 @MainActor
@@ -293,13 +293,49 @@ public final class ListeningStatsStore {
         )
     }
     
-    // MARK: - Monthly Stats (Previous Month & Current Month)
+    // MARK: - Monthly Stats (Recent Months & Comparison)
+    
+    /// Listening statistics for a single calendar month.
+    public struct MonthStat: Identifiable, Equatable, Sendable {
+        public var id: String { monthKey }
+        public let monthKey: String
+        public let monthName: String
+        public let hours: Double
+        public let isCurrentMonth: Bool
+        
+        public init(
+            monthKey: String,
+            monthName: String,
+            hours: Double,
+            isCurrentMonth: Bool
+        ) {
+            self.monthKey = monthKey
+            self.monthName = monthName
+            self.hours = hours
+            self.isCurrentMonth = isCurrentMonth
+        }
+    }
     
     public struct MonthlyComparison: Equatable, Sendable {
         public let previousMonthName: String
         public let currentMonthName: String
         public let previousMonthHours: Double
         public let currentMonthHours: Double
+        public let months: [MonthStat]
+        
+        public init(
+            previousMonthName: String,
+            currentMonthName: String,
+            previousMonthHours: Double,
+            currentMonthHours: Double,
+            months: [MonthStat] = []
+        ) {
+            self.previousMonthName = previousMonthName
+            self.currentMonthName = currentMonthName
+            self.previousMonthHours = previousMonthHours
+            self.currentMonthHours = currentMonthHours
+            self.months = months
+        }
         
         public var hoursDelta: Double {
             currentMonthHours - previousMonthHours
@@ -311,50 +347,92 @@ public final class ListeningStatsStore {
         }
     }
     
-    /// Computes listening hours for the previous calendar month and the current calendar month.
-    public func monthlyComparison(from items: [LibraryItem] = []) -> MonthlyComparison {
+    /// Computes listening hours for recent calendar months (default: 4 months = previous 3 + current month).
+    public func monthlyComparison(monthsCount: Int = 4, from items: [LibraryItem] = []) -> MonthlyComparison {
         _ = currentDayKey
         let calendar = Calendar.autoupdatingCurrent
         let now = Date()
+        let startOfCurrentMonth = calendar.dateInterval(of: .month, for: now)?.start ?? now
+        let count = max(1, monthsCount)
         
-        let currentMonthKey = monthKeyFormatter.string(from: now)
-        let currentMonthName = monthDisplayFormatter.string(from: now)
-        
-        let prevDate = calendar.date(byAdding: .month, value: -1, to: now) ?? now
-        let prevMonthKey = monthKeyFormatter.string(from: prevDate)
-        let prevMonthName = monthDisplayFormatter.string(from: prevDate)
-        
-        var currentMonthSeconds: Double = 0.0
-        var prevMonthSeconds: Double = 0.0
-        
-        for (dayKey, seconds) in dailyRecords {
-            if dayKey.hasPrefix(currentMonthKey) {
-                currentMonthSeconds += seconds
-            } else if dayKey.hasPrefix(prevMonthKey) {
-                prevMonthSeconds += seconds
-            }
+        struct MonthTarget {
+            let date: Date
+            let key: String
+            let name: String
+            let isCurrent: Bool
         }
         
-        // Fallback from LibraryItem timestamps if daily records are empty
-        if currentMonthSeconds == 0.0 && prevMonthSeconds == 0.0 && !items.isEmpty {
-            for item in items {
-                let checkDate = item.completedDate ?? item.lastUpdated
-                if calendar.isDate(checkDate, equalTo: now, toGranularity: .month) {
-                    currentMonthSeconds += min(item.currentPosition, 3600.0 * 20)
-                } else if calendar.isDate(checkDate, equalTo: prevDate, toGranularity: .month) {
-                    prevMonthSeconds += min(item.currentPosition, 3600.0 * 20)
+        var targets: [MonthTarget] = []
+        for offset in (0..<count).reversed() {
+            let targetDate = calendar.date(byAdding: .month, value: -offset, to: startOfCurrentMonth) ?? now
+            let key = monthKeyFormatter.string(from: targetDate)
+            let name = monthDisplayFormatter.string(from: targetDate)
+            targets.append(MonthTarget(
+                date: targetDate,
+                key: key,
+                name: name,
+                isCurrent: (offset == 0)
+            ))
+        }
+        
+        var secondsByMonthKey: [String: Double] = [:]
+        for target in targets {
+            secondsByMonthKey[target.key] = 0.0
+        }
+        
+        for (dayKey, seconds) in dailyRecords {
+            for target in targets {
+                if dayKey.hasPrefix(target.key) {
+                    secondsByMonthKey[target.key, default: 0.0] += seconds
+                    break
                 }
             }
         }
         
-        let currentHours = currentMonthSeconds / 3600.0
-        let prevHours = prevMonthSeconds / 3600.0
+        // Fallback from LibraryItem timestamps if daily records have no data for these months
+        let totalSeconds = secondsByMonthKey.values.reduce(0.0, +)
+        if totalSeconds == 0.0 && !items.isEmpty {
+            for item in items {
+                let checkDate = item.completedDate ?? item.lastUpdated
+                for target in targets {
+                    if calendar.isDate(checkDate, equalTo: target.date, toGranularity: .month) {
+                        secondsByMonthKey[target.key, default: 0.0] += min(item.currentPosition, 3600.0 * 20)
+                        break
+                    }
+                }
+            }
+        }
+        
+        let stats: [MonthStat] = targets.map { target in
+            let seconds = secondsByMonthKey[target.key] ?? 0.0
+            return MonthStat(
+                monthKey: target.key,
+                monthName: target.name,
+                hours: seconds / 3600.0,
+                isCurrentMonth: target.isCurrent
+            )
+        }
+        
+        let currentStat = stats.last ?? MonthStat(
+            monthKey: monthKeyFormatter.string(from: now),
+            monthName: monthDisplayFormatter.string(from: now),
+            hours: 0.0,
+            isCurrentMonth: true
+        )
+        
+        let prevStat = stats.count >= 2 ? stats[stats.count - 2] : MonthStat(
+            monthKey: "",
+            monthName: "",
+            hours: 0.0,
+            isCurrentMonth: false
+        )
         
         return MonthlyComparison(
-            previousMonthName: prevMonthName,
-            currentMonthName: currentMonthName,
-            previousMonthHours: prevHours,
-            currentMonthHours: currentHours
+            previousMonthName: prevStat.monthName,
+            currentMonthName: currentStat.monthName,
+            previousMonthHours: prevStat.hours,
+            currentMonthHours: currentStat.hours,
+            months: stats
         )
     }
     
